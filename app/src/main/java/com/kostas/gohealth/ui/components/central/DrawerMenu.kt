@@ -1,5 +1,8 @@
 package com.kostas.gohealth.ui.components.central
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,10 +24,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +38,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.kostas.gohealth.R
 import com.kostas.gohealth.helpers.calculateCaloriesGoal
 import com.kostas.gohealth.helpers.calculatePushUpsGoal
@@ -66,14 +70,30 @@ fun DrawerMenu() {
     val userCharacteristicsList by characteristicsViewModel.characteristics.collectAsState()
     val userCharacteristics = userCharacteristicsList.firstOrNull()
 
-    // drawerState is used to handle the opening and closing of the menu, scope is for the opening and closing animation, whenever the value
-    // of currentScreen changes, Compose automatically reruns every line in this code that has currentScreen in it. Because this is the
+    // drawerState is used to handle the opening and closing of the menu, scope is for the opening and closing animation. Because this is the
     // central screen, this is where the main focus manager goes
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var currentScreen by rememberSaveable { mutableStateOf("Home") } // When the app opens, this is the screen that shows up
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
+
+    // NavController is used for navigating between the screens
+    val navController = rememberNavController()
+    val navBackStackEntry = navController.currentBackStackEntryAsState().value
+    val currentScreen = navBackStackEntry?.destination?.route ?: "Home"
+
+    // Helper function for navigating from the drawer to specific screens
+    val navigateToScreen = { screen: String ->
+        // Only navigate if the selected screen is different from the current one
+        if (currentScreen != screen) {
+            navController.navigate(screen) {
+                launchSingleTop = true // Avoids multiple copies of the same destination
+                restoreState = true // Restores state when re-selecting a previously selected item
+            }
+        }
+
+        scope.launch { drawerState.close() }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -115,112 +135,114 @@ fun DrawerMenu() {
                         appIcon = R.drawable.home,
                         title = "Home",
                         currentScreen = currentScreen,
-                        onItemClick = { selectedTitle ->
-                            currentScreen = selectedTitle
-                            scope.launch { drawerState.close() }
-                        }
+                        onItemClick = { navigateToScreen("Home") }
                     )
 
                     DrawerMenuItem(
                         appIcon = R.drawable.water,
                         title = "Water",
                         currentScreen = currentScreen,
-                        onItemClick = { selectedTitle ->
-                            currentScreen = selectedTitle
-                            scope.launch { drawerState.close() }
-                        }
+                        onItemClick = { navigateToScreen("Water") }
                     )
 
                     DrawerMenuItem(
                         appIcon = R.drawable.calories,
                         title = "Calories",
                         currentScreen = currentScreen,
-                        onItemClick = { selectedTitle ->
-                            currentScreen = selectedTitle
-                            scope.launch { drawerState.close() }
-                        }
+                        onItemClick = { navigateToScreen("Calories") }
                     )
 
                     DrawerMenuItem(
                         appIcon = R.drawable.push_ups,
                         title = "Push-ups",
                         currentScreen = currentScreen,
-                        onItemClick = { selectedTitle ->
-                            currentScreen = selectedTitle
-                            scope.launch { drawerState.close() }
-                        }
+                        onItemClick = { navigateToScreen("Push-ups") }
                     )
 
                     DrawerMenuItem(
                         appIcon = R.drawable.steps,
                         title = "Steps",
                         currentScreen = currentScreen,
-                        onItemClick = { selectedTitle ->
-                            currentScreen = selectedTitle
-                            scope.launch { drawerState.close() }
-                        }
+                        onItemClick = { navigateToScreen("Steps") }
                     )
 
                     DrawerMenuItem(
                         appIcon = R.drawable.profile,
                         title = "Profile",
                         currentScreen = currentScreen,
-                        onItemClick = { selectedTitle ->
-                            currentScreen = selectedTitle
-                            scope.launch { drawerState.close() }
-                        }
+                        onItemClick = { navigateToScreen("Profile") }
                     )
 
                     DrawerMenuItem(
                         appIcon = R.drawable.leaderboards,
                         title = "Leaderboards",
                         currentScreen = currentScreen,
-                        onItemClick = { selectedTitle ->
-                            currentScreen = selectedTitle
-                            scope.launch { drawerState.close() }
-                        }
+                        onItemClick = { navigateToScreen("Leaderboards") }
                     )
                 }
             }
         }
     ) {
         Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() })},
-
-        topBar = {
-            TopBar(
-                title = currentScreen,
-                onMenuClick = {
-                    focusManager.clearFocus() // To close the keyboard, if the user is typing when clicking the button
-                    scope.launch { drawerState.open() }
-                },
-
-                onLogoClick = {
-                    focusManager.clearFocus()
-                    currentScreen = "Home"
-                }
-            )
-        }) { innerPadding ->
-            Box(modifier = Modifier
-                .padding(innerPadding)
+            modifier = Modifier
                 .fillMaxSize()
-            ) {
-                when (currentScreen) {
-                    // onNavigate is a function that can change the current screen inside the home screen
-                    "Home" -> HomeScreen(
-                        onNavigate = { destinationScreen ->
-                            currentScreen = destinationScreen
-                        }
-                    )
+                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() })},
 
-                    "Water" -> CategoriesScreen("Water", R.drawable.water, Color(0xFF2196F3), userTrackings?.waterProgress?.sum() ?: 0, calculateWaterGoal(userCharacteristics), "mL")
-                    "Calories" -> CategoriesScreen("Calories", R.drawable.calories, Color(0xFF8B4513), userTrackings?.caloriesProgress?.sum() ?: 0, calculateCaloriesGoal(userCharacteristics), "kcal")
-                    "Push-ups" -> CategoriesScreen("Push-ups", R.drawable.push_ups, Color.Black, userTrackings?.pushUpsProgress?.sum() ?: 0, calculatePushUpsGoal(userCharacteristics), "reps")
-                    "Steps" -> StepsScreen(userTrackings?.stepsProgress ?: 0, calculateStepsGoal(userCharacteristics))
-                    "Profile" -> ProfileScreen()
-                    "Leaderboards" -> LeaderboardsScreen()
+            topBar = {
+                TopBar(
+                    title = currentScreen,
+                    onMenuClick = {
+                        focusManager.clearFocus() // To close the keyboard, if the user is typing when clicking the button
+                        scope.launch { drawerState.open() }
+                    },
+
+                    onLogoClick = {
+                        focusManager.clearFocus()
+                        navigateToScreen("Home")
+                    }
+                )
+            }
+        ) { innerPadding ->
+            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                NavHost(
+                    navController = navController,
+                    startDestination = "Home",
+                    enterTransition = { fadeIn(animationSpec = tween(0)) },
+                    exitTransition = { fadeOut(animationSpec = tween(0)) },
+                    popEnterTransition = { fadeIn(animationSpec = tween(0)) },
+                    popExitTransition = { fadeOut(animationSpec = tween(0)) }
+                ) {
+                    composable("Home") {
+                        HomeScreen(
+                            onNavigate = { destinationScreen ->
+                                navController.navigate(destinationScreen)
+                            }
+                        )
+                    }
+
+                    composable("Water") {
+                        CategoriesScreen("Water", R.drawable.water, Color(0xFF2196F3), userTrackings?.waterProgress?.sum() ?: 0, calculateWaterGoal(userCharacteristics), "mL")
+                    }
+
+                    composable("Calories") {
+                        CategoriesScreen("Calories", R.drawable.calories, Color(0xFF8B4513), userTrackings?.caloriesProgress?.sum() ?: 0, calculateCaloriesGoal(userCharacteristics), "kcal")
+                    }
+
+                    composable("Push-ups") {
+                        CategoriesScreen("Push-ups", R.drawable.push_ups, Color.Black, userTrackings?.pushUpsProgress?.sum() ?: 0, calculatePushUpsGoal(userCharacteristics), "reps")
+                    }
+
+                    composable("Steps") {
+                        StepsScreen(userTrackings?.stepsProgress ?: 0, calculateStepsGoal(userCharacteristics))
+                    }
+
+                    composable("Profile") {
+                        ProfileScreen()
+                    }
+
+                    composable("Leaderboards") {
+                        LeaderboardsScreen()
+                    }
                 }
             }
         }
