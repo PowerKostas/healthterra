@@ -33,7 +33,7 @@ class NotificationWorker(context: Context, params: WorkerParameters) : Coroutine
         }
 
         if (LocalTime.now() >= LocalTime.of(12, 0) && userTrackings.pushUpsProgress.sum() < calculatePushUpsGoal(userCharacteristics)) {
-                sendNotification()
+            sendNotification()
         }
 
         return Result.success()

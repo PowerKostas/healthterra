@@ -36,7 +36,9 @@ fun NumberTextField(
                 if (isValid) {
                     if (newValue == ".") {
                         onValueChange(newValue)
-                    } else {
+                    }
+
+                    else {
                         if (newValue.toFloat() in 0f..maxValue) {
                             onValueChange(newValue)
                         }
