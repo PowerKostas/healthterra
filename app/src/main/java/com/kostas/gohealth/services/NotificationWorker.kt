@@ -11,18 +11,18 @@ import androidx.work.WorkerParameters
 import com.kostas.gohealth.MainActivity
 import com.kostas.gohealth.R
 import com.kostas.gohealth.data.DatabaseProvider
-import com.kostas.gohealth.helpers.calculatePushUpsGoal
+import com.kostas.gohealth.helpers.calculateExerciseGoal
 import kotlinx.coroutines.flow.first
 import java.time.LocalTime
 
 private const val CHANNEL_ID = "periodic_channel"
 private val uniqueNotificationId = System.currentTimeMillis().toInt()
 
-private val randomTitles = arrayOf("Daily Progress", "Push-ups Goal", "Push-ups Break", "Push-ups Reminder", "New Session")
-private val randomTexts = arrayOf("Time for your push-up set ⏰", "Stay on track with a quick set of reps \uD83D\uDCAA", "A short set of push-ups will maintain your momentum ⚡", "Ready for your next set?", "Your future self will thank you!")
+private val randomTitles = arrayOf("Daily Exercise Progress", "Exercise Goal", "Exercise Break", "Exercise Reminder", "New Exercise Session")
+private val randomTexts = arrayOf("Time for your exercise set ⏰", "Stay on track with a quick set of reps \uD83D\uDCAA", "A short set of exercises will help maintain your momentum ⚡", "Ready for your next set?", "Your future self will thank you!")
 
 class NotificationWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
-    // Only sends notifications between 12pm and 12am and only if the user hasn't completed the push-ups goal
+    // Only sends notifications between 12pm and 12am and only if the user hasn't completed the exercise goal
     override suspend fun doWork(): Result {
         val database = DatabaseProvider.getDatabase(applicationContext)
         val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
@@ -32,7 +32,7 @@ class NotificationWorker(context: Context, params: WorkerParameters) : Coroutine
             return Result.success()
         }
 
-        if (LocalTime.now() >= LocalTime.of(12, 0) && userTrackings.pushUpsProgress.sum() < calculatePushUpsGoal(userCharacteristics)) {
+        if (LocalTime.now() >= LocalTime.of(12, 0) && userTrackings.exerciseProgress.sum() < calculateExerciseGoal(userCharacteristics)) {
             sendNotification()
         }
 

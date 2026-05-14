@@ -10,7 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.kostas.gohealth.data.DatabaseProvider
 import com.kostas.gohealth.helpers.calculateCaloriesGoal
-import com.kostas.gohealth.helpers.calculatePushUpsGoal
+import com.kostas.gohealth.helpers.calculateExerciseGoal
 import com.kostas.gohealth.helpers.calculateStepsGoal
 import com.kostas.gohealth.helpers.calculateWaterGoal
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 // If it's a new day, it resets the trackings and settings tables. Also, the remote Firestore database is updated with the users' needed
-// details and with the incremented total water, calories, push-ups, steps goals completed and the total steps. If there is no network, the
+// details and with the incremented total water, calories, exercise, steps goals completed and the total steps. If there is no network, the
 // data goes in Firebase's cache, and it will eventually update the database when a connection is back up, usually when the user reopens
 // the app. It also resets the trackings and settings table
 class DailyMaintenanceWorker(appContext: Context, workerParams: WorkerParameters) : CoroutineWorker(appContext, workerParams) {
@@ -47,7 +47,7 @@ class DailyMaintenanceWorker(appContext: Context, workerParams: WorkerParameters
                 val updateUserTrackings = userTrackings.copy(
                     waterProgress = emptyList(),
                     caloriesProgress = emptyList(),
-                    pushUpsProgress = emptyList(),
+                    exerciseProgress = emptyList(),
                     stepsProgress = 0
                 )
 
@@ -58,12 +58,12 @@ class DailyMaintenanceWorker(appContext: Context, workerParams: WorkerParameters
 
                 val waterGoal = calculateWaterGoal(userCharacteristics)
                 val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
-                val pushUpsGoal = calculatePushUpsGoal(userCharacteristics)
+                val exerciseGoal = calculateExerciseGoal(userCharacteristics)
                 val stepsGoal = calculateStepsGoal(userCharacteristics)
 
                 val waterGoalCompleted = if (userTrackings.waterProgress.sum() >= waterGoal) 1L else 0L
                 val caloriesGoalCompleted = if (userTrackings.caloriesProgress.sum() >= caloriesGoal) 1L else 0L
-                val pushUpsGoalCompleted = if (userTrackings.pushUpsProgress.sum() >= pushUpsGoal) 1L else 0L
+                val exerciseGoalCompleted = if (userTrackings.exerciseProgress.sum() >= exerciseGoal) 1L else 0L
                 val stepsGoalCompleted = if (userTrackings.stepsProgress >= stepsGoal) 1L else 0L
                 val totalSteps = userTrackings.stepsProgress
 
@@ -72,7 +72,7 @@ class DailyMaintenanceWorker(appContext: Context, workerParams: WorkerParameters
                     "profilePictureString" to userSettings.profilePictureString,
                     "waterGoalsCompleted" to FieldValue.increment(waterGoalCompleted),
                     "caloriesGoalsCompleted" to FieldValue.increment(caloriesGoalCompleted),
-                    "pushUpsGoalsCompleted" to FieldValue.increment(pushUpsGoalCompleted),
+                    "exerciseGoalsCompleted" to FieldValue.increment(exerciseGoalCompleted),
                     "stepsGoalsCompleted" to FieldValue.increment(stepsGoalCompleted),
                     "totalSteps" to FieldValue.increment(totalSteps.toLong())
                 )

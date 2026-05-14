@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kostas.gohealth.ui.components.general.ActionButton
@@ -30,9 +31,9 @@ import com.kostas.gohealth.ui.components.general.ProgressBar
 import com.kostas.gohealth.ui.components.screen.CustomAlertDialog
 import com.kostas.gohealth.ui.viewModels.TrackingsViewModel
 
-// Water, calories and push-ups screen
+// Water, calories and exercise screen
 @Composable
-fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color, categoryProgress: Int, categoryGoal: Int, metric: String) {
+fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color, categoryProgress: Int, categoryGoal: Int, metric: String, buttonIconIds: List<Int>?, buttonTexts: List<String>) {
     val trackingsViewModel: TrackingsViewModel = viewModel(factory = TrackingsViewModel.Factory)
     val userTrackingsList by trackingsViewModel.trackings.collectAsState()
     val userTrackings = userTrackingsList.firstOrNull()
@@ -45,7 +46,7 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
             val updatedTrackings = when (categoryName) {
                 "Water" -> trackings.copy(waterProgress = trackings.waterProgress + amount)
                 "Calories" -> trackings.copy(caloriesProgress = trackings.caloriesProgress + amount)
-                "Push-ups" -> trackings.copy(pushUpsProgress = trackings.pushUpsProgress + amount)
+                "Exercise" -> trackings.copy(exerciseProgress = trackings.exerciseProgress + amount)
                 else -> throw IllegalStateException("Invalid Input")
             }
 
@@ -58,7 +59,7 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
             val updatedUser = when (categoryName) {
                 "Water" -> trackings.copy(waterProgress = trackings.waterProgress.dropLast(1))
                 "Calories" -> trackings.copy(caloriesProgress = trackings.caloriesProgress.dropLast(1))
-                "Push-ups" -> trackings.copy(pushUpsProgress = trackings.pushUpsProgress.dropLast(1))
+                "Exercise" -> trackings.copy(exerciseProgress = trackings.exerciseProgress.dropLast(1))
                 else -> throw IllegalStateException("Invalid Input")
             }
             trackingsViewModel.updateUserTrackings(updatedUser)
@@ -91,20 +92,35 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
 
             ProgressBar(20.dp, progressBarColour, categoryProgress.toFloat() / categoryGoal)
 
-            Text(text = "Add $metric to reach your goal!")
+            if (metric != "reps") {
+                Text(
+                    text = "Add $metric to reach your daily goal!",
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            else {
+                Text(
+                    text = "Add $metric of any exercise to reach your daily goal!",
+                    textAlign = TextAlign.Center
+                )
+            }
 
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     val modifier = Modifier.weight(1f)
-                    ActionButton(modifier, progressBarColour, "+1") { handleAddAmount(1) }
-                    ActionButton(modifier, progressBarColour, "+10") { handleAddAmount(10) }
-                    ActionButton(modifier, progressBarColour, "+100") { handleAddAmount(100) }
+
+                    // Uses regex to get 100 from "+100mL" or "+100"
+                    val regex = "(?<=\\+)\\d+".toRegex()
+                    ActionButton(modifier, progressBarColour, buttonIconIds?.get(0), buttonTexts[0]) { handleAddAmount(regex.find(buttonTexts[0])?.value?.toIntOrNull() ?: 0) }
+                    ActionButton(modifier, progressBarColour, buttonIconIds?.get(1), buttonTexts[1]) { handleAddAmount(regex.find(buttonTexts[1])?.value?.toIntOrNull() ?: 0) }
+                    ActionButton(modifier, progressBarColour, buttonIconIds?.get(2), buttonTexts[2]) { handleAddAmount(regex.find(buttonTexts[2])?.value?.toIntOrNull() ?: 0) }
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     val modifier = Modifier.weight(1f)
-                    ActionButton(modifier, progressBarColour, "Custom") { showCustomAlertDialog = true }
-                    ActionButton(modifier, Color(0xFFE53935), "Undo") { handleDeletePrevious() }
+                    ActionButton(modifier, progressBarColour, null, "Custom") { showCustomAlertDialog = true }
+                    ActionButton(modifier, Color(0xFFE53935), null, "Undo") { handleDeletePrevious() }
                 }
             }
         }

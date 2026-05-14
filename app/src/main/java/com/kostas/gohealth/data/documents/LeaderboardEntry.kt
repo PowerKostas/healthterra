@@ -7,7 +7,7 @@ data class LeaderboardEntry(
     val profilePictureString: String = "",
     val waterGoalsCompleted: Long = 0L,
     val caloriesGoalsCompleted: Long = 0L,
-    val pushUpsGoalsCompleted: Long = 0L,
+    val exerciseGoalsCompleted: Long = 0L,
     val stepsGoalsCompleted: Long = 0L,
     val totalSteps: Long = 0L
 )

@@ -1,6 +1,8 @@
 package com.kostas.gohealth.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +15,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,33 +31,33 @@ import com.google.firebase.firestore.firestore
 import com.kostas.gohealth.R
 import com.kostas.gohealth.data.documents.LeaderboardEntry
 import com.kostas.gohealth.ui.components.screen.LeaderboardBox
+import com.kostas.gohealth.ui.components.screen.LeaderboardDialog
 
 @Composable
-// Sets up listeners to the Firestore database to continuously fetch the single highest-scoring user and his details for
-// the water, calories, push-ups, and steps goals, doesn't work on the background, only when the screen is active
-fun getTopCategoryUser(category: String): State<LeaderboardEntry?> {
-    return produceState(initialValue = null, key1 = category) {
+// Sets up listeners in the Firestore database to continuously fetch the highest-scoring users and their details for
+// the water, calories, exercise, and steps goals, doesn't work on the background, only when the screen is active
+fun getCategoryTopUsers(category: String, limitCount: Long): State<List<LeaderboardEntry>> {
+    return produceState(initialValue = emptyList(), key1 = category) {
         val db = Firebase.firestore
 
         val listenerRegistration = db.collection("leaderboards")
             .orderBy(category, Query.Direction.DESCENDING)
-            .limit(1)
+            .limit(limitCount)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) {
+                if (error != null || snapshot == null) {
                     return@addSnapshotListener
                 }
 
-                if (snapshot != null && !snapshot.isEmpty) {
-                    val topUserDoc = snapshot.documents[0]
-                    value = LeaderboardEntry(
-                        userId = topUserDoc.id,
-                        username = topUserDoc.getString("username") ?: "",
-                        profilePictureString = topUserDoc.getString("profilePictureString") ?: "",
-                        waterGoalsCompleted = topUserDoc.getLong("waterGoalsCompleted") ?: 0L,
-                        caloriesGoalsCompleted = topUserDoc.getLong("caloriesGoalsCompleted") ?: 0L,
-                        pushUpsGoalsCompleted = topUserDoc.getLong("pushUpsGoalsCompleted") ?: 0L,
-                        stepsGoalsCompleted = topUserDoc.getLong("stepsGoalsCompleted") ?: 0L,
-                        totalSteps = topUserDoc.getLong("totalSteps") ?: 0L
+                value = snapshot.documents.mapNotNull { doc ->
+                    LeaderboardEntry(
+                        userId = doc.id,
+                        username = doc.getString("username") ?: "",
+                        profilePictureString = doc.getString("profilePictureString") ?: "",
+                        waterGoalsCompleted = doc.getLong("waterGoalsCompleted") ?: 0L,
+                        caloriesGoalsCompleted = doc.getLong("caloriesGoalsCompleted") ?: 0L,
+                        exerciseGoalsCompleted = doc.getLong("pushUpsGoalsCompleted") ?: 0L,
+                        stepsGoalsCompleted = doc.getLong("stepsGoalsCompleted") ?: 0L,
+                        totalSteps = doc.getLong("totalSteps") ?: 0L
                     )
                 }
             }
@@ -63,9 +68,9 @@ fun getTopCategoryUser(category: String): State<LeaderboardEntry?> {
     }
 }
 
-// Same job as getTopCategoryUser, but gets the actual user's data and not the top user's data for a specific category
+// Same job as getTopCategoryUser, but gets the actual user's data
 @Composable
-fun getUserListener(userId: String?): State<LeaderboardEntry?> {
+fun getCurrentUser(userId: String?): State<LeaderboardEntry?> {
     return produceState(initialValue = null, key1 = userId) {
         if (userId == null) {
             value = null
@@ -77,22 +82,20 @@ fun getUserListener(userId: String?): State<LeaderboardEntry?> {
         val listenerRegistration = db.collection("leaderboards")
             .document(userId)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) {
+                if (error != null || snapshot == null) {
                     return@addSnapshotListener
                 }
 
-                if (snapshot != null && snapshot.exists()) {
-                    value = LeaderboardEntry(
-                        userId = snapshot.id,
-                        username = snapshot.getString("username") ?: "",
-                        profilePictureString = snapshot.getString("profilePictureString") ?: "",
-                        waterGoalsCompleted = snapshot.getLong("waterGoalsCompleted") ?: 0L,
-                        caloriesGoalsCompleted = snapshot.getLong("caloriesGoalsCompleted") ?: 0L,
-                        pushUpsGoalsCompleted = snapshot.getLong("pushUpsGoalsCompleted") ?: 0L,
-                        stepsGoalsCompleted = snapshot.getLong("stepsGoalsCompleted") ?: 0L,
-                        totalSteps = snapshot.getLong("totalSteps") ?: 0L
-                    )
-                }
+                value = LeaderboardEntry(
+                    userId = snapshot.id,
+                    username = snapshot.getString("username") ?: "",
+                    profilePictureString = snapshot.getString("profilePictureString") ?: "",
+                    waterGoalsCompleted = snapshot.getLong("waterGoalsCompleted") ?: 0L,
+                    caloriesGoalsCompleted = snapshot.getLong("caloriesGoalsCompleted") ?: 0L,
+                    exerciseGoalsCompleted = snapshot.getLong("pushUpsGoalsCompleted") ?: 0L,
+                    stepsGoalsCompleted = snapshot.getLong("stepsGoalsCompleted") ?: 0L,
+                    totalSteps = snapshot.getLong("totalSteps") ?: 0L
+                )
             }
 
         awaitDispose {
@@ -101,17 +104,27 @@ fun getUserListener(userId: String?): State<LeaderboardEntry?> {
     }
 }
 
-
 @Composable
 fun LeaderboardsScreen() {
-    val topWaterUser by getTopCategoryUser("waterGoalsCompleted")
-    val topCaloriesUser by getTopCategoryUser("caloriesGoalsCompleted")
-    val topPushUpsUser by getTopCategoryUser("pushUpsGoalsCompleted")
-    val topStepsUser by getTopCategoryUser("stepsGoalsCompleted")
-    val topTotalStepsUser by getTopCategoryUser("totalSteps")
+    val waterLeaderboards by getCategoryTopUsers("waterGoalsCompleted", 100)
+    val caloriesLeaderboards by getCategoryTopUsers("caloriesGoalsCompleted", 100)
+    val exerciseLeaderboards by getCategoryTopUsers("pushUpsGoalsCompleted", 100)
+    val stepsLeaderboards by getCategoryTopUsers("stepsGoalsCompleted", 100)
+    val totalStepsLeaderboards by getCategoryTopUsers("totalSteps", 100)
+
+    val topWaterUser = waterLeaderboards.firstOrNull()
+    val topCaloriesUser = caloriesLeaderboards.firstOrNull()
+    val topExerciseUser = exerciseLeaderboards.firstOrNull()
+    val topStepsUser = stepsLeaderboards.firstOrNull()
+    val topTotalStepsUser = totalStepsLeaderboards.firstOrNull()
 
     val currentUserId = Firebase.auth.currentUser?.uid
-    val currentUser by getUserListener(currentUserId)
+    val currentUser by getCurrentUser(currentUserId)
+
+    // Tracks which LeaderboardDialog is currently open
+    var selectedLeaderboardDialog by remember {
+        mutableStateOf<String?>(null)
+    }
 
     val avatarMap = mapOf(
         "bear" to R.drawable.bear,
@@ -128,7 +141,7 @@ fun LeaderboardsScreen() {
         "sheep" to R.drawable.sheep
     )
 
-    if (topWaterUser != null && topCaloriesUser != null && topPushUpsUser != null && topStepsUser != null && topTotalStepsUser != null) { // Loading Screen
+    if (topWaterUser != null && topCaloriesUser != null && topExerciseUser != null && topStepsUser != null && topTotalStepsUser != null) { // Loading Screen
         // Draws the screen
         Column(modifier = Modifier.fillMaxSize()) {
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
@@ -152,25 +165,34 @@ fun LeaderboardsScreen() {
                         color = Color(0xFFD4AF37)
                     )
 
-                    topWaterUser?.let { user ->
+                    topWaterUser.let { user ->
                         // Checks if the current user is the top user, if he is, make his score null to know not to draw a specific component
+                        // Also makes the LeaderboardBox clickable, when clicked the LeaderboardDialog shows
                         val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.waterGoalsCompleted?.toString() ?: "0")
-                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.water, "Water", user.waterGoalsCompleted.toString(), currentUserScore)
+                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "waterGoalsCompleted" }) {
+                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.water, "Water", user.waterGoalsCompleted.toString(), currentUserScore)
+                        }
                     }
 
-                    topCaloriesUser?.let { user ->
+                    topCaloriesUser.let { user ->
                         val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.caloriesGoalsCompleted?.toString() ?: "0")
-                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.calories, "Calories", user.caloriesGoalsCompleted.toString(), currentUserScore)
+                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "caloriesGoalsCompleted" }) {
+                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.calories, "Calories", user.caloriesGoalsCompleted.toString(), currentUserScore)
+                        }
                     }
 
-                    topPushUpsUser?.let { user ->
-                        val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.pushUpsGoalsCompleted?.toString() ?: "0")
-                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.push_ups, "Push-ups", user.pushUpsGoalsCompleted.toString(), currentUserScore)
+                    topExerciseUser.let { user ->
+                        val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.exerciseGoalsCompleted?.toString() ?: "0")
+                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "pushUpsGoalsCompleted" }) {
+                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.exercise, "Exercise", user.exerciseGoalsCompleted.toString(), currentUserScore)
+                        }
                     }
 
-                    topStepsUser?.let { user ->
+                    topStepsUser.let { user ->
                         val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.stepsGoalsCompleted?.toString() ?: "0")
-                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.stepsGoalsCompleted.toString(), currentUserScore)
+                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "stepsGoalsCompleted" }) {
+                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.stepsGoalsCompleted.toString(), currentUserScore)
+                        }
                     }
                 }
 
@@ -185,12 +207,19 @@ fun LeaderboardsScreen() {
                         color = Color(0xFFD4AF37)
                     )
 
-                    topTotalStepsUser?.let { user ->
+                    topTotalStepsUser.let { user ->
                         val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.totalSteps?.toString() ?: "0")
-                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.totalSteps.toString(), currentUserScore)
+                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "totalSteps" }) {
+                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.totalSteps.toString(), currentUserScore)
+                        }
                     }
                 }
             }
+        }
+
+        // Show the LeaderboardDialog, if a category is clicked
+        selectedLeaderboardDialog?.let { categoryString ->
+            LeaderboardDialog(categoryString, avatarMap, onDismiss = { selectedLeaderboardDialog = null })
         }
     }
 }

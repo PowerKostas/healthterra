@@ -44,7 +44,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kostas.gohealth.R
 import com.kostas.gohealth.helpers.calculateCaloriesGoal
-import com.kostas.gohealth.helpers.calculatePushUpsGoal
+import com.kostas.gohealth.helpers.calculateExerciseGoal
 import com.kostas.gohealth.helpers.calculateStepsGoal
 import com.kostas.gohealth.helpers.calculateWaterGoal
 import com.kostas.gohealth.ui.screens.CategoriesScreen
@@ -153,10 +153,10 @@ fun DrawerMenu() {
                     )
 
                     DrawerMenuItem(
-                        appIcon = R.drawable.push_ups,
-                        title = "Push-ups",
+                        appIcon = R.drawable.exercise,
+                        title = "Exercise",
                         currentScreen = currentScreen,
-                        onItemClick = { navigateToScreen("Push-ups") }
+                        onItemClick = { navigateToScreen("Exercise") }
                     )
 
                     DrawerMenuItem(
@@ -221,15 +221,15 @@ fun DrawerMenu() {
                     }
 
                     composable("Water") {
-                        CategoriesScreen("Water", R.drawable.water, Color(0xFF2196F3), userTrackings?.waterProgress?.sum() ?: 0, calculateWaterGoal(userCharacteristics), "mL")
+                        CategoriesScreen("Water", R.drawable.water, Color(0xFF2196F3), userTrackings?.waterProgress?.sum() ?: 0, calculateWaterGoal(userCharacteristics), "mL", listOf(R.drawable.cup, R.drawable.water_bottle, R.drawable.large_water_bottle), listOf("+280mL", "+500mL", "+1000mL"))
                     }
 
                     composable("Calories") {
-                        CategoriesScreen("Calories", R.drawable.calories, Color(0xFF8B4513), userTrackings?.caloriesProgress?.sum() ?: 0, calculateCaloriesGoal(userCharacteristics), "kcal")
+                        CategoriesScreen("Calories", R.drawable.calories, Color(0xFF8B4513), userTrackings?.caloriesProgress?.sum() ?: 0, calculateCaloriesGoal(userCharacteristics), "kcal", null, listOf("+10", "+100", "+1000"))
                     }
 
-                    composable("Push-ups") {
-                        CategoriesScreen("Push-ups", R.drawable.push_ups, Color.Black, userTrackings?.pushUpsProgress?.sum() ?: 0, calculatePushUpsGoal(userCharacteristics), "reps")
+                    composable("Exercise") {
+                        CategoriesScreen("Exercise", R.drawable.exercise, Color.Black, userTrackings?.exerciseProgress?.sum() ?: 0, calculateExerciseGoal(userCharacteristics), "reps", null, listOf("+1", "+5", "+10"))
                     }
 
                     composable("Steps") {

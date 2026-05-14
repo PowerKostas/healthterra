@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kostas.gohealth.R
 import com.kostas.gohealth.helpers.calculateCaloriesGoal
-import com.kostas.gohealth.helpers.calculatePushUpsGoal
+import com.kostas.gohealth.helpers.calculateExerciseGoal
 import com.kostas.gohealth.helpers.calculateStepsGoal
 import com.kostas.gohealth.helpers.calculateWaterGoal
 import com.kostas.gohealth.ui.components.screen.ProgressBox
@@ -46,12 +46,12 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
 
     val waterProgressSum = userTrackings.waterProgress.sum()
     val caloriesProgressSum = userTrackings.caloriesProgress.sum()
-    val pushUpsProgressSum = userTrackings.pushUpsProgress.sum()
+    val exerciseProgressSum = userTrackings.exerciseProgress.sum()
     val stepsProgress = userTrackings.stepsProgress
 
     val waterGoal = calculateWaterGoal(userCharacteristics)
     val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
-    val pushUpsGoal = calculatePushUpsGoal(userCharacteristics)
+    val exerciseGoal = calculateExerciseGoal(userCharacteristics)
     val stepsGoal = calculateStepsGoal(userCharacteristics)
 
     // Draws the screen
@@ -77,7 +77,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
 
             ProgressBox(R.drawable.water, "Water", Color(0xFF2196F3), (waterProgressSum.toFloat() / waterGoal).coerceAtMost(1.0f), onClick = { onNavigate("Water") })
             ProgressBox(R.drawable.calories, "Calories", Color(0xFF8B4513), (caloriesProgressSum.toFloat() / caloriesGoal).coerceAtMost(1.0f), onClick = { onNavigate("Calories") })
-            ProgressBox(R.drawable.push_ups, "Push-ups", Color.Black, (pushUpsProgressSum.toFloat() / pushUpsGoal).coerceAtMost(1.0f), onClick = { onNavigate("Push-ups") })
+            ProgressBox(R.drawable.exercise, "Exercise", Color.Black, (exerciseProgressSum.toFloat() / exerciseGoal).coerceAtMost(1.0f), onClick = { onNavigate("Exercise") })
             ProgressBox(R.drawable.steps, "Steps", Color(0xFFE0AC69), (stepsProgress.toFloat() / stepsGoal).coerceAtMost(1.0f), onClick = { onNavigate("Steps") })
         }
     }

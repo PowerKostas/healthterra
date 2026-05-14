@@ -22,6 +22,6 @@ data class Trackings(
     @PrimaryKey val userId: Int,
     @ColumnInfo(name = "water_progress") val waterProgress: List<Int> = emptyList(),
     @ColumnInfo(name = "calories_progress") val caloriesProgress: List<Int> = emptyList(),
-    @ColumnInfo(name = "push_ups_progress") val pushUpsProgress: List<Int> = emptyList(),
+    @ColumnInfo(name = "exercise_progress") val exerciseProgress: List<Int> = emptyList(),
     @ColumnInfo(name = "steps_progress") val stepsProgress: Int = 0,
 )

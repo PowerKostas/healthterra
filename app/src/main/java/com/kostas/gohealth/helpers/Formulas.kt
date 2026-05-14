@@ -73,13 +73,13 @@ fun calculateCaloriesGoal(userCharacteristics: Characteristics?): Int {
 }
 
 
-fun calculatePushUpsGoal(userCharacteristics: Characteristics?): Int {
+fun calculateExerciseGoal(userCharacteristics: Characteristics?): Int {
     val weight = userCharacteristics?.weight ?: 70f
     val height = userCharacteristics?.height ?: 170f
 
     val BMI = weight / ((height / 100) * (height / 100))
 
-    val BMIbasedPushUps = when {
+    val BMIbasedReps = when {
         BMI < 25 -> 40
         BMI < 30 -> 30
         else -> 20
@@ -108,8 +108,8 @@ fun calculatePushUpsGoal(userCharacteristics: Characteristics?): Int {
 
     val genderValue = genderValues.getValue(userCharacteristics?.gender ?: "")
 
-    val pushUpsGoal = (BMIbasedPushUps * activityLevelValue * ageValue * genderValue).roundToInt()
-    return roundGoal(pushUpsGoal)
+    val repsGoal = (BMIbasedReps * activityLevelValue * ageValue * genderValue).roundToInt()
+    return roundGoal(repsGoal)
 }
 
 
