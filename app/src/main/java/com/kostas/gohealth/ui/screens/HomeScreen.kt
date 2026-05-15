@@ -75,10 +75,10 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 )
             }
 
-            ProgressBox(R.drawable.water, "Water", Color(0xFF2196F3), (waterProgressSum.toFloat() / waterGoal).coerceAtMost(1.0f), onClick = { onNavigate("Water") })
-            ProgressBox(R.drawable.calories, "Calories", Color(0xFF8B4513), (caloriesProgressSum.toFloat() / caloriesGoal).coerceAtMost(1.0f), onClick = { onNavigate("Calories") })
-            ProgressBox(R.drawable.exercise, "Exercise", Color.Black, (exerciseProgressSum.toFloat() / exerciseGoal).coerceAtMost(1.0f), onClick = { onNavigate("Exercise") })
-            ProgressBox(R.drawable.steps, "Steps", Color(0xFFE0AC69), (stepsProgress.toFloat() / stepsGoal).coerceAtMost(1.0f), onClick = { onNavigate("Steps") })
+            ProgressBox(R.drawable.water, "Water", Color(0xFF2196F3), waterProgressSum, waterGoal, onClick = { onNavigate("Water") })
+            ProgressBox(R.drawable.calories, "Calories", Color(0xFF8B4513), caloriesProgressSum, caloriesGoal, onClick = { onNavigate("Calories") })
+            ProgressBox(R.drawable.exercise, "Exercise", Color.Black, exerciseProgressSum, exerciseGoal, onClick = { onNavigate("Exercise") })
+            ProgressBox(R.drawable.steps, "Steps", Color(0xFFE0AC69), stepsProgress, stepsGoal, onClick = { onNavigate("Steps") })
         }
     }
 }

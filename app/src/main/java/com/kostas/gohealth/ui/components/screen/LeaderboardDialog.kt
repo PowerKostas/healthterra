@@ -1,15 +1,23 @@
 package com.kostas.gohealth.ui.components.screen
 
-import androidx.compose.foundation.Image
+import android.icu.text.CompactDecimalFormat
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,18 +26,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.kostas.gohealth.ui.screens.getCategoryTopUsers
+import java.util.Locale
 
 @Composable
 fun LeaderboardDialog(categoryString: String, avatarMap: Map<String, Int>, onDismiss: () -> Unit) {
-    val fullLeaderboard by getCategoryTopUsers(categoryString, 100)
-    val testFullLeaderboard = fullLeaderboard + fullLeaderboard + fullLeaderboard + fullLeaderboard
+    val fullLeaderboard by getCategoryTopUsers(categoryString, 50)
 
     val correctCategoryString = when (categoryString) {
         "waterGoalsCompleted" -> "Daily Water Goals Completed"
@@ -40,68 +51,125 @@ fun LeaderboardDialog(categoryString: String, avatarMap: Map<String, Int>, onDis
         else -> ""
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxSize(0.9f) // The dialog takes 90% of the screen size
+    if (!fullLeaderboard.isEmpty()) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(32.dp, Alignment.CenterVertically),
-                modifier = Modifier.padding(24.dp)
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    // The dialog takes 90% of the screen size
+                    .fillMaxWidth(0.9f)
+                    .heightIn(max = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.height.toDp() } * 0.9f)
             ) {
-                Text(
-                    text = correctCategoryString,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFD4AF37),
-                    textAlign = TextAlign.Center
-                )
-
-                LazyColumn(
-                    modifier = Modifier.weight(1f, fill = false),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    itemsIndexed(testFullLeaderboard) { index, user -> // Loops through the leaderboard and gets index and user
-                        val score = when (categoryString) {
-                            "waterGoalsCompleted" -> user.waterGoalsCompleted
-                            "caloriesGoalsCompleted" -> user.caloriesGoalsCompleted
-                            "pushUpsGoalsCompleted" -> user.exerciseGoalsCompleted
-                            "stepsGoalsCompleted" -> user.stepsGoalsCompleted
-                            "totalSteps" -> user.totalSteps
-                            else -> 0
-                        }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp, bottom = 24.dp)
+                    ) {
+                        Text(
+                            text = correctCategoryString,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFD4AF37),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(horizontal = 64.dp)
+                        )
 
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        IconButton(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp)
                         ) {
-                            Text(
-                                text = "#${index + 1}",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close Dialog",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
+                        }
+                    }
 
-                            Image(
-                                painter = painterResource(id = avatarMap.getValue(user.profilePictureString)),
-                                contentDescription = "Leaderboard Icon",
-                                modifier = Modifier.size(48.dp)
-                            )
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .padding(horizontal = 24.dp)
+                            .padding(bottom = 24.dp)
+                    ) {
+                        itemsIndexed(fullLeaderboard) { index, user -> // Loops through the leaderboard and gets index and user
+                            val score = when (categoryString) {
+                                "waterGoalsCompleted" -> user.waterGoalsCompleted
+                                "caloriesGoalsCompleted" -> user.caloriesGoalsCompleted
+                                "pushUpsGoalsCompleted" -> user.exerciseGoalsCompleted
+                                "stepsGoalsCompleted" -> user.stepsGoalsCompleted
+                                "totalSteps" -> user.totalSteps
+                                else -> 0
+                            }
 
-                            Text(
-                                text = user.username,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.weight(1f)
-                            )
+                            val rowColor = when (index) {
+                                0 -> Color(0xFFE5C100) // Gold
+                                1 -> Color(0xFFC0C0C0) // Silver
+                                2 -> Color(0xFFCD7F32) // Bronze
+                                else -> MaterialTheme.colorScheme.onSurface // Default color for everyone else
+                            }
 
-                            Text(
-                                text = score.toString(),
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "#${
+                                        (index + 1).toString().padStart(2, '0')
+                                    }", // Turns "1" to "01"
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = rowColor
+                                )
+
+                                Icon(
+                                    painter = painterResource(id = avatarMap.getValue(user.profilePictureString)),
+                                    contentDescription = "Leaderboard Icon",
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .border(
+                                            width = 1.dp,
+                                            color = rowColor,
+                                            shape = CircleShape
+                                        )
+                                )
+
+                                Text(
+                                    text = user.username,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
+                                // Turns "173938" to "173.9K"
+                                val formatter = CompactDecimalFormat.getInstance(
+                                    Locale.getDefault(),
+                                    CompactDecimalFormat.CompactStyle.SHORT
+                                ).apply {
+                                    maximumFractionDigits = 1
+                                }
+
+                                Text(
+                                    text = formatter.format(score),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFD4AF37)
+                                )
+                            }
                         }
                     }
                 }

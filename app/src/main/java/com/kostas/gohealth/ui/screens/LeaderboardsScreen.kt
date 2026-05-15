@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -147,71 +148,64 @@ fun LeaderboardsScreen() {
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(40.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
                     .padding(vertical = 24.dp)
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                ) {
-                    Text(
-                        text = "Daily Goals Completed",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFD4AF37)
-                    )
+                Text(
+                    text = "Daily Goals Completed",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFD4AF37)
+                )
 
-                    topWaterUser.let { user ->
-                        // Checks if the current user is the top user, if he is, make his score null to know not to draw a specific component
-                        // Also makes the LeaderboardBox clickable, when clicked the LeaderboardDialog shows
-                        val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.waterGoalsCompleted?.toString() ?: "0")
-                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "waterGoalsCompleted" }) {
-                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.water, "Water", user.waterGoalsCompleted.toString(), currentUserScore)
-                        }
-                    }
-
-                    topCaloriesUser.let { user ->
-                        val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.caloriesGoalsCompleted?.toString() ?: "0")
-                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "caloriesGoalsCompleted" }) {
-                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.calories, "Calories", user.caloriesGoalsCompleted.toString(), currentUserScore)
-                        }
-                    }
-
-                    topExerciseUser.let { user ->
-                        val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.exerciseGoalsCompleted?.toString() ?: "0")
-                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "pushUpsGoalsCompleted" }) {
-                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.exercise, "Exercise", user.exerciseGoalsCompleted.toString(), currentUserScore)
-                        }
-                    }
-
-                    topStepsUser.let { user ->
-                        val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.stepsGoalsCompleted?.toString() ?: "0")
-                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "stepsGoalsCompleted" }) {
-                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.stepsGoalsCompleted.toString(), currentUserScore)
-                        }
+                topWaterUser.let { user ->
+                    // Checks if the current user is the top user, if he is, make his score null to know not to draw a specific component
+                    // Also makes the LeaderboardBox clickable, when clicked the LeaderboardDialog shows
+                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.waterGoalsCompleted?.toString() ?: "0")
+                    Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "waterGoalsCompleted" }) {
+                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.water, "Water", user.waterGoalsCompleted.toString(), currentUserScore)
                     }
                 }
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                ) {
-                    Text(
-                        text = "Total Steps",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFD4AF37)
-                    )
+                topCaloriesUser.let { user ->
+                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.caloriesGoalsCompleted?.toString() ?: "0")
+                    Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "caloriesGoalsCompleted" }) {
+                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.calories, "Calories", user.caloriesGoalsCompleted.toString(), currentUserScore)
+                    }
+                }
 
-                    topTotalStepsUser.let { user ->
-                        val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.totalSteps?.toString() ?: "0")
-                        Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "totalSteps" }) {
-                            LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.totalSteps.toString(), currentUserScore)
-                        }
+                topExerciseUser.let { user ->
+                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.exerciseGoalsCompleted?.toString() ?: "0")
+                    Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "pushUpsGoalsCompleted" }) {
+                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.exercise, "Exercise", user.exerciseGoalsCompleted.toString(), currentUserScore)
+                    }
+                }
+
+                topStepsUser.let { user ->
+                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.stepsGoalsCompleted?.toString() ?: "0")
+                    Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "stepsGoalsCompleted" }) {
+                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.stepsGoalsCompleted.toString(), currentUserScore)
+                    }
+                }
+
+                Spacer(modifier = Modifier.padding(5.dp))
+
+                Text(
+                    text = "Total Steps",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFD4AF37)
+                )
+
+                topTotalStepsUser.let { user ->
+                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.totalSteps?.toString() ?: "0")
+                    Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "totalSteps" }) {
+                        LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.totalSteps.toString(), currentUserScore)
                     }
                 }
             }

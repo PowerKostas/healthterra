@@ -22,7 +22,9 @@ import androidx.compose.ui.unit.dp
 import com.kostas.gohealth.ui.components.general.ProgressBar
 
 @Composable
-fun ProgressBox(iconId: Int, category: String, progressBarColour: Color, percentageToGoal: Float, onClick: () -> Unit) {
+fun ProgressBox(iconId: Int, category: String, progressBarColour: Color, progress: Int, goal: Int, onClick: () -> Unit) {
+    val progressPercentage = (progress.toFloat() / goal).coerceAtMost(1.0f)
+
     // To disable button ripple effect
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -58,12 +60,23 @@ fun ProgressBox(iconId: Int, category: String, progressBarColour: Color, percent
                 style = MaterialTheme.typography.labelLarge
             )
 
-            ProgressBar(12.dp, progressBarColour, percentageToGoal)
+            ProgressBar(12.dp, progressBarColour, progressPercentage)
 
-            Text(
-                text = "${"%.1f".format(percentageToGoal * 100)}%", // Percentage, out of 100, rounded to 1 decimal place
-                style = MaterialTheme.typography.labelLarge
-            )
+            // Special message if the user passes the calories range
+            if (category == "Calories" && progress > goal + 200) {
+                Text(
+                    text = "Calories Exceeded!",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            else {
+                Text(
+                    text = "${"%.1f".format(progressPercentage * 100)}%", // Percentage, out of 100, rounded to 1 decimal place
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
         }
     }
 }

@@ -23,10 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kostas.gohealth.ui.components.general.ActionButton
+import com.kostas.gohealth.ui.components.general.BulletGraph
 import com.kostas.gohealth.ui.components.general.ProgressBar
 import com.kostas.gohealth.ui.components.screen.CustomAlertDialog
 import com.kostas.gohealth.ui.viewModels.TrackingsViewModel
@@ -85,12 +89,36 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                 modifier = Modifier.size(200.dp)
             )
 
-            Text(
-                text = "$categoryProgress / $categoryGoal $metric",
-                style = MaterialTheme.typography.titleLarge
-            )
+            if (categoryName != "Calories") {
+                Text(
+                    text = "$categoryProgress / $categoryGoal $metric",
+                    style = MaterialTheme.typography.titleLarge
+                )
 
-            ProgressBar(20.dp, progressBarColour, categoryProgress.toFloat() / categoryGoal)
+                ProgressBar(20.dp, progressBarColour, categoryProgress.toFloat() / categoryGoal)
+            }
+
+            else {
+                // It does -200 and + 200 because calories use a range
+                val minValue = categoryGoal - 200
+                val maxValue = categoryGoal + 200
+
+                val textColour = if (categoryProgress in minValue..maxValue) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+                val annotatedText = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = textColour)) {
+                        append(categoryProgress.toString())
+                    }
+
+                    append(" / $minValue-$maxValue $metric")
+                }
+
+                Text(
+                    text = annotatedText,
+                    style = MaterialTheme.typography.titleLarge
+                )
+
+                BulletGraph(categoryProgress, minValue, maxValue, progressBarColour)
+            }
 
             if (metric != "reps") {
                 Text(

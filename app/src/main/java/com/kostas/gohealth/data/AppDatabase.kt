@@ -13,12 +13,15 @@ import com.kostas.gohealth.data.entities.Characteristics
 import com.kostas.gohealth.data.entities.Settings
 import com.kostas.gohealth.data.entities.Trackings
 
-// Because of all the version code, the user doesn't have to delete the app and reinstall it, if I change the database
+// Because of all the migration code, the user doesn't have to delete the app and reinstall it, if I change the database. When I change the
+// database, don't run the app without a new auto migration, if I accidentally do, just delete the app in the emulator and redo the process
 @TypeConverters(Converters::class) // Automatically runs the converters, I can just use the lists/dates as lists/dates in code now
 @Database(
     entities = [Settings::class, Characteristics::class, Trackings::class],
     version = 2,
-    autoMigrations = [AutoMigration(from = 1, to = 2, spec = AppDatabase.MyRenameMigration::class)]
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2, spec = AppDatabase.MyRenameMigration::class),
+    ]
 )
 abstract class AppDatabase : RoomDatabase() {
     @RenameColumn(
