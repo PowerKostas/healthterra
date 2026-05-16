@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -92,6 +93,11 @@ fun WeightGoalSelector(initialWeightGoal: String, initialKgGoal: Int, initialDay
                         onGoalChange(selectedWeightGoal, savedKgGoal, selectedDaysGoal.roundToInt())
                     },
 
+                    // Removes annoying dot
+                    track = { sliderState ->
+                        SliderDefaults.Track(sliderState = sliderState, drawStopIndicator = null)
+                    },
+
                     valueRange = 1f..50f, // From 1kg to 50kg
                 )
             }
@@ -114,6 +120,10 @@ fun WeightGoalSelector(initialWeightGoal: String, initialKgGoal: Int, initialDay
                         onGoalChange(selectedWeightGoal, savedKgGoal, selectedDaysGoal.roundToInt())
                     },
 
+                    track = { sliderState ->
+                        SliderDefaults.Track(sliderState = sliderState, drawStopIndicator = null)
+                    },
+
                     valueRange = 14f..365f, // From 1 week to 1 year
                 )
             }
@@ -123,6 +133,7 @@ fun WeightGoalSelector(initialWeightGoal: String, initialKgGoal: Int, initialDay
         if (showError) {
             Text(
                 text = "To ensure safe calorie intake, your daily goal has been set to the recommended amount!",
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center,
             )

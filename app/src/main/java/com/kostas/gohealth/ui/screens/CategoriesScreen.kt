@@ -29,11 +29,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kostas.gohealth.helpers.roundGoal
 import com.kostas.gohealth.ui.components.general.ActionButton
 import com.kostas.gohealth.ui.components.general.BulletGraph
 import com.kostas.gohealth.ui.components.general.ProgressBar
 import com.kostas.gohealth.ui.components.screen.CustomAlertDialog
 import com.kostas.gohealth.ui.viewModels.TrackingsViewModel
+import kotlin.math.roundToInt
 
 // Water, calories and exercise screen
 @Composable
@@ -99,9 +101,9 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
             }
 
             else {
-                // It does -100 and + 100 because calories use a range
-                val minValue = categoryGoal - 100
-                val maxValue = categoryGoal + 100
+                // It does +-10% of the goal because calories use a range
+                val minValue = roundGoal((categoryGoal - categoryGoal * 0.1).roundToInt())
+                val maxValue = roundGoal((categoryGoal + categoryGoal * 0.1).roundToInt())
 
                 val textColour = if (categoryProgress in minValue..maxValue) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
                 val annotatedText = buildAnnotatedString {

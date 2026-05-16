@@ -13,10 +13,12 @@ import com.kostas.gohealth.helpers.calculateCaloriesGoal
 import com.kostas.gohealth.helpers.calculateExerciseGoal
 import com.kostas.gohealth.helpers.calculateStepsGoal
 import com.kostas.gohealth.helpers.calculateWaterGoal
+import com.kostas.gohealth.helpers.roundGoal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 // If it's a new day, it resets the trackings and settings tables. Also, the remote Firestore database is updated with the users' needed
 // details and with the incremented total water, calories, exercise, steps goals completed and the total steps. If there is no network, the
@@ -61,9 +63,9 @@ class DailyMaintenanceWorker(appContext: Context, workerParams: WorkerParameters
                 val exerciseGoal = calculateExerciseGoal(userCharacteristics)
                 val stepsGoal = calculateStepsGoal(userCharacteristics)
 
-                // Because calories uses a 100 kcal buffer range
-                val minCaloriesValue = caloriesGoal - 100
-                val maxCaloriesValue = caloriesGoal + 100
+                // Calories use a 10% of the goal kcal buffer range
+                val minCaloriesValue = roundGoal((caloriesGoal - caloriesGoal * 0.1).roundToInt())
+                val maxCaloriesValue = roundGoal((caloriesGoal + caloriesGoal * 0.1).roundToInt())
 
                 val waterGoalCompleted = if (userTrackings.waterProgress.sum() >= waterGoal) 1L else 0L
                 val caloriesGoalCompleted = if (userTrackings.caloriesProgress.sum() in minCaloriesValue..maxCaloriesValue) 1L else 0L

@@ -19,7 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.kostas.gohealth.helpers.roundGoal
 import com.kostas.gohealth.ui.components.general.ProgressBar
+import kotlin.math.roundToInt
 
 @Composable
 fun ProgressBox(iconId: Int, category: String, progressBarColour: Color, progress: Int, goal: Int, onClick: () -> Unit) {
@@ -63,7 +65,7 @@ fun ProgressBox(iconId: Int, category: String, progressBarColour: Color, progres
             ProgressBar(12.dp, progressBarColour, progressPercentage)
 
             // Special message if the user passes the calories range
-            if (category == "Calories" && progress > goal + 100) {
+            if (category == "Calories" && progress > roundGoal((goal + goal * 0.1).roundToInt())) {
                 Text(
                     text = "Calories Exceeded!",
                     style = MaterialTheme.typography.labelLarge,
