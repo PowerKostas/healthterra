@@ -1,6 +1,7 @@
 package com.kostas.gohealth.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,7 +57,7 @@ fun getCategoryTopUsers(category: String, limitCount: Long): State<List<Leaderbo
                         profilePictureString = doc.getString("profilePictureString") ?: "",
                         waterGoalsCompleted = doc.getLong("waterGoalsCompleted") ?: 0L,
                         caloriesGoalsCompleted = doc.getLong("caloriesGoalsCompleted") ?: 0L,
-                        exerciseGoalsCompleted = doc.getLong("pushUpsGoalsCompleted") ?: 0L,
+                        exerciseGoalsCompleted = doc.getLong("exerciseGoalsCompleted") ?: 0L,
                         stepsGoalsCompleted = doc.getLong("stepsGoalsCompleted") ?: 0L,
                         totalSteps = doc.getLong("totalSteps") ?: 0L
                     )
@@ -93,7 +94,7 @@ fun getCurrentUser(userId: String?): State<LeaderboardEntry?> {
                     profilePictureString = snapshot.getString("profilePictureString") ?: "",
                     waterGoalsCompleted = snapshot.getLong("waterGoalsCompleted") ?: 0L,
                     caloriesGoalsCompleted = snapshot.getLong("caloriesGoalsCompleted") ?: 0L,
-                    exerciseGoalsCompleted = snapshot.getLong("pushUpsGoalsCompleted") ?: 0L,
+                    exerciseGoalsCompleted = snapshot.getLong("exerciseGoalsCompleted") ?: 0L,
                     stepsGoalsCompleted = snapshot.getLong("stepsGoalsCompleted") ?: 0L,
                     totalSteps = snapshot.getLong("totalSteps") ?: 0L
                 )
@@ -109,7 +110,7 @@ fun getCurrentUser(userId: String?): State<LeaderboardEntry?> {
 fun LeaderboardsScreen() {
     val waterLeaderboards by getCategoryTopUsers("waterGoalsCompleted", 100)
     val caloriesLeaderboards by getCategoryTopUsers("caloriesGoalsCompleted", 100)
-    val exerciseLeaderboards by getCategoryTopUsers("pushUpsGoalsCompleted", 100)
+    val exerciseLeaderboards by getCategoryTopUsers("exerciseGoalsCompleted", 100)
     val stepsLeaderboards by getCategoryTopUsers("stepsGoalsCompleted", 100)
     val totalStepsLeaderboards by getCategoryTopUsers("totalSteps", 100)
 
@@ -163,37 +164,55 @@ fun LeaderboardsScreen() {
                     color = Color(0xFFD4AF37)
                 )
 
+                Spacer(modifier = Modifier.padding(4.dp))
+
                 topWaterUser.let { user ->
                     // Checks if the current user is the top user, if he is, make his score null to know not to draw a specific component
                     // Also makes the LeaderboardBox clickable, when clicked the LeaderboardDialog shows
                     val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.waterGoalsCompleted?.toString() ?: "0")
-                    Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "waterGoalsCompleted" }) {
+                    Box(modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { selectedLeaderboardDialog = "waterGoalsCompleted" }
+                    ) {
                         LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.water, "Water", user.waterGoalsCompleted.toString(), currentUserScore)
                     }
                 }
 
                 topCaloriesUser.let { user ->
                     val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.caloriesGoalsCompleted?.toString() ?: "0")
-                    Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "caloriesGoalsCompleted" }) {
+                    Box(modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { selectedLeaderboardDialog = "caloriesGoalsCompleted" }
+                    ) {
                         LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.calories, "Calories", user.caloriesGoalsCompleted.toString(), currentUserScore)
                     }
                 }
 
                 topExerciseUser.let { user ->
                     val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.exerciseGoalsCompleted?.toString() ?: "0")
-                    Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "pushUpsGoalsCompleted" }) {
+                    Box(modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { selectedLeaderboardDialog = "exerciseGoalsCompleted" }
+                    ) {
                         LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.exercise, "Exercise", user.exerciseGoalsCompleted.toString(), currentUserScore)
                     }
                 }
 
                 topStepsUser.let { user ->
                     val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.stepsGoalsCompleted?.toString() ?: "0")
-                    Box(modifier = Modifier.clickable { selectedLeaderboardDialog = "stepsGoalsCompleted" }) {
+                    Box(modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { selectedLeaderboardDialog = "stepsGoalsCompleted" }
+                    ) {
                         LeaderboardBox(avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.stepsGoalsCompleted.toString(), currentUserScore)
                     }
                 }
 
-                Spacer(modifier = Modifier.padding(5.dp))
+                Spacer(modifier = Modifier.padding(12.dp))
 
                 Text(
                     text = "Total Steps",
@@ -201,6 +220,8 @@ fun LeaderboardsScreen() {
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFD4AF37)
                 )
+
+                Spacer(modifier = Modifier.padding(4.dp))
 
                 topTotalStepsUser.let { user ->
                     val currentUserScore = if (currentUserId == user.userId) null else (currentUser?.totalSteps?.toString() ?: "0")

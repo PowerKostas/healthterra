@@ -1,4 +1,4 @@
-package com.kostas.gohealth.ui.components.screen
+package com.kostas.gohealth.ui.components.general
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding

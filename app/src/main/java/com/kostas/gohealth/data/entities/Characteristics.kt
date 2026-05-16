@@ -24,5 +24,7 @@ data class Characteristics(
     @ColumnInfo(name = "height") val height: Float? = null,
     @ColumnInfo(name = "weight") val weight: Float? = null,
     @ColumnInfo(name = "activity_level") val activityLevel: String? = null,
-    @ColumnInfo(name = "weight_goal") val weightGoal: String? = null
+    @ColumnInfo(name = "weight_goal") val weightGoal: String = "Maintain",
+    @ColumnInfo(name = "kg_goal") val kgGoal: Int = 0,
+    @ColumnInfo(name = "days_goal") val daysGoal: Int = 0
 )

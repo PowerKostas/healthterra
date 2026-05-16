@@ -3,7 +3,6 @@ package com.kostas.gohealth.ui.components.screen
 import android.icu.text.CompactDecimalFormat
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,10 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -65,49 +61,26 @@ fun LeaderboardDialog(categoryString: String, avatarMap: Map<String, Int>, onDis
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 24.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 24.dp, bottom = 24.dp)
-                    ) {
-                        Text(
-                            text = correctCategoryString,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFD4AF37),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(horizontal = 64.dp)
-                        )
-
-                        IconButton(
-                            onClick = onDismiss,
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(end = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close Dialog",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
+                    Text(
+                        text = correctCategoryString,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFD4AF37),
+                        textAlign = TextAlign.Center,
+                    )
 
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier
-                            .weight(1f, fill = false)
-                            .padding(horizontal = 24.dp)
-                            .padding(bottom = 24.dp)
+                        modifier = Modifier.weight(1f, fill = false)
                     ) {
                         itemsIndexed(fullLeaderboard) { index, user -> // Loops through the leaderboard and gets index and user
                             val score = when (categoryString) {
                                 "waterGoalsCompleted" -> user.waterGoalsCompleted
                                 "caloriesGoalsCompleted" -> user.caloriesGoalsCompleted
-                                "pushUpsGoalsCompleted" -> user.exerciseGoalsCompleted
+                                "exerciseGoalsCompleted" -> user.exerciseGoalsCompleted
                                 "stepsGoalsCompleted" -> user.stepsGoalsCompleted
                                 "totalSteps" -> user.totalSteps
                                 else -> 0

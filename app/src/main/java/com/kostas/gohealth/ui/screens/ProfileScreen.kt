@@ -26,11 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kostas.gohealth.ui.components.general.CustomSurface
 import com.kostas.gohealth.ui.components.general.DropdownMenu
 import com.kostas.gohealth.ui.components.general.NumberTextField
 import com.kostas.gohealth.ui.components.general.RadioButtonGroup
-import com.kostas.gohealth.ui.components.screen.CustomSurface
 import com.kostas.gohealth.ui.components.screen.ProfilePicture
+import com.kostas.gohealth.ui.components.screen.WeightGoalSelector
 import com.kostas.gohealth.ui.viewModels.CharacteristicsViewModel
 import com.kostas.gohealth.ui.viewModels.SettingsViewModel
 
@@ -66,7 +67,6 @@ fun ProfileScreen() {
     var height by remember { mutableStateOf(formatNumber(userCharacteristics.height)) }
     var weight by remember { mutableStateOf(formatNumber(userCharacteristics.weight)) }
     var activityLevel by remember { mutableStateOf(userCharacteristics.activityLevel ?: "") }
-    var weightGoal by remember { mutableStateOf(userCharacteristics.weightGoal ?: "") }
 
     // Draws the screen
     Column(modifier = Modifier.fillMaxSize()) {
@@ -196,15 +196,19 @@ fun ProfileScreen() {
                         }
                     }
 
-                    DropdownMenu(
-                        "Weight Goal", listOf("Lose", "Maintain", "Gain"),
-                        weightGoal
-                    ) { newValue ->
-                        weightGoal = newValue
-                        userCharacteristics.let { characteristics ->
-                            characteristicsViewModel.updateUserCharacteristics(
-                                characteristics.copy(weightGoal = newValue)
-                            )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)){
+                        Text(text = "Weight Goal")
+
+                        WeightGoalSelector(
+                            userCharacteristics.weightGoal,
+                            userCharacteristics.kgGoal,
+                            userCharacteristics.daysGoal
+                        ) { newWeightGoal, newKgGoal, newDaysGoal ->
+                            userCharacteristics.let { characteristics ->
+                                characteristicsViewModel.updateUserCharacteristics(
+                                    characteristics.copy(weightGoal = newWeightGoal, kgGoal = newKgGoal, daysGoal = newDaysGoal)
+                                )
+                            }
                         }
                     }
                 }

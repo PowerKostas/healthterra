@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "d6cabb931da4b06e214d028a9847ea7d",
+    "identityHash": "dc7db6e989f0f7627d95c786d6d2fd94",
     "entities": [
       {
         "tableName": "settings",
@@ -59,7 +59,7 @@
       },
       {
         "tableName": "characteristics",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `gender` TEXT, `age` REAL, `height` REAL, `weight` REAL, `activity_level` TEXT, `weight_goal` TEXT, PRIMARY KEY(`userId`), FOREIGN KEY(`userId`) REFERENCES `settings`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `gender` TEXT, `age` REAL, `height` REAL, `weight` REAL, `activity_level` TEXT, `weight_goal` TEXT NOT NULL, `kg_goal` INTEGER NOT NULL, `days_goal` INTEGER NOT NULL, PRIMARY KEY(`userId`), FOREIGN KEY(`userId`) REFERENCES `settings`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "userId",
@@ -95,7 +95,20 @@
           {
             "fieldPath": "weightGoal",
             "columnName": "weight_goal",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kgGoal",
+            "columnName": "kg_goal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "daysGoal",
+            "columnName": "days_goal",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -176,7 +189,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd6cabb931da4b06e214d028a9847ea7d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dc7db6e989f0f7627d95c786d6d2fd94')"
     ]
   }
 }

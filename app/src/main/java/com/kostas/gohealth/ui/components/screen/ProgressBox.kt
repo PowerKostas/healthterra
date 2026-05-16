@@ -63,7 +63,7 @@ fun ProgressBox(iconId: Int, category: String, progressBarColour: Color, progres
             ProgressBar(12.dp, progressBarColour, progressPercentage)
 
             // Special message if the user passes the calories range
-            if (category == "Calories" && progress > goal + 200) {
+            if (category == "Calories" && progress > goal + 100) {
                 Text(
                     text = "Calories Exceeded!",
                     style = MaterialTheme.typography.labelLarge,

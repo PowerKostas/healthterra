@@ -61,9 +61,9 @@ class DailyMaintenanceWorker(appContext: Context, workerParams: WorkerParameters
                 val exerciseGoal = calculateExerciseGoal(userCharacteristics)
                 val stepsGoal = calculateStepsGoal(userCharacteristics)
 
-                // Because calories uses a 200 kcal buffer range
-                val minCaloriesValue = caloriesGoal - 200
-                val maxCaloriesValue = caloriesGoal + 200
+                // Because calories uses a 100 kcal buffer range
+                val minCaloriesValue = caloriesGoal - 100
+                val maxCaloriesValue = caloriesGoal + 100
 
                 val waterGoalCompleted = if (userTrackings.waterProgress.sum() >= waterGoal) 1L else 0L
                 val caloriesGoalCompleted = if (userTrackings.caloriesProgress.sum() in minCaloriesValue..maxCaloriesValue) 1L else 0L

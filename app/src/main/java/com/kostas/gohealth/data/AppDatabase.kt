@@ -1,11 +1,8 @@
 package com.kostas.gohealth.data
 
-import androidx.room.AutoMigration
 import androidx.room.Database
-import androidx.room.RenameColumn
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.AutoMigrationSpec
 import com.kostas.gohealth.data.daos.CharacteristicsDao
 import com.kostas.gohealth.data.daos.SettingsDao
 import com.kostas.gohealth.data.daos.TrackingsDao
@@ -18,18 +15,22 @@ import com.kostas.gohealth.data.entities.Trackings
 @TypeConverters(Converters::class) // Automatically runs the converters, I can just use the lists/dates as lists/dates in code now
 @Database(
     entities = [Settings::class, Characteristics::class, Trackings::class],
-    version = 2,
+    version = 1,
+    /*
     autoMigrations = [
-        AutoMigration(from = 1, to = 2, spec = AppDatabase.MyRenameMigration::class),
+        AutoMigration(from = 1, to = 2, spec = AppDatabase.MyRenameMigration::class)
     ]
+    */
 )
 abstract class AppDatabase : RoomDatabase() {
+    /*
     @RenameColumn(
         tableName = "trackings",
         fromColumnName = "push_ups_progress",
         toColumnName = "exercise_progress"
     )
     class MyRenameMigration : AutoMigrationSpec
+    */
 
     abstract fun characteristicsDao(): CharacteristicsDao
     abstract fun settingsDao(): SettingsDao

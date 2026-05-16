@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kostas.gohealth.ui.components.general.CustomSurface
 
 @Composable
 fun LeaderboardBox(profilePictureId: Int, username: String, categoryId: Int, categoryName: String, score: String, currentUserScore: String?) {

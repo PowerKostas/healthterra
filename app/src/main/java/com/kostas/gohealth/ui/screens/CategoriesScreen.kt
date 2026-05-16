@@ -99,9 +99,9 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
             }
 
             else {
-                // It does -200 and + 200 because calories use a range
-                val minValue = categoryGoal - 200
-                val maxValue = categoryGoal + 200
+                // It does -100 and + 100 because calories use a range
+                val minValue = categoryGoal - 100
+                val maxValue = categoryGoal + 100
 
                 val textColour = if (categoryProgress in minValue..maxValue) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
                 val annotatedText = buildAnnotatedString {
