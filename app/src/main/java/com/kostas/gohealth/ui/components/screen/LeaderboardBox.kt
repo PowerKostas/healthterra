@@ -29,9 +29,12 @@ import androidx.compose.ui.unit.sp
 import com.kostas.gohealth.ui.components.general.CustomSurface
 
 @Composable
-fun LeaderboardBox(profilePictureId: Int, username: String, categoryId: Int, categoryName: String, score: String, currentUserScore: String?) {
+fun LeaderboardBox(modifier: Modifier, profilePictureId: Int, username: String, categoryId: Int, categoryName: String, score: String, currentUserScore: String?) {
     CustomSurface {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier
+        ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,

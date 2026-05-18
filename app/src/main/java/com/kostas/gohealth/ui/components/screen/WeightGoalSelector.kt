@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -41,13 +42,21 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
     // The sliders require positive floats, kg can be negative if the lose option was selected and zero if the maintain option was selected
     // and then the loss or gain option. Days can be zero if the maintain option was selected and then the loss or gain option. If it's the
     // first time the app is run, kg and days will go to 1 and 14 from 0 and 0, but it doesn't matter because the database won't be updated
-    // until a new radio button group option is selected
+    // until the save changes button is pressed
     var selectedKgGoal by remember { mutableFloatStateOf(abs(userCharacteristics.kgGoal).toFloat().coerceAtLeast(1f)) }
     var selectedDaysGoal by remember { mutableFloatStateOf(userCharacteristics.daysGoal.toFloat().coerceAtLeast(14f)) }
 
+    // Zero out values if maintain is selected, give a negative value if lose is selected, this gets called every time a new radio button
+    // option is selected, or a slider is moved, because their variables are in a remember/mutableStateOf
+    val savedKgGoal = if (selectedWeightGoal == "Maintain") 0 else if (selectedWeightGoal == "Lose") -selectedKgGoal.roundToInt() else selectedKgGoal.roundToInt()
+    val savedDaysGoal = if (selectedWeightGoal == "Maintain") 0 else selectedDaysGoal.roundToInt()
+
+    // Determines if the local UI state is different from the saved database state
+    val hasChanges = selectedWeightGoal != userCharacteristics.weightGoal || savedKgGoal != userCharacteristics.kgGoal || savedDaysGoal != userCharacteristics.daysGoal
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
 
         modifier = Modifier
             .border(
@@ -61,14 +70,9 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
             listOf("Lose", "Maintain", "Gain"),
             selectedWeightGoal
         ) { optionSelected ->
-            //UI change, if we go from maintain to lose/gain the screen remembers the selectedKgGoal and selectedDaysGoal values, because
+            // UI change, if we go from maintain to lose/gain the screen remembers the selectedKgGoal and selectedDaysGoal values, because
             // they are never changed here
             selectedWeightGoal = optionSelected
-
-            // Database change, zero out values if maintain is selected, give a negative value if lose is selected
-            val savedKgGoal = if (optionSelected == "Maintain") 0 else if (optionSelected == "Lose") -selectedKgGoal.roundToInt() else selectedKgGoal.roundToInt()
-            val savedDaysGoal = if (optionSelected == "Maintain") 0 else selectedDaysGoal.roundToInt()
-            onGoalChange(optionSelected, savedKgGoal, savedDaysGoal)
         }
 
         // Slider menu, only visible on lose or gain
@@ -86,10 +90,6 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                     value = selectedKgGoal,
                     onValueChange = {
                         selectedKgGoal = it // UI change
-
-                        // Database change, give a negative value if lose is selected
-                        val savedKgGoal = if (selectedWeightGoal == "Lose") -selectedKgGoal.roundToInt() else selectedKgGoal.roundToInt()
-                        onGoalChange(selectedWeightGoal, savedKgGoal, selectedDaysGoal.roundToInt())
                     },
 
                     // Removes annoying dot
@@ -114,9 +114,6 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                     value = selectedDaysGoal,
                     onValueChange = {
                         selectedDaysGoal = it
-
-                        val savedKgGoal = if (selectedWeightGoal == "Lose") -selectedKgGoal.roundToInt() else selectedKgGoal.roundToInt()
-                        onGoalChange(selectedWeightGoal, savedKgGoal, selectedDaysGoal.roundToInt())
                     },
 
                     track = { sliderState ->
@@ -128,35 +125,47 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
             }
         }
 
-        val showError = isCaloriesPlanExtreme(userCharacteristics)
-        if (showError) {
-            Text(
-                text = "To ensure safe calorie intake, your daily goal has been set to the recommended amount!",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
-            )
+        Button(
+            onClick = {
+                onGoalChange(selectedWeightGoal, savedKgGoal, savedDaysGoal)
+            },
+
+            enabled = hasChanges,
+        ) {
+            Text("Save Changes")
         }
 
-        else {
-            if (userCharacteristics.kgGoal != 0 && userCharacteristics.daysGoal != 0) { // If the user has set a calories lose/gain goal
-                // Initializes initialWeightGoalDate because it was added in a new migration and adds the timeframe to the goal to it
-                val initialWeightGoalDate = userSettings.initialWeightGoalDate ?: LocalDate.now().toString()
-                val weightGoalDate = LocalDate.parse(initialWeightGoalDate).plusDays(userCharacteristics.daysGoal.toLong())
-                val formatter = DateTimeFormatter.ofPattern("dd-MM-yy")
-                val formattedWeightGoalDate= weightGoalDate.format(formatter)
-
+        if (!hasChanges) { // The messages only show when the save changes button has been pressed
+            val showError = isCaloriesPlanExtreme(userCharacteristics)
+            if (showError) {
                 Text(
-                    text =  "You're all set! The weight goal plan will end on $formattedWeightGoalDate.",
+                    text = "To ensure safe calorie intake, your daily goal has been set to the recommended amount!",
                     style = MaterialTheme.typography.labelLarge,
-                    color = Color(0xFF4CAF50),
+                    color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
                 )
+            }
 
-                // Updates initialWeightGoalDate thus the weight goal text as well, when the timeframe is hit
-                LaunchedEffect(weightGoalDate) {
-                    if (LocalDate.now() >= weightGoalDate) {
-                        onGoalChange(selectedWeightGoal, selectedKgGoal.roundToInt(), selectedDaysGoal.roundToInt())
+            else {
+                if (userCharacteristics.kgGoal != 0 && userCharacteristics.daysGoal != 0) { // If the user has set a calories lose/gain goal
+                    // Initializes initialWeightGoalDate because it was added in a new migration and adds the timeframe to the goal to it
+                    val initialWeightGoalDate = userSettings.initialWeightGoalDate ?: LocalDate.now().toString()
+                    val weightGoalDate = LocalDate.parse(initialWeightGoalDate).plusDays(userCharacteristics.daysGoal.toLong())
+                    val formatter = DateTimeFormatter.ofPattern("dd-MM-yy")
+                    val formattedWeightGoalDate= weightGoalDate.format(formatter)
+
+                    Text(
+                        text =  "You're all set! The weight goal plan will end on $formattedWeightGoalDate.",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color(0xFF4CAF50),
+                        textAlign = TextAlign.Center,
+                    )
+
+                    // Updates initialWeightGoalDate thus the weight goal text as well, when the timeframe is hit
+                    LaunchedEffect(weightGoalDate) {
+                        if (LocalDate.now() >= weightGoalDate) {
+                            onGoalChange(selectedWeightGoal, selectedKgGoal.roundToInt(), selectedDaysGoal.roundToInt())
+                        }
                     }
                 }
             }
