@@ -19,14 +19,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.kostas.gohealth.services.DailyMaintenanceWorker
 import com.kostas.gohealth.services.NotificationWorker
 import com.kostas.gohealth.services.StepTrackerService
+import com.kostas.gohealth.services.performDailyMaintenance
 import com.kostas.gohealth.ui.components.central.DrawerMenu
 import com.kostas.gohealth.ui.themes.GoHealthTheme
 import com.kostas.gohealth.ui.viewModels.CharacteristicsViewModel
@@ -81,7 +80,7 @@ class MainActivity : ComponentActivity() {
         }
 
         schedulePeriodicNotification()
-        scheduleDailyMaintenanceAppActive()
+        performDailyMaintenanceAppActive()
 
         // Runs every time the settings table changes
         lifecycleScope.launch {
@@ -143,7 +142,12 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
 
-        scheduleDailyMaintenance()
+        // Every time the app is put on the foreground, it calls the daily maintenance worker, doesn't need network. This approach doesn't
+        // rely on inconsistent periodic workers, daily resetting works as intended, but for the daily leaderboards sync to happen, the user
+        // has to open the app
+        lifecycleScope.launch {
+            performDailyMaintenance(applicationContext)
+        }
 
         // Handles edge case where, with the app on the background, the user allows activity recognition permissions and reopens the
         // app, this opens the foreground service in that instance
@@ -190,32 +194,10 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    // Every time the app is put on the foreground, it calls the daily maintenance worker, doesn't need network. This approach doesn't
-    // rely on inconsistent periodic workers, daily resetting works as intended, but for the daily leaderboards sync to happen, the user
-    // has to open the app
-    private fun scheduleDailyMaintenance() {
-        // For testing, comment out the date check in ResetTrackingsWorker
-
-        val workRequest = OneTimeWorkRequestBuilder<DailyMaintenanceWorker>()
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-                    .build()
-            )
-
-            .build()
-
-        WorkManager.getInstance(applicationContext).enqueueUniqueWork(
-            "daily_reset",
-            androidx.work.ExistingWorkPolicy.REPLACE,
-            workRequest
-        )
-    }
-
     // Without this function, if the user is inside the app, the daily maintenance won't happen until he closes and re-opens the
     // app. Sets a delay till midnight, plus a 5-second buffer, and executes the according worker then, if the app closes, this dies
     // as well. It's a loop for the edge case that the user leaves the app open for multiple days
-    private fun scheduleDailyMaintenanceAppActive() {
+    private fun performDailyMaintenanceAppActive() {
         lifecycleScope.launch {
             while (true) {
                 val now = LocalDateTime.now()
@@ -223,7 +205,7 @@ class MainActivity : ComponentActivity() {
                 val millisToMidnight = Duration.between(now, nextMidnight).toMillis() + 5000L
 
                 delay(millisToMidnight)
-                scheduleDailyMaintenance()
+                performDailyMaintenance(applicationContext)
                 delay(60000)
             }
         }

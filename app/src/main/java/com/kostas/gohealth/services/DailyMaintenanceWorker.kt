@@ -1,8 +1,6 @@
 package com.kostas.gohealth.services
 
 import android.content.Context
-import androidx.work.CoroutineWorker
-import androidx.work.WorkerParameters
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FieldValue
@@ -16,19 +14,27 @@ import com.kostas.gohealth.helpers.calculateWaterGoal
 import com.kostas.gohealth.helpers.roundGoal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
 import kotlin.math.roundToInt
+
+// Because of Mutex, if multiple triggers fire simultaneously (onResume and performDailyMaintenanceAppActive for example), duplicates are
+// put on hold, preventing race conditions
+private val mutex = Mutex()
 
 // If it's a new day, it resets the trackings and settings tables. Also, the remote Firestore database is updated with the users' needed
 // details and with the incremented total water, calories, exercise, steps goals completed and the total steps. If there is no network, the
 // data goes in Firebase's cache, and it will eventually update the database when a connection is back up, usually when the user reopens
 // the app. It also resets the trackings and settings table
-class DailyMaintenanceWorker(appContext: Context, workerParams: WorkerParameters) : CoroutineWorker(appContext, workerParams) {
-    override suspend fun doWork(): Result {
-        return withContext(Dispatchers.IO) {
+suspend fun performDailyMaintenance(context: Context) {
+    mutex.withLock {
+        withContext(Dispatchers.IO) {
             try {
-                val database = DatabaseProvider.getDatabase(applicationContext)
+                val database = DatabaseProvider.getDatabase(context)
                 val trackingsDao = database.trackingsDao()
                 val settingsDao = database.settingsDao()
 
@@ -38,12 +44,12 @@ class DailyMaintenanceWorker(appContext: Context, workerParams: WorkerParameters
 
                 // Triggers on a fresh install
                 if (userTrackings == null || userSettings == null || userCharacteristics == null) {
-                    return@withContext Result.success()
+                    return@withContext
                 }
 
                 // If it has already reset today, it doesn't reset again
                 if (LocalDate.now().toString() <= userSettings.lastSavedDate) {
-                    return@withContext Result.success()
+                    return@withContext
                 }
 
                 val updateUserTrackings = userTrackings.copy(
@@ -83,16 +89,18 @@ class DailyMaintenanceWorker(appContext: Context, workerParams: WorkerParameters
                     "totalSteps" to FieldValue.increment(totalSteps.toLong())
                 )
 
-                FirebaseFirestore.getInstance().collection("leaderboards")
-                    .document(Firebase.auth.currentUser?.uid ?: "")
-                    .set(updateData, SetOptions.merge())
-
-                Result.success()
+                // .await() ensures the worker stays alive until the background write is completed and the 3-second timeout prevents infinite
+                // hangs when offline. If offline, Firestore caches the update locally and will automatically sync it to the cloud later
+                withTimeoutOrNull(3000L) {
+                    FirebaseFirestore.getInstance().collection("leaderboards")
+                        .document(Firebase.auth.currentUser?.uid ?: "")
+                        .set(updateData, SetOptions.merge())
+                        .await()
+                }
             }
 
             catch (e: Exception) {
                 e.printStackTrace()
-                Result.retry()
             }
         }
     }
