@@ -17,4 +17,7 @@ interface SettingsDao {
 
     @Update
     suspend fun update(settings: Settings)
+
+    @Query("UPDATE settings SET last_saved_steps = :newSteps WHERE userId = :uid")
+    suspend fun updateLastSavedSteps(uid: Int, newSteps: Int)
 }

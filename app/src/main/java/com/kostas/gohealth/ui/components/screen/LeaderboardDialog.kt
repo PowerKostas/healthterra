@@ -18,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,13 +30,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.kostas.gohealth.ui.screens.getCategoryTopUsers
+import com.kostas.gohealth.data.documents.LeaderboardEntry
 import java.util.Locale
 
 @Composable
-fun LeaderboardDialog(categoryString: String, avatarMap: Map<String, Int>, onDismiss: () -> Unit) {
-    val fullLeaderboard by getCategoryTopUsers(categoryString, 50)
-
+fun LeaderboardDialog(categoryString: String, categoryLeaderboard: List<LeaderboardEntry>, avatarMap: Map<String, Int>, onDismiss: () -> Unit) {
     val correctCategoryString = when (categoryString) {
         "waterGoalsCompleted" -> "Daily Water Goals Completed"
         "caloriesGoalsCompleted" -> " Daily Calories Goals Completed"
@@ -47,7 +44,7 @@ fun LeaderboardDialog(categoryString: String, avatarMap: Map<String, Int>, onDis
         else -> ""
     }
 
-    if (!fullLeaderboard.isEmpty()) {
+    if (!categoryLeaderboard.isEmpty()) {
         Dialog(
             onDismissRequest = onDismiss,
             properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -76,7 +73,7 @@ fun LeaderboardDialog(categoryString: String, avatarMap: Map<String, Int>, onDis
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier.weight(1f, fill = false)
                     ) {
-                        itemsIndexed(fullLeaderboard) { index, user -> // Loops through the leaderboard and gets index and user
+                        itemsIndexed(categoryLeaderboard) { index, user -> // Loops through the leaderboard and gets index and user
                             val score = when (categoryString) {
                                 "waterGoalsCompleted" -> user.waterGoalsCompleted
                                 "caloriesGoalsCompleted" -> user.caloriesGoalsCompleted

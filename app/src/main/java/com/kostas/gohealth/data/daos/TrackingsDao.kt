@@ -17,4 +17,7 @@ interface TrackingsDao {
 
     @Update
     suspend fun update(trackings: Trackings)
+
+    @Query("UPDATE trackings SET steps_progress = :newSteps WHERE userId = :uid")
+    suspend fun updateStepsProgress(uid: Int, newSteps: Int)
 }

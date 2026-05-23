@@ -19,8 +19,6 @@ import androidx.core.content.ContextCompat
 import com.kostas.gohealth.MainActivity
 import com.kostas.gohealth.R
 import com.kostas.gohealth.data.DatabaseProvider
-import com.kostas.gohealth.data.entities.Settings
-import com.kostas.gohealth.data.entities.Trackings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,11 +33,12 @@ class StepTrackerService : Service(), SensorEventListener {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var isForegroundServiceActive = false
 
+    // To avoid Android killing the foreground service, as much as possible, this function uses an in memory version of the local
+    // database, as to be faster by avoiding unnecessary transactions
     private var isCacheInitialized = false
     private var inMemoryStepsProgress = 0
     private var inMemoryLastSavedSteps = 0
-    private var inMemoryUserSettings: Settings? = null
-    private var inMemoryUserTrackings: Trackings? = null
+    private var userId: Int = 0
 
 
     override fun onCreate() {
@@ -64,6 +63,10 @@ class StepTrackerService : Service(), SensorEventListener {
             }
         }
 
+        if (intent?.action == "RESET_STEPS_MIDNIGHT") {
+            inMemoryStepsProgress = 0
+        }
+
         // Only create the notification and register the sensor if the foreground service isn't already active
         if (!isForegroundServiceActive) {
             createNotificationChannel()
@@ -78,13 +81,14 @@ class StepTrackerService : Service(), SensorEventListener {
     private fun initializeCacheAndStartSensor() {
         serviceScope.launch {
             val database = DatabaseProvider.getDatabase(applicationContext)
-            inMemoryUserSettings = database.settingsDao().getAll().first().firstOrNull()
-            inMemoryUserTrackings = database.trackingsDao().getAll().first().firstOrNull()
+            val userSettings = database.settingsDao().getAll().first().firstOrNull()
+            val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
 
-            if (inMemoryUserSettings != null && inMemoryUserTrackings != null) {
-                inMemoryLastSavedSteps = inMemoryUserSettings!!.lastSavedSteps
-                inMemoryStepsProgress = inMemoryUserTrackings!!.stepsProgress
+            if (userSettings != null && userTrackings != null) {
                 isCacheInitialized = true
+                inMemoryLastSavedSteps = userSettings.lastSavedSteps
+                inMemoryStepsProgress = userTrackings.stepsProgress
+                userId = userSettings.userId
 
                 registerStepSensor()
             }
@@ -134,18 +138,11 @@ class StepTrackerService : Service(), SensorEventListener {
 
     private fun saveToDatabase() {
         serviceScope.launch {
-            val database = DatabaseProvider.getDatabase(applicationContext)
-
-            inMemoryUserSettings?.let {
-                val updatedSettings = it.copy(lastSavedSteps = inMemoryLastSavedSteps)
-                database.settingsDao().update(updatedSettings)
-                inMemoryUserSettings = updatedSettings
-            }
-
-            inMemoryUserTrackings?.let {
-                val updatedTrackings = it.copy(stepsProgress = inMemoryStepsProgress)
-                database.trackingsDao().update(updatedTrackings)
-                inMemoryUserTrackings = updatedTrackings
+            userId.let { uid ->
+                // Because StepTracker uses a stale in-memory version of the local database, only update the steps, not the other columns
+                val database = DatabaseProvider.getDatabase(applicationContext)
+                database.settingsDao().updateLastSavedSteps(uid, inMemoryLastSavedSteps)
+                database.trackingsDao().updateStepsProgress(uid, inMemoryStepsProgress)
             }
         }
     }

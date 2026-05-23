@@ -13,10 +13,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -26,91 +24,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.firestore
 import com.kostas.gohealth.R
-import com.kostas.gohealth.data.documents.LeaderboardEntry
+import com.kostas.gohealth.helpers.getCategoryTopUsers
+import com.kostas.gohealth.helpers.getCurrentUser
 import com.kostas.gohealth.ui.components.screen.LeaderboardBox
 import com.kostas.gohealth.ui.components.screen.LeaderboardDialog
 
 @Composable
-// Sets up listeners in the Firestore database to continuously fetch the highest-scoring users and their details for
-// the water, calories, exercise, and steps goals, doesn't work on the background, only when the screen is active
-fun getCategoryTopUsers(category: String, limitCount: Long): State<List<LeaderboardEntry>> {
-    return produceState(initialValue = emptyList(), key1 = category) {
-        val db = Firebase.firestore
-
-        val listenerRegistration = db.collection("leaderboards")
-            .orderBy(category, Query.Direction.DESCENDING)
-            .limit(limitCount)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    return@addSnapshotListener
-                }
-
-                value = snapshot.documents.mapNotNull { doc ->
-                    LeaderboardEntry(
-                        userId = doc.id,
-                        username = doc.getString("username") ?: "",
-                        profilePictureString = doc.getString("profilePictureString") ?: "",
-                        waterGoalsCompleted = doc.getLong("waterGoalsCompleted") ?: 0L,
-                        caloriesGoalsCompleted = doc.getLong("caloriesGoalsCompleted") ?: 0L,
-                        exerciseGoalsCompleted = doc.getLong("exerciseGoalsCompleted") ?: 0L,
-                        stepsGoalsCompleted = doc.getLong("stepsGoalsCompleted") ?: 0L,
-                        totalSteps = doc.getLong("totalSteps") ?: 0L
-                    )
-                }
-            }
-
-        awaitDispose {
-            listenerRegistration.remove()
-        }
-    }
-}
-
-// Same job as getTopCategoryUser, but gets the actual user's data
-@Composable
-fun getCurrentUser(userId: String?): State<LeaderboardEntry?> {
-    return produceState(initialValue = null, key1 = userId) {
-        if (userId == null) {
-            value = null
-            return@produceState
-        }
-
-        val db = Firebase.firestore
-
-        val listenerRegistration = db.collection("leaderboards")
-            .document(userId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    return@addSnapshotListener
-                }
-
-                value = LeaderboardEntry(
-                    userId = snapshot.id,
-                    username = snapshot.getString("username") ?: "",
-                    profilePictureString = snapshot.getString("profilePictureString") ?: "",
-                    waterGoalsCompleted = snapshot.getLong("waterGoalsCompleted") ?: 0L,
-                    caloriesGoalsCompleted = snapshot.getLong("caloriesGoalsCompleted") ?: 0L,
-                    exerciseGoalsCompleted = snapshot.getLong("exerciseGoalsCompleted") ?: 0L,
-                    stepsGoalsCompleted = snapshot.getLong("stepsGoalsCompleted") ?: 0L,
-                    totalSteps = snapshot.getLong("totalSteps") ?: 0L
-                )
-            }
-
-        awaitDispose {
-            listenerRegistration.remove()
-        }
-    }
-}
-
-@Composable
 fun LeaderboardsScreen() {
-    val waterLeaderboards by getCategoryTopUsers("waterGoalsCompleted", 100)
-    val caloriesLeaderboards by getCategoryTopUsers("caloriesGoalsCompleted", 100)
-    val exerciseLeaderboards by getCategoryTopUsers("exerciseGoalsCompleted", 100)
-    val stepsLeaderboards by getCategoryTopUsers("stepsGoalsCompleted", 100)
-    val totalStepsLeaderboards by getCategoryTopUsers("totalSteps", 100)
+    val waterLeaderboards by getCategoryTopUsers("waterGoalsCompleted", 50)
+    val caloriesLeaderboards by getCategoryTopUsers("caloriesGoalsCompleted", 50)
+    val exerciseLeaderboards by getCategoryTopUsers("exerciseGoalsCompleted", 50)
+    val stepsLeaderboards by getCategoryTopUsers("stepsGoalsCompleted", 50)
+    val totalStepsLeaderboards by getCategoryTopUsers("totalSteps", 50)
 
     val topWaterUser = waterLeaderboards.firstOrNull()
     val topCaloriesUser = caloriesLeaderboards.firstOrNull()
@@ -206,7 +132,16 @@ fun LeaderboardsScreen() {
 
         // Show the LeaderboardDialog, if a category is clicked
         selectedLeaderboardDialog?.let { categoryString ->
-            LeaderboardDialog(categoryString, avatarMap, onDismiss = { selectedLeaderboardDialog = null })
+            val categoryLeaderboards = when (categoryString) {
+                "waterGoalsCompleted" -> waterLeaderboards
+                "caloriesGoalsCompleted" -> caloriesLeaderboards
+                "exerciseGoalsCompleted" -> exerciseLeaderboards
+                "stepsGoalsCompleted" -> stepsLeaderboards
+                "totalSteps" -> totalStepsLeaderboards
+                else -> emptyList()
+            }
+
+            LeaderboardDialog(categoryString, categoryLeaderboards, avatarMap, onDismiss = { selectedLeaderboardDialog = null })
         }
     }
 }

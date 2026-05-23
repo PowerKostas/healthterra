@@ -1,6 +1,7 @@
 package com.kostas.gohealth.services
 
 import android.content.Context
+import android.content.Intent
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FieldValue
@@ -50,6 +51,15 @@ suspend fun performDailyMaintenance(context: Context) {
                 // If it has already reset today, it doesn't reset again
                 if (LocalDate.now().toString() <= userSettings.lastSavedDate) {
                     return@withContext
+                }
+
+                // Sends a reset signal to the StepTrackerService
+                if (userSettings.stepTracking == "Enabled") {
+                    val resetIntent = Intent(context, StepTrackerService::class.java).apply {
+                        action = "RESET_STEPS_MIDNIGHT"
+                    }
+
+                    context.startService(resetIntent)
                 }
 
                 val updateUserTrackings = userTrackings.copy(
