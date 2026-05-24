@@ -2,6 +2,7 @@ package com.kostas.gohealth.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -109,27 +111,61 @@ fun ProfileScreen() {
                     verticalArrangement = Arrangement.spacedBy(space = 24.dp),
                     modifier = Modifier.padding(24.dp)
                 ) {
+                    var isError = username.length < 5
                     OutlinedTextField(
                         value = username,
                         label = { Text("Username") },
-                        modifier = Modifier.fillMaxWidth(),
+                        isError = isError,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused) {
+                                    if (username.length < 5) {
+                                        isError = true
+                                    }
 
-                        // Adds a small counting text below the field
+                                    // Local database update
+                                    else {
+                                        settingsViewModel.updateUserSettings(userSettings.copy(username = username))
+                                    }
+                                }
+                            },
+
+                        // Adds an error/counting text below the field
                         supportingText = {
-                            Text(
-                                text = "${username.length} / 15",
-                                textAlign = TextAlign.End,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .offset(x = 16.dp)
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                if (isError) {
+                                    Text(
+                                        text = "Username must be at least 5 characters",
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.offset(x = (-16).dp)
+                                    )
+                                }
+
+                                // Empty space to push the counter to the right
+                                else {
+                                    Text(text = "")
+                                }
+
+                                Text(
+                                    text = "${username.length} / 15",
+                                    textAlign = TextAlign.End,
+                                    modifier = Modifier.offset(x = 16.dp)
+                                )
+                            }
                         },
 
-                        // Updates the local database, every time the text changes, if it's length is below 15
+                        // Updates the UI, every time the text changes
                         onValueChange = { newValue ->
                             if (newValue.length <= 15) {
                                 username = newValue
-                                settingsViewModel.updateUserSettings(userSettings.copy(username = newValue))
+
+                                if (newValue.length >= 5) {
+                                    isError = false
+                                }
                             }
                         }
                     )

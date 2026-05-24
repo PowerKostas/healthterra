@@ -79,7 +79,7 @@ fun getCurrentUser(userId: String?): State<LeaderboardEntry?> {
     }
 }
 
-// Same job as getTopCategoryUser, but gets the user ranked highest amongst all the categories
+// Same job as getTopCategoryUser, but gets the user ranked highest amongst all the categories, doesn't scale well
 @Composable
 fun getHealthiestUser(): State<LeaderboardEntry?> {
     return produceState(initialValue = null) {
@@ -103,6 +103,11 @@ fun getHealthiestUser(): State<LeaderboardEntry?> {
                         stepsGoalsCompleted = doc.getLong("stepsGoalsCompleted") ?: 0L,
                         totalSteps = doc.getLong("totalSteps") ?: 0L
                     )
+                }
+
+                if (allUsers.isEmpty()) {
+                    value = null
+                    return@addSnapshotListener
                 }
 
                 // Gets a list of all the categories

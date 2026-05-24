@@ -35,7 +35,7 @@ import com.kostas.gohealth.helpers.roundGoal
 import com.kostas.gohealth.ui.components.general.ActionButton
 import com.kostas.gohealth.ui.components.general.BulletGraph
 import com.kostas.gohealth.ui.components.general.ProgressBar
-import com.kostas.gohealth.ui.components.screen.CustomAlertDialog
+import com.kostas.gohealth.ui.components.screen.CustomButtonDialog
 import com.kostas.gohealth.ui.viewModels.TrackingsViewModel
 import kotlin.math.roundToInt
 
@@ -160,7 +160,7 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
         }
 
         if (showCustomAlertDialog) {
-            CustomAlertDialog(
+            CustomButtonDialog (
                 metric = metric,
                 onDismiss = { showCustomAlertDialog = false },
                 onConfirm = { amount ->

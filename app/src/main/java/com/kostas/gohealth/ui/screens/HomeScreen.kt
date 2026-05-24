@@ -67,7 +67,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 .padding(16.dp, 32.dp, 16.dp, 32.dp)
         ) {
             // Warning text, if the user hasn't filled all the characteristics in his profile
-            if (userCharacteristics.gender == null || userCharacteristics.age == null || userCharacteristics.height == null || userCharacteristics.weight == null || userCharacteristics.activityLevel == null || userCharacteristics.weightGoal == null) {
+            if (userCharacteristics.gender == null || userCharacteristics.age == null || userCharacteristics.height == null || userCharacteristics.weight == null || userCharacteristics.activityLevel == null) {
                 Text(
                     text = "Complete your profile for more personalized results.",
                     color = MaterialTheme.colorScheme.error,

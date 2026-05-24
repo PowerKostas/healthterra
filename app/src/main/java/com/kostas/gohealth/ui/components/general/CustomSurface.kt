@@ -10,11 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CustomSurface(content: @Composable () -> Unit) {
+fun CustomSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
+        modifier = modifier
             .padding(start = 16.dp, end = 16.dp, bottom = 4.dp, top = 4.dp)
             .border(
                 width = 1.dp,

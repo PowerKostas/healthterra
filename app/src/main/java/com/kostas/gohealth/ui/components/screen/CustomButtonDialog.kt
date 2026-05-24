@@ -19,7 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CustomAlertDialog(
+fun CustomButtonDialog(
     metric: String,
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit
