@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-fun InfoDialog(icon: ImageVector, title: String?, text: String, onDismiss: () -> Unit) {
+fun InfoDialog(icon: ImageVector, iconColour: Color, title: String?, text: String, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
@@ -21,7 +21,7 @@ fun InfoDialog(icon: ImageVector, title: String?, text: String, onDismiss: () ->
             Icon(
                 icon,
                 contentDescription = "Dialog Icon",
-                tint = Color(0xFFD4AF37)
+                tint = iconColour
             )
         },
 
@@ -38,8 +38,8 @@ fun InfoDialog(icon: ImageVector, title: String?, text: String, onDismiss: () ->
         text = {
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
         },
@@ -48,8 +48,7 @@ fun InfoDialog(icon: ImageVector, title: String?, text: String, onDismiss: () ->
             TextButton(onClick = onDismiss) {
                 Text(
                     text = "Got it",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color(0xFFD4AF37),
+                    color = Color(0xFF6750A4),
                     fontWeight = FontWeight.Bold
                 )
             }

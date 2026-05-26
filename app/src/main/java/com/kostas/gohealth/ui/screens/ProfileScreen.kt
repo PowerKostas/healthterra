@@ -64,7 +64,7 @@ fun ProfileScreen() {
 
     // Initializes the variables with the values from the database
     var profilePictureString by remember { mutableStateOf(userSettings.profilePictureString) }
-    var username by remember { mutableStateOf(userSettings.username ?: "") }
+    var username by remember { mutableStateOf(userSettings.username) }
     var gender by remember { mutableStateOf(userCharacteristics.gender ?: "") }
     var age by remember { mutableStateOf(formatNumber(userCharacteristics.age)) }
     var height by remember { mutableStateOf(formatNumber(userCharacteristics.height)) }
@@ -139,7 +139,7 @@ fun ProfileScreen() {
                             ) {
                                 if (isError) {
                                     Text(
-                                        text = "Username must be at least 5 characters",
+                                        text = "Minimum 5 characters",
                                         color = MaterialTheme.colorScheme.error,
                                         modifier = Modifier.offset(x = (-16).dp)
                                     )

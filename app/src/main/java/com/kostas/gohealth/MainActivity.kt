@@ -157,7 +157,6 @@ class MainActivity : ComponentActivity() {
 
             if (userSettings?.stepTracking == "Enabled") {
                 val serviceIntent = Intent(this@MainActivity, StepTrackerService::class.java)
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
                         startForegroundService(serviceIntent)

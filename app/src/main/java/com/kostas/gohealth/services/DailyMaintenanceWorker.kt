@@ -12,6 +12,7 @@ import com.kostas.gohealth.helpers.calculateCaloriesGoal
 import com.kostas.gohealth.helpers.calculateExerciseGoal
 import com.kostas.gohealth.helpers.calculateStepsGoal
 import com.kostas.gohealth.helpers.calculateWaterGoal
+import com.kostas.gohealth.helpers.checkAutoTimeSetting
 import com.kostas.gohealth.helpers.roundGoal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -74,6 +75,11 @@ suspend fun performDailyMaintenance(context: Context) {
                 val updateUserSettings = userSettings.copy(lastSavedDate = LocalDate.now().toString())
                 settingsDao.update(updateUserSettings)
 
+                // To avoid cheaters, if the user has turned off the automatic date and time setting, it blocks the database sync
+                if (!checkAutoTimeSetting(context)) {
+                    return@withContext
+                }
+
                 val waterGoal = calculateWaterGoal(userCharacteristics)
                 val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
                 val exerciseGoal = calculateExerciseGoal(userCharacteristics)
@@ -90,7 +96,7 @@ suspend fun performDailyMaintenance(context: Context) {
                 val totalSteps = userTrackings.stepsProgress
 
                 val updateData = hashMapOf(
-                    "username" to (userSettings.username ?: ""),
+                    "username" to userSettings.username,
                     "profilePictureString" to userSettings.profilePictureString,
                     "waterGoalsCompleted" to FieldValue.increment(waterGoalCompleted),
                     "caloriesGoalsCompleted" to FieldValue.increment(caloriesGoalCompleted),

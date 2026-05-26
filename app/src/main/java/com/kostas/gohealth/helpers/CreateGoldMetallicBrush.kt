@@ -1,12 +1,10 @@
 package com.kostas.gohealth.helpers
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
 
-@Composable
 fun createGoldMetallicBrush(animationProgress: Float, componentSize: IntSize): Brush {
     // Defines the animated metallic gold color palette (Shadows, Base, Shine, Base, Shadows)
     val metallicGoldColors = listOf(

@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.kostas.gohealth.R
+import com.kostas.gohealth.data.documents.LeaderboardEntry
 import com.kostas.gohealth.helpers.createGoldMetallicBrush
 import com.kostas.gohealth.helpers.getCategoryTopUsers
 import com.kostas.gohealth.helpers.getCurrentUser
@@ -48,7 +50,59 @@ import com.kostas.gohealth.ui.components.general.InfoDialog
 import com.kostas.gohealth.ui.components.screen.LeaderboardBox
 import com.kostas.gohealth.ui.components.screen.LeaderboardDialog
 
-// Even if the user has no network connection, it will show the old data, except on a fresh install, then it will be an empty screen
+// Have to isolate the animated row so the screen doesn't recompose on every frame
+@Composable
+fun HealthiestUserAnimatedRow(avatarMap: Map<String, Int>, healthiestUser: LeaderboardEntry) {
+    // Creates a float number that counts from 0 to 1 at a steady speed (LinearEasing), it takes durationMillis seconds to
+    // hit 1, it reverses to 0, the moment it reaches 1 (RepeatMode.Reverse)
+    val infiniteTransition = rememberInfiniteTransition()
+    val animationProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    // Recreates brush instances, relative to each animated component, every time animation progress gets a new value
+    var iconSize by remember { mutableStateOf(IntSize.Zero) }
+    var textSize by remember { mutableStateOf(IntSize.Zero) }
+    val iconBrush = createGoldMetallicBrush(animationProgress, iconSize)
+    val textBrush = createGoldMetallicBrush(animationProgress, textSize)
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = avatarMap.getValue(healthiestUser.profilePictureString)),
+            contentDescription = "Profile Picture",
+            tint = Color.Unspecified,
+            modifier = Modifier
+                .size(80.dp)
+                .onSizeChanged { iconSize = it } // Captures the size of the icon
+                .border(
+                    width = 3.dp,
+                    brush = iconBrush,
+                    shape = CircleShape
+                )
+        )
+
+        Text(
+            text = healthiestUser.username,
+            style = MaterialTheme.typography.titleLarge.copy(
+                brush = textBrush
+            ),
+
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.onSizeChanged { textSize = it } // Captures the size of the text
+        )
+    }
+}
+
+
+// Even if the user has no network connection, the screen will show the old data, except on a fresh install, then it will be empty
 @Composable
 fun LeaderboardsScreen() {
     val waterLeaderboards by getCategoryTopUsers("waterGoalsCompleted", 50)
@@ -89,7 +143,6 @@ fun LeaderboardsScreen() {
         "penguin" to R.drawable.penguin,
         "sheep" to R.drawable.sheep
     )
-
 
     if (topWaterUser != null && topCaloriesUser != null && topExerciseUser != null && topStepsUser != null && topTotalStepsUser != null && currentUser != null && healthiestUser != null) { // Loading screen
         // Draws the screen
@@ -162,7 +215,7 @@ fun LeaderboardsScreen() {
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
 
@@ -178,58 +231,14 @@ fun LeaderboardsScreen() {
                         contentDescription = "Info Button",
                         tint = Color(0xFFD4AF37),
                         modifier = Modifier
+                            .clip(CircleShape)
                             .clickable { showHealthiestUserDialog = true }
                     )
 
                     HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
                 }
 
-                // Creates a float number that counts from 0 to 1 at a steady speed (LinearEasing), it takes durationMillis seconds to
-                // hit 1, it reverses to 0, the moment it reaches 1 (RepeatMode.Reverse)
-                val infiniteTransition = rememberInfiniteTransition()
-                val animationProgress by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 1f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = 2000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Reverse
-                    )
-                )
-
-                // Recreates brush instances, relative to each animated component, every time animation progress gets a new value
-                var iconSize by remember { mutableStateOf(IntSize.Zero) }
-                var textSize by remember { mutableStateOf(IntSize.Zero) }
-                val iconBrush = createGoldMetallicBrush(animationProgress, iconSize)
-                val textBrush = createGoldMetallicBrush(animationProgress, textSize)
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        painter = painterResource(id = avatarMap.getValue(healthiestUser.profilePictureString)),
-                        contentDescription = "Profile Picture",
-                        tint = Color.Unspecified,
-                        modifier = Modifier
-                            .size(80.dp)
-                            .onSizeChanged { iconSize = it } // Captures the size of the icon
-                            .border(
-                                width = 3.dp,
-                                brush = iconBrush,
-                                shape = CircleShape
-                            )
-                    )
-
-                    Text(
-                        text = healthiestUser.username,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            brush = textBrush
-                        ),
-
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.onSizeChanged { textSize = it } // Captures the size of the text
-                    )
-                }
+                HealthiestUserAnimatedRow(healthiestUser = healthiestUser, avatarMap = avatarMap)
 
                 HorizontalDivider(color = Color(0xFFD4AF37), thickness = 2.dp)
             }
@@ -251,7 +260,7 @@ fun LeaderboardsScreen() {
         }
 
         if (showHealthiestUserDialog) {
-            InfoDialog(Icons.Default.Info, null, "The \"Healthiest User\" is the person ranked highest amongst all the categories.") {
+            InfoDialog(Icons.Default.Info, Color(0xFFD4AF37), null, "The 'Healthiest User' is the person ranked highest amongst all the categories.") {
                 showHealthiestUserDialog = false
             }
         }
