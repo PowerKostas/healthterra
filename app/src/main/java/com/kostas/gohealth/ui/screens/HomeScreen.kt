@@ -111,7 +111,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp, 32.dp, 16.dp, 32.dp)
+                .padding(16.dp, 32.dp, 16.dp, 16.dp) // Smaller bottom than top padding, because the bottom navigation bar has padding too
         ) {
             // Only adds the error row if one of the warnings/errors is present
             if (isProfileIncomplete || !isAutoTimeEnabled) {

@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,8 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
@@ -50,13 +50,13 @@ import com.kostas.gohealth.ui.components.general.InfoDialog
 import com.kostas.gohealth.ui.components.screen.LeaderboardBox
 import com.kostas.gohealth.ui.components.screen.LeaderboardDialog
 
-// Have to isolate the animated row so the screen doesn't recompose on every frame
+// Have to isolate the animated row so the screen doesn't recompose on every frame and block clicks
 @Composable
 fun HealthiestUserAnimatedRow(avatarMap: Map<String, Int>, healthiestUser: LeaderboardEntry) {
     // Creates a float number that counts from 0 to 1 at a steady speed (LinearEasing), it takes durationMillis seconds to
     // hit 1, it reverses to 0, the moment it reaches 1 (RepeatMode.Reverse)
     val infiniteTransition = rememberInfiniteTransition()
-    val animationProgress by infiniteTransition.animateFloat(
+    val animationProgress = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -64,12 +64,6 @@ fun HealthiestUserAnimatedRow(avatarMap: Map<String, Int>, healthiestUser: Leade
             repeatMode = RepeatMode.Reverse
         )
     )
-
-    // Recreates brush instances, relative to each animated component, every time animation progress gets a new value
-    var iconSize by remember { mutableStateOf(IntSize.Zero) }
-    var textSize by remember { mutableStateOf(IntSize.Zero) }
-    val iconBrush = createGoldMetallicBrush(animationProgress, iconSize)
-    val textBrush = createGoldMetallicBrush(animationProgress, textSize)
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -81,22 +75,44 @@ fun HealthiestUserAnimatedRow(avatarMap: Map<String, Int>, healthiestUser: Leade
             tint = Color.Unspecified,
             modifier = Modifier
                 .size(80.dp)
-                .onSizeChanged { iconSize = it } // Captures the size of the icon
-                .border(
-                    width = 3.dp,
-                    brush = iconBrush,
-                    shape = CircleShape
-                )
+
+                // Every time animation progress gets a new value, it recreates the brush instance, relative to the animated component. By
+                // reading the animation progress inside the Draw Phase (rather than the Composition Phase), it prevents the screen from
+                // recomposing on every frame. The animated icon border is drawn directly on top of the image
+                .drawWithCache {
+                    val brush = createGoldMetallicBrush(animationProgress.value, IntSize(size.width.toInt(), size.height.toInt()))
+                    val strokeWidth = 3.dp.toPx()
+
+                    onDrawWithContent {
+                        drawContent()
+                        drawCircle(
+                            brush = brush,
+                            radius = (size.minDimension - strokeWidth) / 2f,
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(strokeWidth)
+                        )
+                    }
+                }
         )
 
         Text(
             text = healthiestUser.username,
-            style = MaterialTheme.typography.titleLarge.copy(
-                brush = textBrush
-            ),
-
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.onSizeChanged { textSize = it } // Captures the size of the text
+
+            modifier = Modifier
+                // Similar to the animated icon border, but this time graphicsLayer renders the text to a temporary, invisible
+                // canvas. BlendMode.SrcIn uses that text as a mask, painting the animated gold brush only where the text pixels exist
+                .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                .drawWithCache {
+                    val brush = createGoldMetallicBrush(animationProgress.value, IntSize(size.width.toInt(), size.height.toInt()))
+                    onDrawWithContent {
+                        drawContent()
+                        drawRect(
+                            brush = brush,
+                            blendMode = androidx.compose.ui.graphics.BlendMode.SrcIn
+                        )
+                    }
+                }
         )
     }
 }
