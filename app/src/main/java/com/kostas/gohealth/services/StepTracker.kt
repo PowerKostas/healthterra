@@ -54,6 +54,9 @@ class StepTrackerService : Service(), SensorEventListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        createNotificationChannel()
+        startForeground(1, createNotification())
+
         // Handles weird bug
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
@@ -67,10 +70,8 @@ class StepTrackerService : Service(), SensorEventListener {
             inMemoryStepsProgress = 0
         }
 
-        // Only create the notification and register the sensor if the foreground service isn't already active
+        // Only initialize the sensor and cache if the foreground service isn't already active
         if (!isForegroundServiceActive) {
-            createNotificationChannel()
-            startForeground(1, createNotification())
             initializeCacheAndStartSensor()
             isForegroundServiceActive = true
         }

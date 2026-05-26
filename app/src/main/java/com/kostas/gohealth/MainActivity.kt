@@ -22,7 +22,10 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.auth
+import com.google.firebase.initialize
 import com.kostas.gohealth.services.NotificationWorker
 import com.kostas.gohealth.services.StepTrackerService
 import com.kostas.gohealth.services.performDailyMaintenance
@@ -61,6 +64,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
+
+        // Initializes Firebase App Check
+        Firebase.initialize(this)
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
+            PlayIntegrityAppCheckProviderFactory.getInstance()
+        )
 
         // Authenticates the user anonymously to Firebase when the app first opens
         Firebase.auth.signInAnonymously()
