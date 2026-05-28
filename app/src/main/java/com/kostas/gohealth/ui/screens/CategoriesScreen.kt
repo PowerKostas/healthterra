@@ -8,10 +8,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,9 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
@@ -34,8 +42,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kostas.gohealth.helpers.roundGoal
 import com.kostas.gohealth.ui.components.general.ActionButton
 import com.kostas.gohealth.ui.components.general.BulletGraph
+import com.kostas.gohealth.ui.components.general.CustomSurface
 import com.kostas.gohealth.ui.components.general.ProgressBar
 import com.kostas.gohealth.ui.components.screen.CustomButtonDialog
+import com.kostas.gohealth.ui.viewModels.FoodViewModel
 import com.kostas.gohealth.ui.viewModels.TrackingsViewModel
 import kotlin.math.roundToInt
 
@@ -48,6 +58,10 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
     val trackingsViewModel: TrackingsViewModel = viewModel(factory = TrackingsViewModel.Factory)
     val userTrackingsList by trackingsViewModel.trackings.collectAsState()
     val userTrackings = userTrackingsList.firstOrNull()
+
+    // Gets auto updatable variable, for food search results
+    val foodViewModel: FoodViewModel = viewModel(factory = FoodViewModel.Factory)
+    val searchResults by foodViewModel.searchResults.collectAsState()
 
     var showCustomAlertDialog by remember { mutableStateOf(false) }
 
@@ -82,7 +96,7 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(40.dp, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterVertically),
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
@@ -127,26 +141,75 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                 BulletGraph(categoryProgress, minValue, maxValue, progressBarColour)
             }
 
-            if (metric != "reps") {
-                Text(
-                    text = "Add $metric to reach your daily goal!",
-                    textAlign = TextAlign.Center
-                )
-            }
+            when (categoryName) {
+                "Calories" -> {
+                    Text(
+                        text = "Search for food items or quick-add kcal to reach your daily goal!",
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-            else {
-                Text(
-                    text = "Add $metric of any exercise to reach your daily goal!",
-                    textAlign = TextAlign.Center
-                )
+                "Exercise" -> {
+                    Text(
+                        text = "Add $metric of any exercise to reach your daily goal!",
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                else -> {
+                    Text(
+                        text = "Add $metric to reach your daily goal!",
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    val modifier = Modifier.weight(1f)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (categoryName == "Calories") {
+                        var query by remember { mutableStateOf("") }
+                        val keyboardController = LocalSoftwareKeyboardController.current
 
-                    for (i in 0 until buttonTexts.size) {
-                        ActionButton(modifier, progressBarColour, buttonIconIds?.get(i), buttonTexts[i], fontSize) { handleAddAmount(regex.find(buttonTexts[i])?.value?.toIntOrNull() ?: 0) }
+                        CustomSurface(0.dp, 0.dp, 0.dp, 8.dp) {
+                            OutlinedTextField(
+                                placeholder = { Text(text = "Enter a food item") },
+                                value = query,
+                                onValueChange = { query = it },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                                modifier = Modifier.fillMaxWidth(),
+
+                                keyboardActions = KeyboardActions(
+                                    onSearch = {
+                                        foodViewModel.searchFood(query)
+                                        keyboardController?.hide()
+                                    }
+                                ),
+
+                                trailingIcon = {
+                                    IconButton(onClick = {
+                                        foodViewModel.searchFood(query)
+                                        keyboardController?.hide()
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Search,
+                                            contentDescription = "Search Button"
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    else {
+                        val modifier = Modifier.weight(1f)
+
+                        for (i in 0 until buttonTexts.size) {
+                            ActionButton(modifier, progressBarColour, buttonIconIds?.get(i), buttonTexts[i], fontSize) { handleAddAmount(regex.find(buttonTexts[i])?.value?.toIntOrNull() ?: 0) }
+                        }
                     }
                 }
 

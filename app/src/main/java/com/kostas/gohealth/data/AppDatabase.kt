@@ -5,9 +5,11 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.kostas.gohealth.data.daos.CharacteristicsDao
+import com.kostas.gohealth.data.daos.FoodDao
 import com.kostas.gohealth.data.daos.SettingsDao
 import com.kostas.gohealth.data.daos.TrackingsDao
 import com.kostas.gohealth.data.entities.Characteristics
+import com.kostas.gohealth.data.entities.Food
 import com.kostas.gohealth.data.entities.Settings
 import com.kostas.gohealth.data.entities.Trackings
 
@@ -16,13 +18,14 @@ import com.kostas.gohealth.data.entities.Trackings
 // app in the emulator and redo the process
 @TypeConverters(Converters::class) // Automatically runs the converters, I can just use the lists/dates as lists/dates in code now
 @Database(
-    entities = [Settings::class, Characteristics::class, Trackings::class],
-    version = 3,
+    entities = [Settings::class, Characteristics::class, Trackings::class, Food::class],
+    version = 4,
     autoMigrations = [
-        AutoMigration(from = 2, to = 3)
+        AutoMigration(from = 3, to = 4)
         //AutoMigration(from = 3, to = 4, spec = AppDatabase.MyRenameMigration::class)
     ]
 )
+
 abstract class AppDatabase : RoomDatabase() {
     /*
     @RenameColumn(
@@ -36,4 +39,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun characteristicsDao(): CharacteristicsDao
     abstract fun settingsDao(): SettingsDao
     abstract fun trackingsDao(): TrackingsDao
+    abstract fun foodDao(): FoodDao
 }

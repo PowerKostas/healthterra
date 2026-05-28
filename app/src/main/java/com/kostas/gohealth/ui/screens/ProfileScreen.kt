@@ -106,7 +106,7 @@ fun ProfileScreen() {
                     .padding(start = 16.dp)
             )
 
-            CustomSurface {
+            CustomSurface(16.dp, 4.dp, 16.dp, 4.dp) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(space = 24.dp),
                     modifier = Modifier.padding(24.dp)
@@ -265,7 +265,7 @@ fun ProfileScreen() {
                     .padding(start = 16.dp)
             )
 
-            CustomSurface {
+            CustomSurface(16.dp, 4.dp, 16.dp, 4.dp) {
                 RadioButtonGroup(
                     listOf("Enabled", "Disabled"),
                     userSettings.stepTracking
@@ -287,7 +287,7 @@ fun ProfileScreen() {
                     .padding(start = 16.dp)
             )
 
-            CustomSurface {
+            CustomSurface(16.dp, 4.dp, 16.dp, 4.dp) {
                 RadioButtonGroup(
                     listOf("Light", "Dark", "Dynamic"),
                     userSettings.appearance

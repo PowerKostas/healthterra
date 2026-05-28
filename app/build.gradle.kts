@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace = "com.kostas.gohealth"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.kostas.gohealth"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 3
-        versionName = "3.0"
+        targetSdk = 37
+        versionCode = 4
+        versionName = "4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

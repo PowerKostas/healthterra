@@ -15,7 +15,9 @@ object DatabaseProvider {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "app_database"
-            ).build()
+            )
+                .createFromAsset("databases/item_size_calories.db")
+                .build()
 
             INSTANCE = instance
             instance

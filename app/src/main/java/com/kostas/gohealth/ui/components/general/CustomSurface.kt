@@ -8,15 +8,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CustomSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun CustomSurface(startPadding: Dp, topPadding: Dp, endPadding: Dp, bottomPadding: Dp, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, bottom = 4.dp, top = 4.dp)
+            .padding(start = startPadding, top = topPadding, end = endPadding, bottom = bottomPadding)
             .clip(RoundedCornerShape(16.dp))
             .border(
                 width = 1.dp,
