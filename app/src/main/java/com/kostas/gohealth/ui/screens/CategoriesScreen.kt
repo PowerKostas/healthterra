@@ -38,6 +38,7 @@ import com.kostas.gohealth.ui.components.general.BulletGraph
 import com.kostas.gohealth.ui.components.general.ProgressBar
 import com.kostas.gohealth.ui.components.general.SearchTextField
 import com.kostas.gohealth.ui.components.screen.CustomButtonDialog
+import com.kostas.gohealth.ui.components.screen.FoodTable
 import com.kostas.gohealth.ui.viewModels.FoodViewModel
 import com.kostas.gohealth.ui.viewModels.TrackingsViewModel
 import kotlin.math.roundToInt
@@ -52,9 +53,10 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
     val userTrackingsList by trackingsViewModel.trackings.collectAsState()
     val userTrackings = userTrackingsList.firstOrNull()
 
-    // Gets auto updatable variable, for food search results
+    // Gets auto updatable variables for the food table
     val foodViewModel: FoodViewModel = viewModel(factory = FoodViewModel.Factory)
     val searchResults by foodViewModel.searchResults.collectAsState()
+    val isLoading by foodViewModel.isLoading.collectAsState()
 
     var showCustomAlertDialog by remember { mutableStateOf(false) }
 
@@ -152,37 +154,57 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                 )
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (categoryName == "Calories") {
-                        SearchTextField(
-                            Modifier.fillMaxWidth(),
-                            "Enter a food item...",
-                            progressBarColour,
-                            3,
-                            onSearch = { searchQuery ->
-                                foodViewModel.searchFood(searchQuery)
-                            },
-                        )
+            if (categoryName == "Calories") {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        val modifier = Modifier.weight(1f)
+
+                        ActionButton(modifier, progressBarColour, null, "Custom", 16.sp) { showCustomAlertDialog = true }
+                        ActionButton(modifier, Color(0xFFE53935), null, "Undo", 16.sp) { handleDeletePrevious() }
                     }
 
-                    else {
+                    var hasSearched by remember { mutableStateOf(false) }
+                    SearchTextField(
+                        Modifier.fillMaxWidth(),
+                        "Enter a food item...",
+                        progressBarColour,
+                        3,
+
+                        onInputChange = {
+                            hasSearched = false
+                        },
+
+                        onSearch = { input ->
+                            foodViewModel.searchFood(input)
+                            hasSearched = true
+                        }
+                    )
+
+                    if (hasSearched && !isLoading) {
+                        FoodTable(rows = searchResults, onFoodSelected = { calories -> handleAddAmount(calories) })
+                    }
+                }
+            }
+
+            else {
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         val modifier = Modifier.weight(1f)
 
                         for (i in 0 until buttonTexts.size) {
                             ActionButton(modifier, progressBarColour, buttonIconIds?.get(i), buttonTexts[i], fontSize) { handleAddAmount(regex.find(buttonTexts[i])?.value?.toIntOrNull() ?: 0) }
                         }
                     }
-                }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    val modifier = Modifier.weight(1f)
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        val modifier = Modifier.weight(1f)
 
-                    ActionButton(modifier, progressBarColour, null, "Custom", 16.sp) { showCustomAlertDialog = true }
-                    ActionButton(modifier, Color(0xFFE53935), null, "Undo", 16.sp) { handleDeletePrevious() }
+                        ActionButton(modifier, progressBarColour, null, "Custom", 16.sp) { showCustomAlertDialog = true }
+                        ActionButton(modifier, Color(0xFFE53935), null, "Undo", 16.sp) { handleDeletePrevious() }
+                    }
                 }
             }
         }

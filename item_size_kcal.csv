@@ -1,4 +1,4 @@
-Item,Size,Calories
+Item,Size,kcal
 Milk,1 Cup,122
 Abalone,100g,105
 Acai Berries,100g,70
@@ -679,7 +679,7 @@ Cannellini Beans,1 Cup,225
 Cannoli,1 Item,220
 Canola Oil,1 Tablespoon,124
 Cantaloupe,1 Cup,54
-Cantucci / Biscotti,1 Piece,88
+Biscotti,1 Piece,88
 Cao Lau,1 Plate,380
 Cape Gooseberry,100g,53
 Capers,1 Tablespoon,2
@@ -688,7 +688,7 @@ Caponata,1 Plate,180
 Cappuccino,1 Cup,80
 Caprese Salad,1 Salad,280
 Capri Sun,1 Item,60
-Carambola / Star Fruit,1 Item,30
+Star Fruit,1 Item,30
 Caramel,3 Pieces,110
 Caramel Apple,1 Item,320
 Caramel Apple Cider,1 Cup,200
@@ -1177,8 +1177,6 @@ Conch,100g,130
 Condensed Milk,1 Cup,982
 Confectioners Sugar,1 Tablespoon,32
 Confit De Canard,1 Plate,640
-Congee,1 Cup,46
-Congee / Rice Porridge,1 Item,200
 Congee Plain,1 Item,100
 Congee Pork,1 Cup,170
 Congee with Century Egg,1 Item,180
@@ -1384,7 +1382,7 @@ Dasik,1 Piece,30
 Date,1 Piece,20
 Deep Dish Pizza,1 Plate,720
 Deep Fried Camembert,1 Plate,350
-Deer / Venison,100g,158
+Venison,100g,158
 Deli Sandwich Turkey,1 Item,360
 Demi-Glace,1 Tablespoon,20
 Derby Pie,1 Slice,490
@@ -1403,7 +1401,7 @@ Dirty Rice,1 Plate,390
 Divinity Candy,1 Piece,57
 Dobos Torte,1 Slice,340
 Doenjang Jjigae,1 Bowl,180
-Stuffed Zucchini / Kolokythakia Gemista,1 Piece,450
+Kolokythakia Gemista,1 Piece,450
 Dolmades,5 Pieces,165
 Donauwelle,1 Slice,380
 Donburi Beef,1 Plate,540
@@ -1439,8 +1437,7 @@ Dried Pasta,100g,357
 Dried Pineapple,1 Ounce,82
 Dried Seaweed Snack,1 Item,30
 Breakfast Platter,1 Plate,750
-Drumstick / Moringa,100g,37
-Drumstick Ice Cream,1 Item,360
+Moringa,100g,37
 Drunken Noodles,1 Cup,410
 Duchess Potatoes,1 Plate,230
 Duck a l'orange,1 Plate,410
@@ -2001,7 +1998,7 @@ Grouper,100g,92
 Gruel Oat,1 Cup,150
 Gruyere,1 Ounce,117
 Guacamole,2 Tablespoons,45
-Guanabana / Soursop,100g,66
+Soursop,100g,66
 Guanciale,1 Ounce,150
 Guava,1 Item,37
 Gudeg,1 Cup,260
@@ -2097,7 +2094,7 @@ Honeydew Melon,1 Cup,61
 Hoppin John,1 Plate,340
 Horchata,1 Cup,250
 Horiatiki,1 Cup,125
-Horned Melon / Kiwano,1 Item,92
+Kiwano,1 Item,92
 Horsemeat,100g,133
 Horseradish,1 Tablespoon,7
 Horseradish Sauce,1 Tablespoon,20
@@ -2125,7 +2122,7 @@ Ice Cream Bar,1 Piece,210
 Ice Cream Brownie Sundae,1 Sundae,500
 Ice Cream Butter Pecan,1 Cup,330
 Ice Cream Cake,1 Slice,290
-Ice Cream Cone,1 Item,170
+Ice Cream Cone,1 Item,250
 Ice Cream Cone Waffle,1 Item,417
 Ice Cream Cookies and Cream,1 Cup,310
 Ice Cream Dulce De Leche,1 Cup,330
@@ -2155,7 +2152,7 @@ Imagawayaki,1 Piece,150
 Imam Bayildi,1 Plate,220
 Imitation Crab,100g,95
 Inari Sushi,2 Pieces,130
-Indian Gooseberry / Amla,100g,44
+Indian Gooseberry,100g,44
 Injera,1 Piece,130
 Injera with Tibs,1 Plate,530
 Insalata Caprese,1 Plate,180
@@ -2206,7 +2203,7 @@ Japchae,1 Plate,390
 Jarlsberg,1 Ounce,100
 Pasta Sauce,1 Cup,240
 Jasmine Rice,1 Cup,205
-Java Plum / Jamun,100g,60
+Jamun,100g,60
 Jeera Rice,1 Cup,220
 Jello Cup,1 Cup,80
 Jello Salad,1 Cup,150
@@ -2231,7 +2228,7 @@ Kadai Paneer,1 Plate,430
 Kaesekuchen German,1 Slice,320
 Kafta,1 Item,140
 Kahlua,1 Ounce,107
-Kai-Lan / Chinese Broccoli,100g,26
+Chinese Broccoli,100g,26
 Kaiserschmarrn,1 Piece,410
 Kaju Katli,1 Piece,65
 Kakigori,1 Portion,150
@@ -2242,7 +2239,7 @@ Kale Salad with Dressing,1 Salad,285
 Kamut,1 Cup,251
 Kanafeh,1 Piece,370
 Kangaroo,100g,98
-Kangkong / Water Spinach,100g,19
+Kangkong,100g,19
 Karaage,1 Cup,340
 Kartoffelpuffer,1 Item,180
 Kartoffelpuffer Potato Pancake,1 Piece,160
@@ -2541,7 +2538,7 @@ Malabar Spinach,100g,19
 Malai Kofta,1 Plate,450
 Malay Apple,100g,43
 Malt Chocolate,1 Cup,410
-Malunggay / Moringa Leaves,100g,64
+Moringa Leaves,100g,64
 Manchego,1 Ounce,110
 Mandarin Orange,1 Item,47
 Mandu,5 Items,260
@@ -2567,7 +2564,7 @@ Mango Sundae,1 Sundae,424
 Mangosteen,100g,73
 Manhattan,1 Item,187
 Manicotti,1 Plate,430
-Manioc / Tapioca Bread,1 Slice,110
+Tapioca Bread,1 Slice,110
 Mansaf,1 Plate,620
 Manti Turkish Dumplings,1 Item,450
 Maple Brownie,1 Item,279
@@ -2843,7 +2840,7 @@ Noodles Salad,1 Salad,400
 Nori Seaweed Sheet,1 Item,10
 Nougat,1 Ounce,110
 Nuoc Cham,1 Tablespoon,15
-Nuoc Mam / Fish Sauce,1 Tablespoon,10
+Fish Sauce,1 Tablespoon,10
 Nut Bar,1 Item,200
 Nutmeg,1 Teaspoon,12
 Nutri Grain Bar,1 Item,130
@@ -3168,7 +3165,7 @@ Pide Cheese,1 Piece,420
 Pie Crust,1 Slice,121
 Pierogies Meat,3 Pieces,240
 Pierogies Potato,3 Pieces,210
-Pigeon / Squab Meat,100g,294
+Squab Meat,100g,294
 Pigeon Peas,1 Cup,203
 Pike,100g,113
 Pilaf Vegetable,1 Plate,320
@@ -3271,8 +3268,7 @@ Pompano,100g,164
 Pongal,1 Cup,220
 Ponzu,1 Tablespoon,10
 Ponzu Sauce,1 Tablespoon,12
-Poori,1 Piece,101
-Poori / Puri,1 Piece,150
+Poori,1 Piece,121
 Pop Rocks,1 Item,36
 Popcorn Air Popped,1 Cup,31
 Popcorn Butter,1 Cup,64
@@ -3312,7 +3308,7 @@ Pork Green Curry,1 Plate,587
 Pork Jalfrezi,1 Plate,381
 Pork Jambalaya,1 Plate,487
 Pork Korma,1 Plate,406
-Pork Leg / Ham,100g,186
+Pork Leg,100g,186
 Pork Liver,100g,165
 Pork Madras,1 Plate,577
 Pork Massaman,1 Plate,473
@@ -3721,7 +3717,6 @@ Sage Dried,1 Teaspoon,2
 Sake,3 Ounce,117
 Salade Lyonnaise,1 Salad,380
 Salak,1 Item,82
-Salak / Snake Fruit,100g,82
 Salami,1 Ounce,119
 Salisbury Steak,1 Item,290
 Salmon,100g,208
@@ -3876,7 +3871,6 @@ Sea Bream,100g,97
 Sea Buckthorn,100g,82
 Sea Cucumber,100g,30
 Sea Urchin,100g,120
-Sea Urchin / Uni,100g,133
 Sea Urchin and Roll,1 Item,143
 Sea Urchin Maki Roll,6 Pieces,268
 Sea Urchin Nigiri,1 Piece,41
@@ -4171,7 +4165,6 @@ Spritz Cookies,1 Item,45
 Squab,100g,176
 Squash Casserole,1 Cup,260
 Squid,100g,175
-Squid / Calamari,100g,92
 Squid and Roll,1 Item,142
 Squid Maki Roll,6 Pieces,253
 Squid Nigiri,1 Piece,66
@@ -4503,7 +4496,7 @@ Tostada,1 Piece,280
 Tostitos,1 Ounce,140
 Tostones Fried Plantain,1 Plate,220
 Trail Mix,1 Ounce,131
-Treacle / Black Strap Molasses,1 Tablespoon,47
+Black Strap Molasses,1 Tablespoon,47
 Treacle Tart,1 Slice,300
 Trenette Al Pesto,1 Plate,530
 Tres Leches Cake,1 Slice,350
@@ -4810,7 +4803,7 @@ Oat Kefir,1 Cup,140
 Kefir Cheese,100g,210
 Yokan,1 Slice,95
 Yorkshire Pudding,1 Item,95
-Yuca / Cassava,100g,160
+Yuca,100g,160
 Yukgaejang,1 Cup,220
 Yule Log Cake,1 Slice,310
 Yum Woon Sen,1 Cup,190
@@ -5045,8 +5038,8 @@ Arakas Lemonatos,1 Plate,350
 Spanakorizo,1 Plate,320
 Orzo with Sauce,1 Plate,240
 Giouvetsi,1 Plate,600
-Greek Cabbage Rice / Lahanorizo,1 Plate,400
-Cabbage Rolls / Lahanodolmades,1 Item,450
+Lahanorizo,1 Plate,400
+Lahanodolmades,1 Item,450
 Gigantes,1 Plate,400
 Papoutsakia,1 Plate,420
 Horta Boiled,1 Plate,60
@@ -5145,11 +5138,11 @@ Jam and Cream Pastry,1 Item,330
 Cheese Sandwich,1 Item,280
 Cheese and Vegetables Sandwich,1 Item,280
 Cheese and Ham Sandwich,1 Item,320
-Cheese / Ham / Vegetables Sandwich,1 Item,370
+Cheese Ham Vegetables Sandwich,1 Item,370
 Cheese and Turkey Sandwich,1 Item,300
-Cheese / Turkey / Vegetables Sandwich,1 Item,340
+Cheese Turkey Vegetables Sandwich,1 Item,340
 Cheese and Bacon Sandwich,1 Item,350
-Cheese / Bacon / Vegetables Sandwich,1 Item,400
+Cheese Bacon Vegetables Sandwich,1 Item,400
 Cream Cheese Sandwich,1 Item,270
 Cream Cheese and Turkey Sandwich,1 Item,290
 Cheddar and Onion Sandwich,1 Item,290
@@ -5167,15 +5160,15 @@ Minced Meat Sandwich,1 Item,340
 Sausage Sandwich,1 Item,380
 Sausage and Vegetables Sandwich,1 Item,430
 Sausage and Cheese Sandwich,1 Item,410
-Sausage / Cheese / Vegetables Sandwich,1 Item,460
+Sausage Cheese Vegetables Sandwich,1 Item,460
 Chicken Sandwich,1 Item,280
 Chicken and Mushroom Sandwich,1 Item,310
 Chicken and Cheese Sandwich,1 Item,360
-Chicken / Cheese / Vegetables Sandwich,1 Item,410
+Chicken Cheese Vegetables Sandwich,1 Item,410
 Beef and Vegetables Sandwich,1 Item,390
 Beef Sandwich,1 Item,340
 Beef and Cheese Sandwich,1 Item,400
-Beef / Cheese / Vegetables Sandwich,1 Item,450
+Beef Cheese Vegetables Sandwich,1 Item,450
 Bacon and Egg Sandwich,1 Item,350
 Ham and Mushroom Sandwich,1 Item,290
 Mixed Vegetable Sandwich,1 Item,200
@@ -5189,7 +5182,7 @@ Tuna Sandwich,1 Item,324
 Pork and Vegetables Sandwich,1 Item,370
 Pork Sandwich,1 Item,335
 Pork and Cheese Sandwich,1 Item,390
-Pork / Cheese / Vegetables Sandwich,1 Item,440
+Pork Cheese Vegetables Sandwich,1 Item,440
 Salmon Sandwich,1 Item,340
 Shrimp Sandwich,1 Item,320
 Crab Sandwich,1 Item,310

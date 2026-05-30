@@ -32,7 +32,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SearchTextField(modifier: Modifier, placeholder: String, buttonColor: Color, minCharacters: Int, onSearch: (String) -> Unit) {
+fun SearchTextField(modifier: Modifier, placeholder: String, buttonColor: Color, minCharacters: Int, onInputChange: () -> Unit, onSearch: (String) -> Unit) {
     var query by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -55,6 +55,7 @@ fun SearchTextField(modifier: Modifier, placeholder: String, buttonColor: Color,
 
         onValueChange = {
             query = it
+            onInputChange()
 
             if (showError && it.length >= minCharacters) {
                 showError = false
@@ -84,6 +85,7 @@ fun SearchTextField(modifier: Modifier, placeholder: String, buttonColor: Color,
                             }
 
                             query = ""
+                            onInputChange()
                         }
                     )
                 }
@@ -110,10 +112,13 @@ fun SearchTextField(modifier: Modifier, placeholder: String, buttonColor: Color,
             }
         },
 
-        supportingText = {
-            if (showError) {
-                CustomSupportingText(Modifier.padding(bottom = 5.dp), "Minimum $minCharacters characters")
-            }
+        supportingText = if (showError) {
+            { CustomSupportingText(Modifier.padding(bottom = 5.dp), "Minimum $minCharacters characters") }
+        }
+
+        // Doesn't generate padding if null
+        else {
+            null
         }
     )
 }

@@ -27,7 +27,7 @@ abstract class FoodDatabase : RoomDatabase() {
                     FoodDatabase::class.java,
                     "food_database"
                 )
-                    .createFromAsset("databases/item_size_calories.db")
+                    .createFromAsset("databases/item_size_kcal.db")
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build()
 

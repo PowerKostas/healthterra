@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.kostas.gohealth.data.FoodDatabase
 import com.kostas.gohealth.data.daos.FoodDao
 import com.kostas.gohealth.data.entities.Food
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,9 +30,32 @@ class FoodViewModel(private val foodDao: FoodDao) : ViewModel() {
     private val localSearchResults = MutableStateFlow<List<Food>>(emptyList())
     val searchResults: StateFlow<List<Food>> = localSearchResults.asStateFlow()
 
-    fun searchFood(query: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            localSearchResults.value = foodDao.searchFood(query)
+    // Same logic, but this is used to only show error messages after the loading is over
+    private val localIsLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = localIsLoading.asStateFlow()
+
+    // Splits the input in individual words and produces queries like, SELECT * FROM food WHERE item LIKE '%word1%' AND item LIKE '%word2%', if
+    // both words are found, the row is returned
+    fun searchFood(input: String) {
+        viewModelScope.launch {
+            localIsLoading.value = true
+
+            val trimmedInput = input.trim()
+            if (trimmedInput.isEmpty()) {
+                localSearchResults.value = emptyList()
+                localIsLoading.value = false
+                return@launch
+            }
+
+            val words = trimmedInput.split("\\s+".toRegex())
+            val conditions = words.joinToString(" AND ") { "item LIKE '%' || ? || '%'" }
+            val query = SimpleSQLiteQuery(
+                "SELECT * FROM food WHERE $conditions",
+                words.toTypedArray()
+            )
+
+            localSearchResults.value = foodDao.searchFoodRaw(query)
+            localIsLoading.value = false
         }
     }
 }
