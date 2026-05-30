@@ -9,10 +9,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -82,9 +86,8 @@ fun ProfileScreen() {
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
+                .padding(top = 24.dp, bottom = 8.dp)
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-
             ProfilePicture(profilePictureString) {
                 // Function that triggers when a new profile picture is tapped, it makes sure that a user is actually loaded on the screen, updates
                 // the UI instantly, creates a copy of the user and only updates the profile picture String in the local database
@@ -106,7 +109,7 @@ fun ProfileScreen() {
                     .padding(start = 16.dp)
             )
 
-            CustomSurface(16.dp, 4.dp, 16.dp, 4.dp) {
+            CustomSurface(topPadding = 4.dp) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(space = 24.dp),
                     modifier = Modifier.padding(24.dp)
@@ -138,11 +141,20 @@ fun ProfileScreen() {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 if (isError) {
-                                    Text(
-                                        text = "Minimum 5 characters",
-                                        color = MaterialTheme.colorScheme.error,
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.offset(x = (-16).dp)
-                                    )
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Error,
+                                            contentDescription = "Error Icon",
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+
+                                        Text(text = "Minimum 5 characters")
+                                    }
                                 }
 
                                 // Empty space to push the counter to the right
@@ -265,7 +277,7 @@ fun ProfileScreen() {
                     .padding(start = 16.dp)
             )
 
-            CustomSurface(16.dp, 4.dp, 16.dp, 4.dp) {
+            CustomSurface(topPadding = 4.dp) {
                 RadioButtonGroup(
                     listOf("Enabled", "Disabled"),
                     userSettings.stepTracking
@@ -287,7 +299,7 @@ fun ProfileScreen() {
                     .padding(start = 16.dp)
             )
 
-            CustomSurface(16.dp, 4.dp, 16.dp, 4.dp) {
+            CustomSurface(topPadding = 4.dp) {
                 RadioButtonGroup(
                     listOf("Light", "Dark", "Dynamic"),
                     userSettings.appearance

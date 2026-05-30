@@ -10,7 +10,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.kostas.gohealth.MainActivity
 import com.kostas.gohealth.R
-import com.kostas.gohealth.data.DatabaseProvider
+import com.kostas.gohealth.data.UserDatabase
 import com.kostas.gohealth.helpers.calculateExerciseGoal
 import kotlinx.coroutines.flow.first
 import java.time.LocalTime
@@ -24,7 +24,7 @@ private val randomTexts = arrayOf("Time for your exercise set ⏰", "Stay on tra
 class NotificationWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     // Only sends notifications between 12pm and 12am and only if the user hasn't completed the exercise goal
     override suspend fun doWork(): Result {
-        val database = DatabaseProvider.getDatabase(applicationContext)
+        val database = UserDatabase.getDatabase(applicationContext)
         val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
         val userCharacteristics = database.characteristicsDao().getAll().first().firstOrNull()
 

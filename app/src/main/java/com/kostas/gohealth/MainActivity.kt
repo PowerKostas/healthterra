@@ -78,14 +78,30 @@ class MainActivity : ComponentActivity() {
             window.isNavigationBarContrastEnforced = false
         }
 
+        // Checks which permissions actually need to be requested
+        val permissionsToRequest = mutableListOf<String>()
+
         // Asks user for activity recognition and notifications permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.ACTIVITY_RECOGNITION))
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
+            }
         }
 
         // Asks user only for activity recognition permissions, notifications permissions are enabled by default in this version
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            permissionLauncher.launch(arrayOf(Manifest.permission.ACTIVITY_RECOGNITION))
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
+            }
+        }
+
+        // Only launches the permission dialog if there are ungranted permissions
+        if (permissionsToRequest.isNotEmpty()) {
+            permissionLauncher.launch(permissionsToRequest.toTypedArray())
         }
 
         schedulePeriodicNotification()
@@ -109,13 +125,17 @@ class MainActivity : ComponentActivity() {
                     val serviceIntent = Intent(this@MainActivity, StepTrackerService::class.java)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
-                            startForegroundService(serviceIntent)
+                            if (!StepTrackerService.isForegroundServiceActive) {
+                                startForegroundService(serviceIntent)
+                            }
                         }
                     }
 
                     // Below this version, permissions are not needed
                     else {
-                        startForegroundService(serviceIntent)
+                        if (!StepTrackerService.isForegroundServiceActive) {
+                            startForegroundService(serviceIntent)
+                        }
                     }
                 }
 

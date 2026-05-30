@@ -148,8 +148,8 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
 
             else {
                 if (userCharacteristics.kgGoal != 0 && userCharacteristics.daysGoal != 0) { // If the user has set a calories lose/gain goal
-                    // Initializes initialWeightGoalDate because it was added in a new migration and adds the timeframe to the goal to it
-                    val initialWeightGoalDate = userSettings.initialWeightGoalDate ?: LocalDate.now().toString()
+                    // Gets initialWeightGoalDate and adds the timeframe to the goal to it
+                    val initialWeightGoalDate = userSettings.initialWeightGoalDate
                     val weightGoalDate = LocalDate.parse(initialWeightGoalDate).plusDays(userCharacteristics.daysGoal.toLong())
                     val formatter = DateTimeFormatter.ofPattern("dd-MM-yy")
                     val formattedWeightGoalDate= weightGoalDate.format(formatter)

@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 2,
-    "identityHash": "8e6d2bfccbbc7eca962dd7717d7c1bee",
+    "version": 1,
+    "identityHash": "38ad6d1fe2d7b488e6ea8d0b9ee61f29",
     "entities": [
       {
         "tableName": "settings",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `profile_picture_string` TEXT NOT NULL, `username` TEXT NOT NULL, `appearance` TEXT NOT NULL, `last_saved_steps` INTEGER NOT NULL, `step_tracking` TEXT NOT NULL, `last_saved_date` TEXT NOT NULL, `initial_weight_goal_date` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `profile_picture_string` TEXT NOT NULL, `username` TEXT NOT NULL, `appearance` TEXT NOT NULL, `last_saved_steps` INTEGER NOT NULL, `step_tracking` TEXT NOT NULL, `last_saved_date` TEXT NOT NULL, `initial_weight_goal_date` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "userId",
@@ -53,7 +53,8 @@
           {
             "fieldPath": "initialWeightGoalDate",
             "columnName": "initial_weight_goal_date",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -195,7 +196,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8e6d2bfccbbc7eca962dd7717d7c1bee')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '38ad6d1fe2d7b488e6ea8d0b9ee61f29')"
     ]
   }
 }

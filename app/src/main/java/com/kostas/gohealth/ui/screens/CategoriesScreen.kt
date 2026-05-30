@@ -5,19 +5,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,11 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
@@ -42,8 +35,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kostas.gohealth.helpers.roundGoal
 import com.kostas.gohealth.ui.components.general.ActionButton
 import com.kostas.gohealth.ui.components.general.BulletGraph
-import com.kostas.gohealth.ui.components.general.CustomSurface
 import com.kostas.gohealth.ui.components.general.ProgressBar
+import com.kostas.gohealth.ui.components.general.SearchTextField
 import com.kostas.gohealth.ui.components.screen.CustomButtonDialog
 import com.kostas.gohealth.ui.viewModels.FoodViewModel
 import com.kostas.gohealth.ui.viewModels.TrackingsViewModel
@@ -91,7 +84,11 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding() // Adds bottom padding equal to the height of the keyboard, so the keyboard doesn't hide the text field
+    ) {
         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
 
         Column(
@@ -110,16 +107,7 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                 modifier = Modifier.size(200.dp)
             )
 
-            if (categoryName != "Calories") {
-                Text(
-                    text = "$categoryProgress / $categoryGoal $metric",
-                    style = MaterialTheme.typography.titleLarge
-                )
-
-                ProgressBar(20.dp, progressBarColour, categoryProgress.toFloat() / categoryGoal)
-            }
-
-            else {
+            if (categoryName == "Calories") {
                 // It does +-10% of the goal because calories use a range
                 val minValue = roundGoal((categoryGoal - categoryGoal * 0.1).roundToInt())
                 val maxValue = roundGoal((categoryGoal + categoryGoal * 0.1).roundToInt())
@@ -141,27 +129,27 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                 BulletGraph(categoryProgress, minValue, maxValue, progressBarColour)
             }
 
-            when (categoryName) {
-                "Calories" -> {
-                    Text(
-                        text = "Search for food items or quick-add kcal to reach your daily goal!",
-                        textAlign = TextAlign.Center
-                    )
-                }
+            else {
+                Text(
+                    text = "$categoryProgress / $categoryGoal $metric",
+                    style = MaterialTheme.typography.titleLarge
+                )
 
-                "Exercise" -> {
-                    Text(
-                        text = "Add $metric of any exercise to reach your daily goal!",
-                        textAlign = TextAlign.Center
-                    )
-                }
+                ProgressBar(20.dp, progressBarColour, categoryProgress.toFloat() / categoryGoal)
+            }
 
-                else -> {
-                    Text(
-                        text = "Add $metric to reach your daily goal!",
-                        textAlign = TextAlign.Center
-                    )
-                }
+            if (categoryName == "Exercise") {
+                Text(
+                    text = "Add $metric of any exercise to reach your daily goal!",
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            else {
+                Text(
+                    text = "Add $metric to reach your daily goal!",
+                    textAlign = TextAlign.Center
+                )
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -170,38 +158,15 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     if (categoryName == "Calories") {
-                        var query by remember { mutableStateOf("") }
-                        val keyboardController = LocalSoftwareKeyboardController.current
-
-                        CustomSurface(0.dp, 0.dp, 0.dp, 8.dp) {
-                            OutlinedTextField(
-                                placeholder = { Text(text = "Enter a food item") },
-                                value = query,
-                                onValueChange = { query = it },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                                modifier = Modifier.fillMaxWidth(),
-
-                                keyboardActions = KeyboardActions(
-                                    onSearch = {
-                                        foodViewModel.searchFood(query)
-                                        keyboardController?.hide()
-                                    }
-                                ),
-
-                                trailingIcon = {
-                                    IconButton(onClick = {
-                                        foodViewModel.searchFood(query)
-                                        keyboardController?.hide()
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Search,
-                                            contentDescription = "Search Button"
-                                        )
-                                    }
-                                }
-                            )
-                        }
+                        SearchTextField(
+                            Modifier.fillMaxWidth(),
+                            "Enter a food item...",
+                            progressBarColour,
+                            3,
+                            onSearch = { searchQuery ->
+                                foodViewModel.searchFood(searchQuery)
+                            },
+                        )
                     }
 
                     else {

@@ -18,7 +18,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.kostas.gohealth.MainActivity
 import com.kostas.gohealth.R
-import com.kostas.gohealth.data.DatabaseProvider
+import com.kostas.gohealth.data.UserDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,7 +31,10 @@ class StepTrackerService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var stepSensor: Sensor? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var isForegroundServiceActive = false
+    companion object {
+        var isForegroundServiceActive = false
+            private set
+    }
 
     // To avoid Android killing the foreground service, as much as possible, this function uses an in memory version of the local
     // database, as to be faster by avoiding unnecessary transactions
@@ -81,7 +84,7 @@ class StepTrackerService : Service(), SensorEventListener {
 
     private fun initializeCacheAndStartSensor() {
         serviceScope.launch {
-            val database = DatabaseProvider.getDatabase(applicationContext)
+            val database = UserDatabase.getDatabase(applicationContext)
             val userSettings = database.settingsDao().getAll().first().firstOrNull()
             val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
 
@@ -141,7 +144,7 @@ class StepTrackerService : Service(), SensorEventListener {
         serviceScope.launch {
             userId.let { uid ->
                 // Because StepTracker uses a stale in-memory version of the local database, only update the steps, not the other columns
-                val database = DatabaseProvider.getDatabase(applicationContext)
+                val database = UserDatabase.getDatabase(applicationContext)
                 database.settingsDao().updateLastSavedSteps(uid, inMemoryLastSavedSteps)
                 database.trackingsDao().updateStepsProgress(uid, inMemoryStepsProgress)
             }
@@ -160,7 +163,11 @@ class StepTrackerService : Service(), SensorEventListener {
     }
 
     private fun createNotification(): Notification {
-        val openAppIntent = Intent(this, MainActivity::class.java)
+        // Prevents duplicate instances and brings the existing activity to the front by clearing the screens above it
+        val openAppIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+
         val openAppPendingIntent = PendingIntent.getActivity(this, 0, openAppIntent, PendingIntent.FLAG_IMMUTABLE)
 
         return NotificationCompat.Builder(this, "step_tracker_channel")

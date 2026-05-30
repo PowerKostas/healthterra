@@ -7,7 +7,7 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.kostas.gohealth.data.DatabaseProvider
+import com.kostas.gohealth.data.UserDatabase
 import com.kostas.gohealth.helpers.calculateCaloriesGoal
 import com.kostas.gohealth.helpers.calculateExerciseGoal
 import com.kostas.gohealth.helpers.calculateStepsGoal
@@ -36,7 +36,7 @@ suspend fun performDailyMaintenance(context: Context) {
     mutex.withLock {
         withContext(Dispatchers.IO) {
             try {
-                val database = DatabaseProvider.getDatabase(context)
+                val database = UserDatabase.getDatabase(context)
                 val trackingsDao = database.trackingsDao()
                 val settingsDao = database.settingsDao()
 

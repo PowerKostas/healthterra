@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.kostas.gohealth.data.DatabaseProvider
+import com.kostas.gohealth.data.UserDatabase
 import com.kostas.gohealth.data.daos.SettingsDao
 import com.kostas.gohealth.data.entities.Settings
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,7 +20,7 @@ class SettingsViewModel(private val settingsDao: SettingsDao) : ViewModel() {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 val application = checkNotNull(extras[APPLICATION_KEY])
-                val database = DatabaseProvider.getDatabase(application)
+                val database = UserDatabase.getDatabase(application)
                 return SettingsViewModel(database.settingsDao()) as T
             }
         }

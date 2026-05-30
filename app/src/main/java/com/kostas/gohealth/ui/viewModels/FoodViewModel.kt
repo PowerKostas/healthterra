@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.kostas.gohealth.data.DatabaseProvider
+import com.kostas.gohealth.data.FoodDatabase
 import com.kostas.gohealth.data.daos.FoodDao
 import com.kostas.gohealth.data.entities.Food
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +20,7 @@ class FoodViewModel(private val foodDao: FoodDao) : ViewModel() {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 val application = checkNotNull(extras[APPLICATION_KEY])
-                val database = DatabaseProvider.getDatabase(application)
+                val database = FoodDatabase.getDatabase(application)
                 return FoodViewModel(database.foodDao()) as T
             }
         }
