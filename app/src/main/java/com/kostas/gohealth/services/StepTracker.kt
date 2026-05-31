@@ -31,10 +31,7 @@ class StepTrackerService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var stepSensor: Sensor? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    companion object {
-        var isForegroundServiceActive = false
-            private set
-    }
+    companion object { var isForegroundServiceActive = false }
 
     // To avoid Android killing the foreground service, as much as possible, this function uses an in memory version of the local
     // database, as to be faster by avoiding unnecessary transactions
@@ -54,6 +51,7 @@ class StepTrackerService : Service(), SensorEventListener {
         super.onDestroy()
         sensorManager.unregisterListener(this)
         serviceScope.cancel()
+        isForegroundServiceActive = false
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -71,12 +69,12 @@ class StepTrackerService : Service(), SensorEventListener {
 
         if (intent?.action == "RESET_STEPS_MIDNIGHT") {
             inMemoryStepsProgress = 0
+            saveToDatabase()
         }
 
-        // Only initialize the sensor and cache if the foreground service isn't already active
-        if (!isForegroundServiceActive) {
+        // Only initialize the sensor and cache if it hasn't been done yet
+        if (!isCacheInitialized) {
             initializeCacheAndStartSensor()
-            isForegroundServiceActive = true
         }
 
         return START_STICKY
@@ -128,6 +126,7 @@ class StepTrackerService : Service(), SensorEventListener {
 
             // Handles device reboots
             if (newSteps < 0) {
+                inMemoryStepsProgress += totalSteps
                 inMemoryLastSavedSteps = totalSteps
                 saveToDatabase()
             }

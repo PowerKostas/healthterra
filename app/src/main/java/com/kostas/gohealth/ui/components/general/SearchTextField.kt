@@ -15,13 +15,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,10 +36,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SearchTextField(modifier: Modifier, placeholder: String, buttonColor: Color, minCharacters: Int, onInputChange: () -> Unit, onSearch: (String) -> Unit) {
-    var query by remember { mutableStateOf("") }
+    var query by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    var showError by remember { mutableStateOf(false) }
+    var showError by rememberSaveable { mutableStateOf(false) }
     val onSearchAction = {
         if (query.length < minCharacters) {
             showError = true
@@ -66,6 +69,12 @@ fun SearchTextField(modifier: Modifier, placeholder: String, buttonColor: Color,
         isError = showError,
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
+
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            errorContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ),
 
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = { onSearchAction() }),

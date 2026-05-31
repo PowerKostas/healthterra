@@ -27,10 +27,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.kostas.gohealth.data.entities.Characteristics
 import com.kostas.gohealth.data.entities.Settings
+import com.kostas.gohealth.helpers.formatTimeframe
 import com.kostas.gohealth.helpers.isCaloriesPlanExtreme
 import com.kostas.gohealth.ui.components.general.RadioButtonGroup
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -39,20 +41,46 @@ import kotlin.math.roundToInt
 fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Settings, onGoalChange: (goal: String, kg: Int, days: Int) -> Unit) {
     var selectedWeightGoal by remember { mutableStateOf(userCharacteristics.weightGoal)}
 
-    // The sliders require positive floats, kg can be negative if the lose option was selected and zero if the maintain option was selected
-    // and then the loss or gain option. Days can be zero if the maintain option was selected and then the loss or gain option. If it's the
-    // first time the app is run, kg and days will go to 1 and 14 from 0 and 0, but it doesn't matter because the database won't be updated
-    // until the save changes button is pressed
+    // The kg slider requires positive floats, kg can be negative if the lose option was selected and zero if the loss or gain option was
+    // selected after the maintain option. If it's the first time the app is run, kg will go to 1 from 0, but it doesn't matter because the
+    // database won't be updated until the save changes button is pressed
     var selectedKgGoal by remember { mutableFloatStateOf(abs(userCharacteristics.kgGoal).toFloat().coerceAtLeast(1f)) }
-    var selectedDaysGoal by remember { mutableFloatStateOf(userCharacteristics.daysGoal.toFloat().coerceAtLeast(14f)) }
+
+    // Maps the 14 slider positions (2 for the week options and 12 for the month options) to specific day intervals
+    val timeframeOptions = remember {
+        val today = LocalDate.now()
+        val options = mutableListOf(14, 21)
+
+        for (months in 1..12) {
+            val futureDate = today.plusMonths(months.toLong())
+            val exactDays = ChronoUnit.DAYS.between(today, futureDate).toInt()
+            options.add(exactDays)
+        }
+
+        options
+    }
+
+    // Same as kg, but it initializes the slider to the closest matching index based on the user's previously saved days goal
+    var selectedDaysIndex by remember {
+        val initialDays = userCharacteristics.daysGoal.coerceAtLeast(14)
+        val closestIndex = timeframeOptions.indices.minBy { abs(timeframeOptions[it] - initialDays) }
+        mutableFloatStateOf(closestIndex.toFloat())
+    }
+
+    val selectedDaysGoal = timeframeOptions[selectedDaysIndex.roundToInt()]
 
     // Zero out values if maintain is selected, give a negative value if lose is selected, this gets called every time a new radio button
     // option is selected, or a slider is moved, because their variables are in a remember/mutableStateOf
     val savedKgGoal = if (selectedWeightGoal == "Maintain") 0 else if (selectedWeightGoal == "Lose") -selectedKgGoal.roundToInt() else selectedKgGoal.roundToInt()
-    val savedDaysGoal = if (selectedWeightGoal == "Maintain") 0 else selectedDaysGoal.roundToInt()
+    val savedDaysGoal = if (selectedWeightGoal == "Maintain") 0 else selectedDaysGoal
 
     // Determines if the local UI state is different from the saved database state
     val hasChanges = selectedWeightGoal != userCharacteristics.weightGoal || savedKgGoal != userCharacteristics.kgGoal || savedDaysGoal != userCharacteristics.daysGoal
+
+    val customSliderColors = SliderDefaults.colors(
+        activeTickColor = Color.Transparent,
+        inactiveTickColor = Color.Transparent
+    )
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -92,12 +120,18 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                         selectedKgGoal = it // UI change
                     },
 
-                    // Removes annoying dot
+                    colors = customSliderColors,
+
                     track = { sliderState ->
-                        SliderDefaults.Track(sliderState = sliderState, drawStopIndicator = null)
+                        SliderDefaults.Track(
+                            sliderState = sliderState,
+                            colors = customSliderColors,
+                            drawStopIndicator = null
+                        )
                     },
 
                     valueRange = 1f..50f, // From 1kg to 50kg
+                    steps = 48
                 )
             }
 
@@ -107,20 +141,27 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = "Timeframe")
-                    Text(text = "${selectedDaysGoal.roundToInt()} days")
+                    Text(text = formatTimeframe(selectedDaysGoal))
                 }
 
                 Slider(
-                    value = selectedDaysGoal,
+                    value = selectedDaysIndex,
                     onValueChange = {
-                        selectedDaysGoal = it
+                        selectedDaysIndex = it
                     },
+
+                    colors = customSliderColors,
 
                     track = { sliderState ->
-                        SliderDefaults.Track(sliderState = sliderState, drawStopIndicator = null)
+                        SliderDefaults.Track(
+                            sliderState = sliderState,
+                            colors = customSliderColors,
+                            drawStopIndicator = null
+                        )
                     },
 
-                    valueRange = 14f..365f, // From 1 week to 1 year
+                    valueRange = 0f..13f, // 2 week options and 12 month options = 14
+                    steps = 12
                 )
             }
         }
@@ -164,7 +205,7 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                     // Updates initialWeightGoalDate thus the weight goal text as well, when the timeframe is hit
                     LaunchedEffect(weightGoalDate) {
                         if (LocalDate.now() >= weightGoalDate) {
-                            onGoalChange(selectedWeightGoal, selectedKgGoal.roundToInt(), selectedDaysGoal.roundToInt())
+                            onGoalChange(selectedWeightGoal, selectedKgGoal.roundToInt(), selectedDaysGoal)
                         }
                     }
                 }

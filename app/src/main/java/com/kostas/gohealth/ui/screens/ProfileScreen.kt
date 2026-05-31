@@ -196,42 +196,63 @@ fun ProfileScreen() {
 
                     NumberTextField(
                         "Age",
-                        150f,
-                        age
-                    ) { newValue ->
-                        age = newValue
-                        userCharacteristics.let { characteristics ->
-                            characteristicsViewModel.updateUserCharacteristics(
-                                characteristics.copy(age = newValue.toFloatOrNull())
-                            )
-                        }
-                    }
+                        4f,
+                        130f,
+                        age,
+
+                        onFocusLost = {
+                            val ageValue = age.toFloatOrNull()
+                            if (ageValue != null && ageValue >= 4f) {
+                                userCharacteristics.let { characteristics ->
+                                    characteristicsViewModel.updateUserCharacteristics(
+                                        characteristics.copy(age = ageValue)
+                                    )
+                                }
+                            }
+                        },
+
+                        onValueChange = { newValue -> age = newValue }
+                    )
 
                     NumberTextField(
                         "Height (cm)",
-                        300f,
-                        height
-                    ) { newValue ->
-                        height = newValue
-                        userCharacteristics.let { characteristics ->
-                            characteristicsViewModel.updateUserCharacteristics(
-                                characteristics.copy(height = newValue.toFloatOrNull())
-                            )
-                        }
-                    }
+                        50f,
+                        280f,
+                        height,
+
+                        onFocusLost = {
+                            val heightValue = height.toFloatOrNull()
+                            if (heightValue != null && heightValue >= 50f) {
+                                userCharacteristics.let { characteristics ->
+                                    characteristicsViewModel.updateUserCharacteristics(
+                                        characteristics.copy(height = heightValue)
+                                    )
+                                }
+                            }
+                        },
+
+                        onValueChange = { newValue -> height = newValue }
+                    )
 
                     NumberTextField(
                         "Weight (kg)",
+                        15f,
                         700f,
-                        weight
-                    ) { newValue ->
-                        weight = newValue
-                        userCharacteristics.let { characteristics ->
-                            characteristicsViewModel.updateUserCharacteristics(
-                                characteristics.copy(weight = newValue.toFloatOrNull())
-                            )
-                        }
-                    }
+                        weight,
+
+                        onFocusLost = {
+                            val weightValue = weight.toFloatOrNull()
+                            if (weightValue != null && weightValue >= 15f) {
+                                userCharacteristics.let { characteristics ->
+                                    characteristicsViewModel.updateUserCharacteristics(
+                                        characteristics.copy(weight = weightValue)
+                                    )
+                                }
+                            }
+                        },
+
+                        onValueChange = { newValue -> weight = newValue }
+                    )
 
                     DropdownMenu(
                         "Activity Level", listOf("Sedentary", "Moderate", "High"),

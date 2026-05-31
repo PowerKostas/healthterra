@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
             val activityRecognitionGranted = permissions[Manifest.permission.ACTIVITY_RECOGNITION] ?: false
             if (activityRecognitionGranted) {
                 val serviceIntent = Intent(this, StepTrackerService::class.java)
+                StepTrackerService.isForegroundServiceActive = true
                 startForegroundService(serviceIntent)
             }
         }
@@ -72,7 +73,9 @@ class MainActivity : ComponentActivity() {
         )
 
         // Authenticates the user anonymously to Firebase when the app first opens
-        Firebase.auth.signInAnonymously()
+        if (Firebase.auth.currentUser == null) {
+            Firebase.auth.signInAnonymously()
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
@@ -126,6 +129,7 @@ class MainActivity : ComponentActivity() {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
                             if (!StepTrackerService.isForegroundServiceActive) {
+                                StepTrackerService.isForegroundServiceActive = true
                                 startForegroundService(serviceIntent)
                             }
                         }
@@ -134,6 +138,7 @@ class MainActivity : ComponentActivity() {
                     // Below this version, permissions are not needed
                     else {
                         if (!StepTrackerService.isForegroundServiceActive) {
+                            StepTrackerService.isForegroundServiceActive = true
                             startForegroundService(serviceIntent)
                         }
                     }
@@ -188,14 +193,21 @@ class MainActivity : ComponentActivity() {
                 val serviceIntent = Intent(this@MainActivity, StepTrackerService::class.java)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
-                        startForegroundService(serviceIntent)
+                        if (!StepTrackerService.isForegroundServiceActive) {
+                            StepTrackerService.isForegroundServiceActive = true
+                            startForegroundService(serviceIntent)
+                        }
                     }
                 }
 
                 else {
-                    startForegroundService(serviceIntent)
+                    if (!StepTrackerService.isForegroundServiceActive) {
+                        StepTrackerService.isForegroundServiceActive = true
+                        startForegroundService(serviceIntent)
+                    }
                 }
             }
+
         }
     }
 

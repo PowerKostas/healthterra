@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -163,7 +164,7 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                         ActionButton(modifier, Color(0xFFE53935), null, "Undo", 16.sp) { handleDeletePrevious() }
                     }
 
-                    var hasSearched by remember { mutableStateOf(false) }
+                    var hasSearched by rememberSaveable { mutableStateOf(false) }
                     SearchTextField(
                         Modifier.fillMaxWidth(),
                         "Enter a food item...",
