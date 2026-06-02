@@ -1239,7 +1239,7 @@ Crab Dip,2 Tablespoons,60
 Crab Dungeness,100g,86
 Crab and Roll,1 Item,142
 Crab King,100g,97
-Crab Maki Roll,6 Pieces,252
+Crab Maki Roll,1 Piece,42
 Crab Meat,100g,97
 Crab Nigiri,1 Piece,54
 Crab Noodle Soup,1 Cup,219
@@ -1247,10 +1247,10 @@ Crab Rangoon,4 Pieces,200
 Crab Rice Soup,1 Cup,199
 Crab Sashimi,1 Piece,44
 Crab Snow,100g,90
-Crab Spicy Roll,6 Pieces,320
+Crab Spicy Roll,1 Piece,53
 Crab Spicy Soup,1 Cup,183
 Crab Stew Soup,1 Cup,211
-Crab Tempura Roll,6 Pieces,348
+Crab Tempura Roll,1 Piece,58
 Crackers Graham,2 Items,118
 Crackers Ritz,5 Items,79
 Crackers Saltine,5 Items,65
@@ -1459,11 +1459,11 @@ Edamame Salted,1 Cup,188
 Edamame Steamed,1 Cup,188
 Eel,100g,184
 Eel and Roll,1 Item,151
-Eel Maki Roll,6 Pieces,268
+Eel Maki Roll,1 Piece,45
 Eel Nigiri,1 Piece,56
 Eel Sashimi,1 Piece,32
-Eel Spicy Roll,6 Pieces,309
-Eel Tempura Roll,6 Pieces,361
+Eel Spicy Roll,1 Piece,52
+Eel Tempura Roll,1 Piece,60
 Egg and Cress Sandwich,1 Item,310
 Egg Bhurji,1 Portion,220
 Egg Bowl,1 Portion,101
@@ -2513,11 +2513,11 @@ Mackerel,100g,262
 Mackerel Atlantic,100g,205
 Mackerel and Roll,1 Item,164
 Mackerel King,100g,212
-Mackerel Maki Roll,6 Pieces,259
+Mackerel Maki Roll,1 Piece,43
 Mackerel Nigiri,1 Piece,42
 Mackerel Sashimi,1 Piece,46
-Mackerel Spicy Roll,6 Pieces,319
-Mackerel Tempura Roll,6 Pieces,356
+Mackerel Spicy Roll,1 Piece,53
+Mackerel Tempura Roll,1 Piece,59
 Madeleine,1 Item,80
 Mahi-Mahi,100g,109
 Mai Tai,1 Item,306
@@ -2818,7 +2818,7 @@ New Orleans Beignet,1 Piece,120
 Nian Gao,1 Slice,130
 Nice Cream Banana,1 Cup,200
 Nicoise Salad,1 Portion,420
-Nigiri Assorted,6 Pieces,240
+Nigiri Assorted,1 Piece,40
 Nigiri Ebi Shrimp,2 Pieces,80
 Nigiri Salmon,2 Pieces,92
 Nigiri Tuna,2 Pieces,82
@@ -2854,12 +2854,13 @@ Oaxaca,1 Portion,90
 Ocean Perch,100g,94
 Ochazuke,1 Portion,240
 Octopus,100g,150
+Octopus Pasta,1 Portion,520
 Octopus and Roll,1 Item,162
-Octopus Maki Roll,6 Pieces,255
+Octopus Maki Roll,1 Piece,42
 Octopus Nigiri,1 Piece,50
 Octopus Sashimi,1 Piece,39
-Octopus Spicy Roll,6 Pieces,318
-Octopus Tempura Roll,6 Pieces,352
+Octopus Spicy Roll,1 Piece,53
+Octopus Tempura Roll,1 Piece,59
 Ojingeo Bokkeum,1 Cup,200
 Okonomiyaki,1 Portion,490
 Okra,100g,33
@@ -3742,10 +3743,10 @@ Salmon Pasta,1 Portion,600
 Salmon Sashimi,1 Piece,52
 Salmon Skewer,1 Item,226
 Salmon Soup,1 Portion,226
-Salmon Spicy Roll,6 Pieces,300
+Salmon Spicy Roll,1 Piece,50
 Salmon Stew,1 Portion,267
 Salmon Taco,1 Item,247
-Salmon Tempura Roll,6 Pieces,367
+Salmon Tempura Roll,1 Piece,61
 Salmon Wrap,1 Item,267
 Salmorejo,1 Cup,150
 Salsa,2 Tablespoons,10
@@ -3831,11 +3832,11 @@ Savoy Cabbage,1 Cup,19
 Scallion Pancake,1 Slice,230
 Scallop,100g,88
 Scallop and Roll,1 Item,170
-Scallop Maki Roll,6 Pieces,264
+Scallop Maki Roll,1 Piece,44
 Scallop Nigiri,1 Piece,50
 Scallop Sashimi,1 Piece,31
-Scallop Spicy Roll,6 Pieces,309
-Scallop Tempura Roll,6 Pieces,343
+Scallop Spicy Roll,1 Piece,52
+Scallop Tempura Roll,1 Piece,57
 Scalloped Potatoes,1 Portion,330
 Schmaltz,1 Tablespoon,110
 Schnapps,1 Portion,100
@@ -3866,11 +3867,11 @@ Sea Buckthorn,100g,82
 Sea Cucumber,100g,30
 Sea Urchin,100g,120
 Sea Urchin and Roll,1 Item,143
-Sea Urchin Maki Roll,6 Pieces,268
+Sea Urchin Maki Roll,1 Piece,45
 Sea Urchin Nigiri,1 Piece,41
 Sea Urchin Sashimi,1 Piece,50
-Sea Urchin Spicy Roll,6 Pieces,300
-Sea Urchin Tempura Roll,6 Pieces,362
+Sea Urchin Spicy Roll,1 Piece,50
+Sea Urchin Tempura Roll,1 Piece,60
 Sea Vegetable Wakame,100g,45
 Seafood Biryani,1 Portion,498
 Seafood Bisque,1 Portion,250
@@ -3971,7 +3972,7 @@ Shrimp Jalfrezi,1 Portion,447
 Shrimp Jambalaya,1 Portion,341
 Shrimp Korma,1 Portion,373
 Shrimp Madras,1 Portion,493
-Shrimp Maki Roll,6 Pieces,245
+Shrimp Maki Roll,1 Piece,41
 Shrimp Massaman,1 Portion,393
 Shrimp Nigiri,1 Piece,54
 Shrimp Noodle Soup,1 Cup,115
@@ -3993,7 +3994,7 @@ Shrimp Stew Soup,1 Cup,234
 Shrimp Sticky Rice,1 Portion,480
 Shrimp Taco,1 Item,118
 Shrimp Tempura,1 Piece,62
-Shrimp Tempura Roll,6 Pieces,346
+Shrimp Tempura Roll,1 Piece,58
 Shrimp Tikka Masala,1 Portion,477
 Shrimp Vindaloo,1 Portion,512
 Shrimp with Lobster Sauce,1 Cup,340
@@ -4163,11 +4164,11 @@ Squab,100g,176
 Squash Casserole,1 Cup,260
 Squid,100g,175
 Squid and Roll,1 Item,142
-Squid Maki Roll,6 Pieces,253
+Squid Maki Roll,1 Piece,42
 Squid Nigiri,1 Piece,66
 Squid Sashimi,1 Piece,46
-Squid Spicy Roll,6 Pieces,293
-Squid Tempura Roll,6 Pieces,370
+Squid Spicy Roll,1 Piece,49
+Squid Tempura Roll,1 Piece,62
 Sriracha,1 Tablespoon,17
 Star Anise,1 Teaspoon,7
 Starburst,4 Pieces,160
@@ -4291,23 +4292,23 @@ Sunflower Oil,1 Tablespoon,120
 Sunflower Seeds Roasted,1 Portion,165
 Sunomono,1 Cup,40
 Surimi,100g,99
-Sushi Avocado Roll,6 Pieces,140
-Sushi California Roll,6 Pieces,255
-Sushi Cucumber Roll,6 Pieces,136
+Sushi Avocado Roll,1 Piece,23
+Sushi California Roll,1 Piece,42
+Sushi Cucumber Roll,1 Piece,23
 Sushi Dragon Roll,8 Pieces,500
-Sushi Eel Avocado Roll,6 Pieces,380
-Sushi Philadelphia Roll,6 Pieces,320
+Sushi Eel Avocado Roll,1 Piece,63
+Sushi Philadelphia Roll,1 Piece,53
 Sushi Rainbow Roll,8 Pieces,476
 Sushi Rice,1 Cup,242
-Sushi Salmon Avocado Roll,6 Pieces,304
+Sushi Salmon Avocado Roll,1 Piece,51
 Sushi Salmon Nigiri,1 Piece,48
 Sushi Shrimp Nigiri,1 Piece,37
-Sushi Spicy Tuna Roll,6 Pieces,290
-Sushi Spider Roll,6 Pieces,375
-Sushi Tempura Roll,6 Pieces,330
+Sushi Spicy Tuna Roll,1 Piece,48
+Sushi Spider Roll,1 Piece,62
+Sushi Tempura Roll,1 Piece,55
 Sushi Tuna Nigiri,1 Piece,41
-Sushi Tuna Roll,6 Pieces,184
-Sushi Vegetable Roll,6 Pieces,170
+Sushi Tuna Roll,1 Piece,31
+Sushi Vegetable Roll,1 Piece,28
 Suya Beef Skewer,1 Item,180
 Swedish Cinnamon Roll,1 Piece,310
 Swedish Fish,7 Pieces,140
@@ -4533,11 +4534,11 @@ Tuna Pasta Salad,1 Portion,350
 Tuna Salad,1 Cup,380
 Tuna Salad Sandwich,1 Item,420
 Tuna Soup,1 Portion,245
-Tuna Spicy Roll,6 Pieces,302
+Tuna Spicy Roll,1 Piece,50
 Tuna Steak,100g,184
 Tuna Stew,1 Portion,271
 Tuna Taco,1 Item,218
-Tuna Tempura Roll,6 Pieces,344
+Tuna Tempura Roll,1 Piece,57
 Tuna Wrap,1 Item,371
 Tuna Yellowfin,100g,109
 Turbinado Sugar,1 Teaspoon,17
@@ -4785,11 +4786,11 @@ Yellow Apple,1 Item,95
 Yellow Curry Thai,1 Cup,320
 Yellowtail,100g,146
 Yellowtail and Roll,1 Item,167
-Yellowtail Maki Roll,6 Pieces,249
+Yellowtail Maki Roll,1 Piece,42
 Yellowtail Nigiri,1 Piece,46
 Yellowtail Sashimi,1 Piece,39
-Yellowtail Spicy Roll,6 Pieces,317
-Yellowtail Tempura Roll,6 Pieces,358
+Yellowtail Spicy Roll,1 Piece,53
+Yellowtail Tempura Roll,1 Piece,60
 Yogurt Covered Raisins,1 Portion,120
 Kefir,1 Cup,130
 Fruit Kefir,1 Cup,160
