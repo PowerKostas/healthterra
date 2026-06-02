@@ -133,7 +133,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                         Icon(
                             imageVector = Icons.Default.Error,
                             contentDescription = "Error Button",
-                            tint = Color(0xFFE53935),
+                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .clickable { showSettingsErrorDialog = true }
@@ -154,14 +154,10 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     }
 
     if (showProfileWarningDialog) {
-        InfoDialog(Icons.Default.Error, Color(0xFFFFA000), null, "Complete your profile for more personalized results.") {
-            showProfileWarningDialog = false
-        }
+        InfoDialog(Icons.Default.Error, Color(0xFFFFA000), null, "Complete your profile for more personalized results.", "Got it", false, { showProfileWarningDialog = false }, { showProfileWarningDialog = false })
     }
 
     if (showSettingsErrorDialog) {
-        InfoDialog(Icons.Default.Error, Color(0xFFE53935), null, "Leaderboard syncing is paused! Please enable 'Automatic date and time' in your device settings.") {
-            showSettingsErrorDialog = false
-        }
+        InfoDialog(Icons.Default.Error, MaterialTheme.colorScheme.error, null, "Leaderboard syncing is paused! Please enable 'Automatic date and time' in your device settings.", "Got it", false, { showSettingsErrorDialog = false }, { showSettingsErrorDialog = false })
     }
 }

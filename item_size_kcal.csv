@@ -520,7 +520,6 @@ Bread and Butter Pudding,1 Piece,350
 Bread Pudding,1 Piece,365
 Breadfruit,1 Cup,227
 Breadstick,1 Item,41
-Breakfast Burrito,1 Item,550
 Breakfast Mcmuffin,1 Piece,300
 Breakfast Sandwich Egg,1 Item,420
 Bresaola,1 Portion,43
@@ -578,12 +577,7 @@ Bungeoppang,1 Piece,180
 Burdock Root,100g,72
 Burgoo,1 Cup,280
 Burrata,100g,262
-Burrito Bean and Cheese,1 Item,390
-Burrito Beef,1 Item,590
 Burrito Bowl,1 Portion,760
-Burrito California,1 Item,680
-Burrito Carnitas,1 Item,620
-Burrito Chicken,1 Item,560
 Butter,1 Tablespoon,102
 Butter Beans,1 Cup,190
 Butter Cake,1 Slice,300
@@ -5406,3 +5400,12 @@ Cannelloni Pork,1 Portion,520
 Cannelloni Mushroom,1 Portion,370
 Italian Canelloni,1 Portion,480
 Mixed Fruit Juice,1 Cup,140
+California Burrito,1 Item,900
+Beef Burrito,1 Item,860
+Carnitas Burrito,1 Item,780
+Chicken Burrito,1 Item,750
+Bean and Cheese Burrito,1 Item,500
+Breakfast Burrito,1 Item,650
+Veggie Burrito,1 Item,570
+Shrimp Burrito,1 Item,720
+Chorizo Burrito,1 Item,850

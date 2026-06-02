@@ -160,8 +160,8 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         val modifier = Modifier.weight(1f)
 
-                        ActionButton(modifier, progressBarColour, null, "Custom", 16.sp) { showCustomAlertDialog = true }
-                        ActionButton(modifier, Color(0xFFE53935), null, "Undo", 16.sp) { handleDeletePrevious() }
+                        ActionButton(modifier = modifier, colour = progressBarColour, text = "Custom", fontSize = 16.sp) { showCustomAlertDialog = true }
+                        ActionButton(modifier = modifier, colour = Color(0xFFE53935), text = "Undo", fontSize = 16.sp) { handleDeletePrevious() }
                     }
 
                     var hasSearched by rememberSaveable { mutableStateOf(false) }
@@ -203,8 +203,8 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         val modifier = Modifier.weight(1f)
 
-                        ActionButton(modifier, progressBarColour, null, "Custom", 16.sp) { showCustomAlertDialog = true }
-                        ActionButton(modifier, Color(0xFFE53935), null, "Undo", 16.sp) { handleDeletePrevious() }
+                        ActionButton(modifier = modifier, colour = progressBarColour, text = "Custom", fontSize = 16.sp) { showCustomAlertDialog = true }
+                        ActionButton(modifier = modifier, colour = Color(0xFFE53935), text = "Undo", fontSize = 16.sp) { handleDeletePrevious() }
                     }
                 }
             }

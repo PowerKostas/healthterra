@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 
 // Custom button to do any action
 @Composable
-fun ActionButton(modifier: Modifier, colour: Color, icon: Int?, text: String, fontSize: TextUnit, action: () -> Unit) {
+fun ActionButton(modifier: Modifier = Modifier, colour: Color, icon: Int? = null, text: String, fontSize: TextUnit, action: () -> Unit) {
     Button(
         onClick = action,
 
@@ -29,7 +29,8 @@ fun ActionButton(modifier: Modifier, colour: Color, icon: Int?, text: String, fo
             contentColor = Color.White
         ),
 
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
+
         contentPadding = PaddingValues(vertical = 12.dp, horizontal = 12.dp),
         modifier = modifier
     ) {

@@ -31,9 +31,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
+import com.kostas.gohealth.helpers.generateRandomProfilePictureString
+import com.kostas.gohealth.helpers.generateRandomUsername
+import com.kostas.gohealth.ui.components.general.ActionButton
 import com.kostas.gohealth.ui.components.general.CustomSurface
 import com.kostas.gohealth.ui.components.general.DropdownMenu
+import com.kostas.gohealth.ui.components.general.InfoDialog
 import com.kostas.gohealth.ui.components.general.NumberTextField
 import com.kostas.gohealth.ui.components.general.RadioButtonGroup
 import com.kostas.gohealth.ui.components.screen.ProfilePicture
@@ -75,6 +83,10 @@ fun ProfileScreen() {
     var weight by remember { mutableStateOf(formatNumber(userCharacteristics.weight)) }
     var activityLevel by remember { mutableStateOf(userCharacteristics.activityLevel ?: "") }
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    var uidText by remember { mutableStateOf(Firebase.auth.currentUser?.uid ?: "None") }
+
     // Draws the screen
     Column(modifier = Modifier.fillMaxSize()) {
         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
@@ -86,7 +98,7 @@ fun ProfileScreen() {
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(top = 24.dp, bottom = 8.dp)
+                .padding(start = 16.dp, top = 24.dp, end = 16.dp)
         ) {
             ProfilePicture(profilePictureString) {
                 // Function that triggers when a new profile picture is tapped, it makes sure that a user is actually loaded on the screen, updates
@@ -106,12 +118,11 @@ fun ProfileScreen() {
                 text = "Personal Details",
                 modifier = Modifier
                     .align(Alignment.Start)
-                    .padding(start = 16.dp)
             )
 
-            CustomSurface(topPadding = 4.dp) {
+            CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(space = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
                     modifier = Modifier.padding(24.dp)
                 ) {
                     var isError = username.length < 5
@@ -295,10 +306,9 @@ fun ProfileScreen() {
                 text = "Step Tracking",
                 modifier = Modifier
                     .align(Alignment.Start)
-                    .padding(start = 16.dp)
             )
 
-            CustomSurface(topPadding = 4.dp) {
+            CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
                 RadioButtonGroup(
                     listOf("Enabled", "Disabled"),
                     userSettings.stepTracking
@@ -317,10 +327,9 @@ fun ProfileScreen() {
                 text = "Appearance",
                 modifier = Modifier
                     .align(Alignment.Start)
-                    .padding(start = 16.dp)
             )
 
-            CustomSurface(topPadding = 4.dp) {
+            CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
                 RadioButtonGroup(
                     listOf("Light", "Dark", "Dynamic"),
                     userSettings.appearance
@@ -332,6 +341,92 @@ fun ProfileScreen() {
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(64.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment =  Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "UID: $uidText",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(start = 2.dp)
+                )
+
+                ActionButton(
+                    colour = MaterialTheme.colorScheme.error,
+                    text = "Delete Account",
+                    fontSize = 12.sp
+                ) {
+                    showDeleteDialog = true
+                }
+            }
         }
+    }
+
+    if (showDeleteDialog) {
+        InfoDialog(
+            icon = Icons.Default.Error,
+            iconColour = MaterialTheme.colorScheme.error,
+            title = null,
+            text = "Your account and all associated data will be permanently deleted. This action is irreversible. Are you sure you want to proceed?",
+            confirmText = "Confirm",
+            showDismissButton = true,
+
+            onConfirm = {
+                showDeleteDialog = false
+
+                // UI delete
+                val randomProfilePictureString = generateRandomProfilePictureString()
+                val randomUsername = generateRandomUsername()
+                profilePictureString = randomProfilePictureString
+                username = randomUsername
+                gender = ""
+                age = ""
+                height = ""
+                weight = ""
+                activityLevel = ""
+
+                // Local database delete
+                userCharacteristics.let { characteristics ->
+                    characteristicsViewModel.updateUserCharacteristics(
+                        characteristics.copy(
+                            gender = null,
+                            age = null,
+                            height = null,
+                            weight = null,
+                            activityLevel = null,
+
+                            // Does the UI delete too, different from the others because WeightGoalSelector handles its own variables
+                            weightGoal = "Maintain",
+                            kgGoal = 0,
+                            daysGoal = 0
+                        )
+                    )
+                }
+
+                userSettings.let { settings ->
+                    settingsViewModel.updateUserSettings(
+                        settings.copy(
+                            profilePictureString = randomProfilePictureString,
+                            username = randomUsername,
+                        )
+                    )
+                }
+
+                // First Firestore delete, then Firebase Authentication delete and UI text change, the user would have to open the app again
+                // to get a new empty account
+                Firebase.firestore.collection("leaderboards").document(Firebase.auth.currentUser?.uid.toString()).delete().addOnSuccessListener {
+                    Firebase.auth.currentUser?.delete()
+                    showDeleteDialog = false
+                    uidText = "None"
+                }
+            },
+
+            onDismiss = { showDeleteDialog = false }
+        )
     }
 }

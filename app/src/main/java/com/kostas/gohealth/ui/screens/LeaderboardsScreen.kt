@@ -276,9 +276,7 @@ fun LeaderboardsScreen() {
         }
 
         if (showHealthiestUserDialog) {
-            InfoDialog(Icons.Default.Info, Color(0xFFD4AF37), null, "The 'Healthiest User' is the person ranked highest amongst all the categories.") {
-                showHealthiestUserDialog = false
-            }
+            InfoDialog(Icons.Default.Info, Color(0xFFD4AF37), null, "The 'Healthiest User' is the person ranked highest amongst all the categories.", "Got it", false, { showHealthiestUserDialog = false }, { showHealthiestUserDialog = false })
         }
     }
 }

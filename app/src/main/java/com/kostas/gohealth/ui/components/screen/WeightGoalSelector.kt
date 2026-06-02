@@ -39,12 +39,16 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Settings, onGoalChange: (goal: String, kg: Int, days: Int) -> Unit) {
-    var selectedWeightGoal by remember { mutableStateOf(userCharacteristics.weightGoal)}
+    var selectedWeightGoal by remember(userCharacteristics.weightGoal) {
+        mutableStateOf(userCharacteristics.weightGoal)
+    }
 
     // The kg slider requires positive floats, kg can be negative if the lose option was selected and zero if the loss or gain option was
     // selected after the maintain option. If it's the first time the app is run, kg will go to 1 from 0, but it doesn't matter because the
     // database won't be updated until the save changes button is pressed
-    var selectedKgGoal by remember { mutableFloatStateOf(abs(userCharacteristics.kgGoal).toFloat().coerceAtLeast(1f)) }
+    var selectedKgGoal by remember(userCharacteristics.kgGoal) {
+        mutableFloatStateOf(abs(userCharacteristics.kgGoal).toFloat().coerceAtLeast(1f))
+    }
 
     // Maps the 14 slider positions (2 for the week options and 12 for the month options) to specific day intervals
     val timeframeOptions = remember {
@@ -61,7 +65,7 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
     }
 
     // Same as kg, but it initializes the slider to the closest matching index based on the user's previously saved days goal
-    var selectedDaysIndex by remember {
+    var selectedDaysIndex by remember(userCharacteristics.daysGoal) {
         val initialDays = userCharacteristics.daysGoal.coerceAtLeast(14)
         val closestIndex = timeframeOptions.indices.minBy { abs(timeframeOptions[it] - initialDays) }
         mutableFloatStateOf(closestIndex.toFloat())

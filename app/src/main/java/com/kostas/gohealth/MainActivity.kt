@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
             PlayIntegrityAppCheckProviderFactory.getInstance()
         )
 
-        // Authenticates the user anonymously to Firebase when the app first opens
+        // Authenticates the user anonymously to Firebase when the app first opens, if he doesn't already have a UID
         if (Firebase.auth.currentUser == null) {
             Firebase.auth.signInAnonymously()
         }

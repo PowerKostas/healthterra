@@ -1,6 +1,7 @@
 package com.kostas.gohealth.ui.components.general
 
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-fun InfoDialog(icon: ImageVector, iconColour: Color, title: String?, text: String, onDismiss: () -> Unit) {
+fun InfoDialog(icon: ImageVector, iconColour: Color, title: String?, text: String, confirmText: String, showDismissButton: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
@@ -45,13 +46,35 @@ fun InfoDialog(icon: ImageVector, iconColour: Color, title: String?, text: Strin
         },
 
         confirmButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF6750A4))
+            ) {
                 Text(
-                    text = "Got it",
-                    color = Color(0xFF6750A4),
+                    text = confirmText,
                     fontWeight = FontWeight.Bold
                 )
             }
+        },
+
+        dismissButton = if (showDismissButton) {
+            {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color(0xFF6750A4)
+                    )
+                ) {
+                    Text(
+                        text = "Cancel",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        else {
+            null
         }
     )
 }
