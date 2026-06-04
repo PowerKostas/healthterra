@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
@@ -39,7 +40,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 // This is where the program starts, sets basic settings and runs the custom drawer menu function, which is the center of the app
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,24 +65,90 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
-
-        // Initializes Firebase App Check
-        Firebase.initialize(this)
-        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
-            PlayIntegrityAppCheckProviderFactory.getInstance()
-        )
-
-        // Authenticates the user anonymously to Firebase when the app first opens, if he doesn't already have a UID
-        if (Firebase.auth.currentUser == null) {
-            Firebase.auth.signInAnonymously()
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
 
+        setContent {
+            val userSettingsList by settingsViewModel.settings.collectAsState()
+            val userSettings = userSettingsList.firstOrNull() ?: return@setContent // Loading screen
+
+            // Settings is the table with the primary key, it's initialized automatically. The other 2 tables, with the foreign
+            // keys, get initialized here
+            LaunchedEffect(userSettings.userId) {
+                userSettings.userId.let { uid ->
+                    characteristicsViewModel.initializeUserCharacteristics(uid)
+                    trackingsViewModel.initializeUserTrackings(uid)
+                }
+            }
+
+            // All the initializations must be done, after the user has clicked agree on the mandatory dialog
+            LaunchedEffect(userSettings.showMandatoryDialog) {
+                if (!userSettings.showMandatoryDialog) {
+                    initializeAppLogic()
+                }
+            }
+
+            // Gets the set theme option and passes it to the function that sets the theme
+            val isDarkTheme = when (userSettings.appearance) {
+                "Light" -> false
+                "Dark" -> true
+                else -> isSystemInDarkTheme()
+            }
+
+            val useDynamicColor = userSettings.appearance == "Dynamic"
+
+            GoHealthTheme(darkTheme = isDarkTheme, dynamicColor = useDynamicColor) {
+                DrawerMenu()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        lifecycleScope.launch {
+            val userSettingsList = settingsViewModel.settings.first()
+            val userSettings = userSettingsList.firstOrNull()
+
+            // All the initializations must be done, after the user has clicked agree on the mandatory dialog
+            if (userSettings == null || userSettings.showMandatoryDialog) {
+                return@launch
+            }
+
+            // Every time the app is put on the foreground, it calls the daily maintenance worker, doesn't need network. This approach
+            // doesn't rely on inconsistent periodic workers, daily resetting works as intended, but for the daily leaderboards sync to
+            // happen, the user has to open the app
+            performDailyMaintenance(applicationContext)
+
+            // Handles edge case where, with the app on the background, the user allows activity recognition permissions and reopens the
+            // app, this opens the foreground service in that instance
+            if (userSettings.stepTracking == "Enabled") {
+                val serviceIntent = Intent(this@MainActivity, StepTrackerService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
+                        if (!StepTrackerService.isForegroundServiceActive) {
+                            StepTrackerService.isForegroundServiceActive = true
+                            startForegroundService(serviceIntent)
+                        }
+                    }
+                }
+
+                else {
+                    if (!StepTrackerService.isForegroundServiceActive) {
+                        StepTrackerService.isForegroundServiceActive = true
+                        startForegroundService(serviceIntent)
+                    }
+                }
+            }
+
+        }
+    }
+
+
+    private fun initializeAppLogic() {
         // Checks which permissions actually need to be requested
         val permissionsToRequest = mutableListOf<String>()
 
@@ -107,6 +175,17 @@ class MainActivity : ComponentActivity() {
             permissionLauncher.launch(permissionsToRequest.toTypedArray())
         }
 
+        // Initializes Firebase App Check
+        Firebase.initialize(this)
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
+            PlayIntegrityAppCheckProviderFactory.getInstance()
+        )
+
+        // Authenticates the user anonymously to Firebase when the app first opens, if he doesn't already have a UID
+        if (Firebase.auth.currentUser == null) {
+            Firebase.auth.signInAnonymously()
+        }
+
         schedulePeriodicNotification()
         performDailyMaintenanceAppActive()
 
@@ -114,13 +193,6 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             settingsViewModel.settings.collect { userSettingsList ->
                 val userSettings = userSettingsList.firstOrNull()
-
-                // Settings is the table with the primary key, it's initialized automatically. The other 2 tables, with the foreign
-                // keys, get initialized here
-                userSettings?.userId?.let { uid ->
-                    characteristicsViewModel.initializeUserCharacteristics(uid)
-                    trackingsViewModel.initializeUserTrackings(uid)
-                }
 
                 // Starts the foreground step tracking service, only if the step tracking setting and the physical activity permissions
                 // are enabled. Steps are only counted if the foreground service is active
@@ -151,64 +223,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-        setContent {
-            val userSettingsList by settingsViewModel.settings.collectAsState()
-            val userSettings = userSettingsList.firstOrNull()
-
-            // Gets the set theme option and passes it to the function that sets the theme
-            if (userSettings != null) {
-                val isDarkTheme = when (userSettings.appearance) {
-                    "Light" -> false
-                    "Dark" -> true
-                    else -> isSystemInDarkTheme()
-                }
-
-                val useDynamicColor = userSettings.appearance == "Dynamic"
-
-                GoHealthTheme(darkTheme = isDarkTheme, dynamicColor = useDynamicColor) {
-                    DrawerMenu()
-                }
-            }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        // Every time the app is put on the foreground, it calls the daily maintenance worker, doesn't need network. This approach doesn't
-        // rely on inconsistent periodic workers, daily resetting works as intended, but for the daily leaderboards sync to happen, the user
-        // has to open the app
-        lifecycleScope.launch {
-            performDailyMaintenance(applicationContext)
-        }
-
-        // Handles edge case where, with the app on the background, the user allows activity recognition permissions and reopens the
-        // app, this opens the foreground service in that instance
-        lifecycleScope.launch {
-            val userSettingsList = settingsViewModel.settings.first()
-            val userSettings = userSettingsList.firstOrNull()
-
-            if (userSettings?.stepTracking == "Enabled") {
-                val serviceIntent = Intent(this@MainActivity, StepTrackerService::class.java)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
-                        if (!StepTrackerService.isForegroundServiceActive) {
-                            StepTrackerService.isForegroundServiceActive = true
-                            startForegroundService(serviceIntent)
-                        }
-                    }
-                }
-
-                else {
-                    if (!StepTrackerService.isForegroundServiceActive) {
-                        StepTrackerService.isForegroundServiceActive = true
-                        startForegroundService(serviceIntent)
-                    }
-                }
-            }
-
-        }
     }
 
 
@@ -218,7 +232,7 @@ class MainActivity : ComponentActivity() {
         //val testRequest = OneTimeWorkRequestBuilder<NotificationWorker>().build()
         //WorkManager.getInstance(this).enqueue(testRequest)
 
-        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(3, TimeUnit.HOURS)
+        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(Duration.ofHours(3))
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
@@ -244,9 +258,9 @@ class MainActivity : ComponentActivity() {
                 val nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay()
                 val millisToMidnight = Duration.between(now, nextMidnight).toMillis() + 5000L
 
-                delay(millisToMidnight)
+                delay(millisToMidnight.milliseconds)
                 performDailyMaintenance(applicationContext)
-                delay(60000)
+                delay(1.minutes)
             }
         }
     }

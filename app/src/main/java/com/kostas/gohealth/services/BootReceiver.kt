@@ -1,8 +1,12 @@
 package com.kostas.gohealth.services
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import com.kostas.gohealth.data.UserDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,11 +21,18 @@ class BootReceiver : BroadcastReceiver() {
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+                            return@launch
+                        }
+                    }
+
                     val database = UserDatabase.getDatabase(context)
                     val userSettingsList = database.settingsDao().getAll().first()
                     val userSettings = userSettingsList.firstOrNull()
 
-                    if (userSettings?.stepTracking == "Enabled") {
+                    if (userSettings != null && !userSettings.showMandatoryDialog && userSettings.stepTracking == "Enabled") {
+                        StepTrackerService.isForegroundServiceActive = true
                         context.startForegroundService(Intent(context, StepTrackerService::class.java))
                     }
                 }

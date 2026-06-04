@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -276,7 +277,7 @@ fun LeaderboardsScreen() {
         }
 
         if (showHealthiestUserDialog) {
-            InfoDialog(Icons.Default.Info, Color(0xFFD4AF37), null, "The 'Healthiest User' is the person ranked highest amongst all the categories.", "Got it", false, { showHealthiestUserDialog = false }, { showHealthiestUserDialog = false })
+            InfoDialog(Icons.Default.Info, Color(0xFFD4AF37), null, AnnotatedString("The 'Healthiest User' is the person ranked highest amongst all the categories."), "Got it", null, true, { showHealthiestUserDialog = false }, { showHealthiestUserDialog = false })
         }
     }
 }

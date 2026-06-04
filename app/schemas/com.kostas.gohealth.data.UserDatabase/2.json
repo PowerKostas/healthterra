@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 1,
-    "identityHash": "1066dd3677b917626d175b3dc1eb9cc5",
+    "version": 2,
+    "identityHash": "ee1d0d4910c4d2c6f2022351c250a146",
     "entities": [
       {
         "tableName": "settings",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `profile_picture_string` TEXT NOT NULL, `username` TEXT NOT NULL, `appearance` TEXT NOT NULL, `last_saved_steps` INTEGER NOT NULL, `step_tracking` TEXT NOT NULL, `last_saved_date` TEXT NOT NULL, `initial_weight_goal_date` TEXT NOT NULL, `show_mandatory_dialog` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `profile_picture_string` TEXT NOT NULL, `username` TEXT NOT NULL, `appearance` TEXT NOT NULL, `last_saved_steps` INTEGER NOT NULL, `step_tracking` TEXT NOT NULL, `last_saved_date` TEXT NOT NULL, `initial_weight_goal_date` TEXT NOT NULL, `show_mandatory_dialog` INTEGER NOT NULL DEFAULT 1)",
         "fields": [
           {
             "fieldPath": "userId",
@@ -60,7 +60,8 @@
             "fieldPath": "showMandatoryDialog",
             "columnName": "show_mandatory_dialog",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "1"
           }
         ],
         "primaryKey": {
@@ -202,7 +203,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1066dd3677b917626d175b3dc1eb9cc5')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ee1d0d4910c4d2c6f2022351c250a146')"
     ]
   }
 }

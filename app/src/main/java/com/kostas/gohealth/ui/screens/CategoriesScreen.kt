@@ -195,8 +195,8 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
                     ) {
                         val modifier = Modifier.weight(1f)
 
-                        for (i in 0 until buttonTexts.size) {
-                            ActionButton(modifier, progressBarColour, buttonIconIds?.get(i), buttonTexts[i], fontSize) { handleAddAmount(regex.find(buttonTexts[i])?.value?.toIntOrNull() ?: 0) }
+                        for ((i, text) in buttonTexts.withIndex()) {
+                            ActionButton(modifier, progressBarColour, buttonIconIds?.get(i), text, fontSize) { handleAddAmount(regex.find(buttonTexts[i])?.value?.toIntOrNull() ?: 0) }
                         }
                     }
 

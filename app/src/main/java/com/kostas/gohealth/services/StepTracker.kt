@@ -55,17 +55,16 @@ class StepTrackerService : Service(), SensorEventListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        createNotificationChannel()
-        startForeground(1, createNotification())
-
-        // Handles weird bug
+        // Handles weird bugs
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
-                stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
                 return START_NOT_STICKY
             }
         }
+
+        createNotificationChannel()
+        startForeground(1, createNotification())
 
         if (intent?.action == "RESET_STEPS_MIDNIGHT") {
             inMemoryStepsProgress = 0

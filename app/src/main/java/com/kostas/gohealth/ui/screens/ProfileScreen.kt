@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -361,7 +362,7 @@ fun ProfileScreen() {
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
-                    val privacyHubUrl = "https://powerkostas.github.io/gohealth-web/"
+                    val siteHomeUrl = "https://powerkostas.github.io/gohealth-web/"
                     val uriHandler = LocalUriHandler.current
                     Text(
                         text = "Support & Legal",
@@ -370,7 +371,7 @@ fun ProfileScreen() {
                         textDecoration = TextDecoration.Underline,
                         modifier = Modifier
                             .clickable {
-                                uriHandler.openUri(privacyHubUrl)
+                                uriHandler.openUri(siteHomeUrl)
                             },
                     )
                 }
@@ -391,9 +392,10 @@ fun ProfileScreen() {
             icon = Icons.Default.Error,
             iconColour = MaterialTheme.colorScheme.error,
             title = null,
-            text = "Your account and all associated data will be permanently deleted. This action is irreversible. Are you sure you want to proceed?",
+            text = AnnotatedString("Your account and all associated data will be permanently deleted. This action is irreversible. Are you sure you want to proceed?"),
             confirmText = "Confirm",
-            showDismissButton = true,
+            dismissText = "Cancel",
+            isCancelable = true,
 
             onConfirm = {
                 showDeleteDialog = false

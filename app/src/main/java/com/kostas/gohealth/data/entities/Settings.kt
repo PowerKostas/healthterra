@@ -16,5 +16,8 @@ data class Settings(
     @ColumnInfo(name = "last_saved_steps") val lastSavedSteps: Int = 0,
     @ColumnInfo(name = "step_tracking") val stepTracking: String = "Enabled",
     @ColumnInfo(name = "last_saved_date") val lastSavedDate: String = LocalDate.now().toString(),
-    @ColumnInfo(name = "initial_weight_goal_date") val initialWeightGoalDate: String = LocalDate.now().toString()
+    @ColumnInfo(name = "initial_weight_goal_date") val initialWeightGoalDate: String = LocalDate.now().toString(),
+
+    // Has a default value because this column was added in a later migration
+    @ColumnInfo(name = "show_mandatory_dialog", defaultValue = "1") val showMandatoryDialog: Boolean = true
 )
