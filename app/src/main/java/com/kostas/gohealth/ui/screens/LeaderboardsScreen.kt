@@ -147,18 +147,27 @@ fun LeaderboardsScreen() {
     var showHealthiestUserDialog by remember { mutableStateOf(false) }
 
     val avatarMap = mapOf(
-        "bear" to R.drawable.bear,
+        "alien" to R.drawable.alien,
         "cat" to R.drawable.cat,
         "dinosaur" to R.drawable.dinosaur,
         "dog" to R.drawable.dog,
         "dolphin" to R.drawable.dolphin,
+        "dragon" to R.drawable.dragon,
         "duck" to R.drawable.duck,
         "eagle" to R.drawable.eagle,
         "elephant" to R.drawable.elephant,
+        "flamingo" to R.drawable.flamingo,
         "horse" to R.drawable.horse,
         "lion" to R.drawable.lion,
+        "monkey" to R.drawable.monkey,
+        "mouse" to R.drawable.mouse,
+        "octopus" to R.drawable.octopus,
+        "panda" to R.drawable.panda,
         "penguin" to R.drawable.penguin,
-        "sheep" to R.drawable.sheep
+        "pig" to R.drawable.pig,
+        "sheep" to R.drawable.sheep,
+        "snail" to R.drawable.snail,
+        "turtle" to R.drawable.turtle
     )
 
     if (topWaterUser != null && topCaloriesUser != null && topExerciseUser != null && topStepsUser != null && topTotalStepsUser != null && currentUser != null && healthiestUser != null) { // Loading screen

@@ -46,13 +46,13 @@ fun TopBar(title: String, onMenuClick: () -> Unit, onLogoClick: () -> Unit) {
         title = { Text(text = title) },
 
         actions = {
-            val goColor = if (isPressed && !isHome) Color(0xFF55403E).copy(alpha = 0.6f) else Color(0xFF55403E)
             val healthColor = if (isPressed && !isHome) Color(0xFF059669).copy(alpha = 0.6f) else Color(0xFF059669)
+            val terraColor = if (isPressed && !isHome) Color(0xFF55403E).copy(alpha = 0.6f) else Color(0xFF55403E)
 
             Text(
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = goColor)) { append("Go") }
                     withStyle(style = SpanStyle(color = healthColor)) { append("Health") }
+                    withStyle(style = SpanStyle(color = terraColor)) { append("terra") }
                 },
 
                 modifier = Modifier

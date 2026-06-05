@@ -16,7 +16,10 @@ fun generateRandomUsername(): String {
 }
 
 fun generateRandomProfilePictureString(): String {
-    val profilePictureStrings = listOf("bear", "cat", "dinosaur", "dog", "dolphin", "duck", "eagle", "elephant", "horse", "lion", "penguin", "sheep")
+    val profilePictureStrings = listOf(
+        "alien", "cat", "dinosaur", "dog", "dolphin", "dragon", "duck", "eagle", "elephant", "flamingo",
+        "horse", "lion", "monkey", "mouse", "octopus", "panda", "penguin", "pig", "sheep", "snail", "turtle"
+    )
 
     return profilePictureStrings[random.nextInt(profilePictureStrings.size)]
 }

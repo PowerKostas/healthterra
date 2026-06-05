@@ -110,11 +110,11 @@ class MainActivity : ComponentActivity() {
         super.onResume()
 
         lifecycleScope.launch {
-            val userSettingsList = settingsViewModel.settings.first()
-            val userSettings = userSettingsList.firstOrNull()
+            val userSettingsList = settingsViewModel.settings.first { it.isNotEmpty() }
+            val userSettings = userSettingsList.first()
 
             // All the initializations must be done, after the user has clicked agree on the mandatory dialog
-            if (userSettings == null || userSettings.showMandatoryDialog) {
+            if (userSettings.showMandatoryDialog) {
                 return@launch
             }
 

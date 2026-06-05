@@ -218,7 +218,7 @@ fun ProfileScreen() {
 
                         onFocusLost = {
                             val ageValue = age.toFloatOrNull()
-                            if (ageValue != null && ageValue >= 4f) {
+                            if (ageValue == null || ageValue >= 16f) {
                                 userCharacteristics.let { characteristics ->
                                     characteristicsViewModel.updateUserCharacteristics(
                                         characteristics.copy(age = ageValue)
@@ -238,7 +238,7 @@ fun ProfileScreen() {
 
                         onFocusLost = {
                             val heightValue = height.toFloatOrNull()
-                            if (heightValue != null && heightValue >= 50f) {
+                            if (heightValue == null || heightValue >= 50f) {
                                 userCharacteristics.let { characteristics ->
                                     characteristicsViewModel.updateUserCharacteristics(
                                         characteristics.copy(height = heightValue)
@@ -258,7 +258,7 @@ fun ProfileScreen() {
 
                         onFocusLost = {
                             val weightValue = weight.toFloatOrNull()
-                            if (weightValue != null && weightValue >= 15f) {
+                            if (weightValue == null || weightValue >= 20f) {
                                 userCharacteristics.let { characteristics ->
                                     characteristicsViewModel.updateUserCharacteristics(
                                         characteristics.copy(weight = weightValue)

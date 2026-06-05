@@ -120,8 +120,8 @@ fun DrawerMenu() {
                     ) {
                         Text(
                             text = buildAnnotatedString {
-                                withStyle(style = SpanStyle(color = Color(0xFF55403E))) { append("Go") }
                                 withStyle(style = SpanStyle(color = Color(0xFF059669))) { append("Health") }
+                                withStyle(style = SpanStyle(color = Color(0xFF55403E))) { append("terra") }
                             },
 
                             fontSize = 28.sp,

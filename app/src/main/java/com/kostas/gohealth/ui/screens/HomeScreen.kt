@@ -5,19 +5,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
@@ -48,11 +48,14 @@ import com.kostas.gohealth.helpers.calculateExerciseGoal
 import com.kostas.gohealth.helpers.calculateStepsGoal
 import com.kostas.gohealth.helpers.calculateWaterGoal
 import com.kostas.gohealth.helpers.checkAutoTimeSetting
+import com.kostas.gohealth.helpers.roundGoal
 import com.kostas.gohealth.ui.components.general.InfoDialog
 import com.kostas.gohealth.ui.components.screen.ProgressBox
+import com.kostas.gohealth.ui.components.screen.ProgressHeader
 import com.kostas.gohealth.ui.viewModels.CharacteristicsViewModel
 import com.kostas.gohealth.ui.viewModels.SettingsViewModel
 import com.kostas.gohealth.ui.viewModels.TrackingsViewModel
+import kotlin.math.roundToInt
 
 @Composable
 fun HomeScreen(onNavigate: (String) -> Unit) {
@@ -83,6 +86,11 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
     val exerciseGoal = calculateExerciseGoal(userCharacteristics)
     val stepsGoal = calculateStepsGoal(userCharacteristics)
+
+    // Calculates how many goals are met
+    val minCaloriesValue = roundGoal((caloriesGoal - caloriesGoal * 0.1).roundToInt())
+    val maxCaloriesValue = roundGoal((caloriesGoal + caloriesGoal * 0.1).roundToInt())
+    val completedGoals = listOf(waterProgressSum >= waterGoal, caloriesProgressSum in minCaloriesValue..maxCaloriesValue, exerciseProgressSum >= exerciseGoal, stepsProgress >= stepsGoal).count { it }
 
     var showProfileWarningDialog by remember { mutableStateOf(false) }
     var showSettingsErrorDialog by remember { mutableStateOf(false) }
@@ -118,54 +126,85 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+        // Uses LazyColumn instead of vertical scroll, as to stretch the progress boxes based on the screen size
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(24.dp),
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp, 32.dp, 16.dp, 16.dp) // Smaller bottom than top padding, because the bottom navigation bar has padding too
+                .padding(bottom = 24.dp)
         ) {
-            // Only adds the error row if one of the warnings/errors is present
-            if (isProfileIncomplete || !isAutoTimeEnabled) {
-                Row(horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally)) {
-                    // Warning text, if the user hasn't filled all the characteristics in his profile
-                    if (isProfileIncomplete) {
-                        Icon(
-                            imageVector = Icons.Default.Error,
-                            contentDescription = "Warning Button",
-                            tint = Color(0xFFFFA000),
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .clickable { showProfileWarningDialog = true }
-                        )
-                    }
-
-                    // Error text, if the user has turned off the automatic date and time setting
-                    if (!isAutoTimeEnabled) {
-                        Icon(
-                            imageVector = Icons.Default.Error,
-                            contentDescription = "Error Button",
-                            tint = Color(0xFFE53935),
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .clickable { showSettingsErrorDialog = true }
-                        )
-                    }
+            // Header row
+            item {
+                Column {
+                    ProgressHeader(Color.White, completedGoals, 4)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
                 }
-
-                Spacer(modifier = Modifier.height(32.dp))
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(48.dp)) {
-                ProgressBox(R.drawable.water, "Water", Color(0xFF2196F3), waterProgressSum, waterGoal, onClick = { onNavigate("Water") })
-                ProgressBox(R.drawable.calories, "Calories", Color(0xFF8B4513), caloriesProgressSum, caloriesGoal, onClick = { onNavigate("Calories") })
-                ProgressBox(R.drawable.exercise, "Exercise", Color.Black, exerciseProgressSum, exerciseGoal, onClick = { onNavigate("Exercise") })
-                ProgressBox(R.drawable.steps, "Steps", Color(0xFFE0AC69), stepsProgress, stepsGoal, onClick = { onNavigate("Steps") })
+            // Text and error row
+            item {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "DAILY METRICS",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    // Only adds the error row if one of the warnings/errors is present
+                    if (isProfileIncomplete || !isAutoTimeEnabled) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                            // Warning text, if the user hasn't filled all the characteristics in his profile
+                            if (isProfileIncomplete) {
+                                Icon(
+                                    imageVector = Icons.Default.Error,
+                                    contentDescription = "Warning Button",
+                                    tint = Color(0xFFFFA000),
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .clickable { showProfileWarningDialog = true }
+                                )
+                            }
+
+                            // Error text, if the user has turned off the automatic date and time setting
+                            if (!isAutoTimeEnabled) {
+                                Icon(
+                                    imageVector = Icons.Default.Error,
+                                    contentDescription = "Error Button",
+                                    tint = Color(0xFFE53935),
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .clickable { showSettingsErrorDialog = true }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 0.65 is a magic number that scales the boxes just enough to fill any screen's height
+            item {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                        ProgressBox(modifier = Modifier.weight(1f).aspectRatio(0.65f), R.drawable.water, "Water", Color(0xFF2196F3), waterProgressSum, waterGoal, onClick = { onNavigate("Water") })
+                        ProgressBox(modifier = Modifier.weight(1f).aspectRatio(0.65f), R.drawable.calories, "Calories", Color(0xFF8B4513), caloriesProgressSum, caloriesGoal, onClick = { onNavigate("Calories") })
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                        ProgressBox(modifier = Modifier.weight(1f).aspectRatio(0.65f), R.drawable.exercise, "Exercise", Color.Black, exerciseProgressSum, exerciseGoal, onClick = { onNavigate("Exercise") })
+                        ProgressBox(modifier = Modifier.weight(1f).aspectRatio(0.65f), R.drawable.steps, "Steps", Color(0xFFE0AC69), stepsProgress, stepsGoal, onClick = { onNavigate("Steps") })
+                    }
+                }
             }
         }
     }
+
 
     val linkStyle = TextLinkStyles(
         style = SpanStyle(
