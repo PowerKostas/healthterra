@@ -24,5 +24,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "GoHealth"
+rootProject.name = "Healthterra"
 include(":app")

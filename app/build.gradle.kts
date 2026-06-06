@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.kostas.gohealth"
+    namespace = "com.healthterra"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.kostas.gohealth"
+        applicationId = "com.healthterra"
         minSdk = 26
         targetSdk = 37
         versionCode = 2
@@ -27,6 +27,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+
+        debug {
+            applicationIdSuffix = ".debug"
         }
     }
 
@@ -67,6 +71,7 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.appcheck.playintegrity)
+    implementation(libs.coil.compose)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
