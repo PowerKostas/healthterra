@@ -1,6 +1,7 @@
 package com.healthterra.ui.components.screen
 
 import android.icu.text.CompactDecimalFormat
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -114,11 +115,9 @@ fun LeaderboardDialog(categoryString: String, categoryLeaderboard: List<Leaderbo
                                     contentDescription = "Leaderboard Icon",
                                     modifier = Modifier
                                         .size(48.dp)
-                                        .border(
-                                            width = 1.dp,
-                                            color = rowColor,
-                                            shape = CircleShape
-                                        )
+                                        .border(width = 1.dp, color = rowColor, shape = CircleShape)
+                                        .padding(1.dp)
+                                        .background(color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
                                 )
 
                                 Text(

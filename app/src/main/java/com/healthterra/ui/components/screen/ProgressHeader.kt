@@ -60,6 +60,7 @@ fun ProgressHeader(color: Color, completedGoals: Int, allGoals: Int) {
                 progress = { completedGoals / allGoals.toFloat() },
                 modifier = Modifier.size(100.dp),
                 color = color,
+                trackColor = color.copy(alpha = 0.4f),
                 strokeWidth = 8.dp,
                 strokeCap = StrokeCap.Butt,
                 gapSize = 0.dp

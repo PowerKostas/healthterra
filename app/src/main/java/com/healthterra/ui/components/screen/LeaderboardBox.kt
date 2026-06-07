@@ -1,5 +1,6 @@
 package com.healthterra.ui.components.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,11 +44,9 @@ fun LeaderboardBox(modifier: Modifier, profilePictureId: Int, username: String, 
                     contentDescription = "Profile Picture",
                     modifier = Modifier
                         .size(72.dp)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            shape = CircleShape
-                        )
+                        .border(width = 1.dp, color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
+                        .padding(1.dp)
+                        .background(color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
                 )
 
                 Column(

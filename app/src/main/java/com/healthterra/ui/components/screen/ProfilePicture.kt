@@ -1,6 +1,7 @@
 package com.healthterra.ui.components.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +26,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
@@ -72,7 +72,8 @@ fun ProfilePicture(profilePictureString: String, onImageSelected: (String) -> Un
             modifier = Modifier
                 .size(120.dp)
                 .border(width = 2.dp, color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
-                .clip(CircleShape)
+                .padding(2.dp) // Accounts for the border
+                .background(color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape) // Fixes small visual glitch
         )
 
         Button(
@@ -102,7 +103,8 @@ fun ProfilePicture(profilePictureString: String, onImageSelected: (String) -> Un
                         modifier = Modifier
                             .aspectRatio(1f)
                             .border(width = 2.dp, color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
-                            .clip(CircleShape)
+                            .padding(2.dp)
+                            .background(color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
                             .clickable {
                                 onImageSelected(imageString)
                                 showMenu = false
