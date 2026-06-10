@@ -3,17 +3,18 @@ package com.healthterra.ui.screens
 import android.app.Activity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,7 +31,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -123,35 +127,45 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
         }
     }
 
-    // Draws the screen
-    Column(modifier = Modifier.fillMaxSize()) {
-        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
+    // Draws the screen, verticalScroll creates infinite vertical space, which breaks fillMaxSize(). BoxWithConstraints can grab the true screen
+    // height with maxHeight. The goal is to stretch the progress boxes as much as possible, without making the screen scrollable. On smaller
+    // screens, the progress boxes collapse, so the screen is still made scrollable and dynamicProgressBoxHeight sets a tested minimum floor. On
+    // bigger screens, in order for the 2 rows of progress boxes to stretch perfectly, the exact remaining height is calculated and divided by 2
+    var topHalfColumnPx by remember { mutableIntStateOf(0) }
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        // Remaining height = Total height - Top half column height - 24.dp (Space between header and progress boxes) - 24.dp (Space between the
+        // two progress boxes rows - 24.dp (Bottom padding) - 1.dp (Rounding issues)
+        val remainingHeight = maxHeight - with(LocalDensity.current) { topHalfColumnPx.toDp() } - (24.dp + 24.dp + 12.dp + 1.dp)
+        val dynamicProgressBoxHeight = maxOf(200.dp, remainingHeight / 2)
 
-        // Uses LazyColumn instead of vertical scroll, as to stretch the progress boxes based on the screen size
-        LazyColumn(
+        Column(
             verticalArrangement = Arrangement.spacedBy(24.dp),
             modifier = Modifier
-                .weight(1f)
-                .padding(bottom = 24.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 12.dp) // Smaller padding to account for the navigation bar padding
         ) {
-            // Header row
-            item {
-                Column {
-                    ProgressHeader(Color.White, completedGoals, 4)
-                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
-                }
-            }
+            // Top half column
+            Column(
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onSizeChanged { size ->
+                        topHalfColumnPx = size.height
+                    }
+            ) {
+                ProgressHeader(Color.White, completedGoals, 4)
 
-            // Text and error row
-            item {
+                // Text and error row
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                 ) {
                     Text(
                         text = "Daily Metrics",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
 
@@ -186,21 +200,19 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 }
             }
 
-            // 0.65 is a magic number that scales the boxes just enough to fill any screen's height
-            item {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        ProgressBox(modifier = Modifier.weight(1f).aspectRatio(0.65f), R.drawable.water, "Water", Color(0xFF2196F3), waterProgressSum, waterGoal, onClick = { onNavigate("Water") })
-                        ProgressBox(modifier = Modifier.weight(1f).aspectRatio(0.65f), R.drawable.calories, "Calories", Color(0xFF8B4513), caloriesProgressSum, caloriesGoal, onClick = { onNavigate("Calories") })
-                    }
+            // Bottom half column
+            Column(
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    ProgressBox(modifier = Modifier.weight(1f).height(dynamicProgressBoxHeight), R.drawable.water, "Water", Color(0xFF2196F3), waterProgressSum, waterGoal, onClick = { onNavigate("Water") })
+                    ProgressBox(modifier = Modifier.weight(1f).height(dynamicProgressBoxHeight), R.drawable.calories, "Calories", Color(0xFF8B4513), caloriesProgressSum, caloriesGoal, onClick = { onNavigate("Calories") })
+                }
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        ProgressBox(modifier = Modifier.weight(1f).aspectRatio(0.65f), R.drawable.exercise, "Exercise", Color.Black, exerciseProgressSum, exerciseGoal, onClick = { onNavigate("Exercise") })
-                        ProgressBox(modifier = Modifier.weight(1f).aspectRatio(0.65f), R.drawable.steps, "Steps", Color(0xFFE0AC69), stepsProgress, stepsGoal, onClick = { onNavigate("Steps") })
-                    }
+                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    ProgressBox(modifier = Modifier.weight(1f).height(dynamicProgressBoxHeight), R.drawable.exercise, "Exercise", Color.Black, exerciseProgressSum, exerciseGoal, onClick = { onNavigate("Exercise") })
+                    ProgressBox(modifier = Modifier.weight(1f).height(dynamicProgressBoxHeight), R.drawable.steps, "Steps", Color(0xFFE0AC69), stepsProgress, stepsGoal, onClick = { onNavigate("Steps") })
                 }
             }
         }

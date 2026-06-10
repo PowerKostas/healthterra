@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -95,297 +94,292 @@ fun ProfileScreen() {
     var uidText by remember { mutableStateOf(Firebase.auth.currentUser?.uid ?: "None") }
 
     // Draws the screen
-    Column(modifier = Modifier.fillMaxSize()) {
-        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, top = 24.dp, end = 16.dp)
-        ) {
-            ProfilePicture(profilePictureString) {
-                // Function that triggers when a new profile picture is tapped, it makes sure that a user is actually loaded on the screen, updates
-                // the UI instantly, creates a copy of the user and only updates the profile picture String in the local database
-                newProfilePictureString ->
-                    profilePictureString = newProfilePictureString
-                    userSettings.let { settings ->
-                        settingsViewModel.updateUserSettings(
-                            settings.copy(profilePictureString = newProfilePictureString)
-                    )
-                }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 4.dp)
+    ) {
+        ProfilePicture(profilePictureString) {
+            // Function that triggers when a new profile picture is tapped, it makes sure that a user is actually loaded on the screen, updates
+            // the UI instantly, creates a copy of the user and only updates the profile picture String in the local database
+            newProfilePictureString ->
+                profilePictureString = newProfilePictureString
+                userSettings.let { settings ->
+                    settingsViewModel.updateUserSettings(
+                        settings.copy(profilePictureString = newProfilePictureString)
+                )
             }
+        }
 
-            Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Personal Details",
-                modifier = Modifier
-                    .align(Alignment.Start)
-            )
+        Text(
+            text = "Personal Details",
+            modifier = Modifier
+                .align(Alignment.Start)
+        )
 
-            CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
-                    modifier = Modifier.padding(24.dp)
-                ) {
-                    var isError = username.length < 5
-                    OutlinedTextField(
-                        value = username,
-                        label = { Text("Username") },
-                        isError = isError,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onFocusChanged { focusState ->
-                                if (!focusState.isFocused) {
-                                    if (username.length < 5) {
-                                        isError = true
-                                    }
-
-                                    // Local database update
-                                    else {
-                                        settingsViewModel.updateUserSettings(userSettings.copy(username = username))
-                                    }
-                                }
-                            },
-
-                        // Adds an error/counting text below the field
-                        supportingText = {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                if (isError) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.offset(x = (-16).dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Error,
-                                            contentDescription = "Error Icon",
-                                            tint = Color(0xFFE53935),
-                                            modifier = Modifier.size(16.dp)
-                                        )
-
-                                        Text(text = "Minimum 5 characters")
-                                    }
+        CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+                modifier = Modifier.padding(24.dp)
+            ) {
+                var isError = username.length < 5
+                OutlinedTextField(
+                    value = username,
+                    label = { Text("Username") },
+                    isError = isError,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (!focusState.isFocused) {
+                                if (username.length < 5) {
+                                    isError = true
                                 }
 
-                                // Empty space to push the counter to the right
+                                // Local database update
                                 else {
-                                    Text(text = "")
+                                    settingsViewModel.updateUserSettings(userSettings.copy(username = username))
                                 }
-
-                                Text(
-                                    text = "${username.length} / 15",
-                                    textAlign = TextAlign.End,
-                                    modifier = Modifier.offset(x = 16.dp)
-                                )
                             }
                         },
 
-                        // Updates the UI, every time the text changes
-                        onValueChange = { newValue ->
-                            if (newValue.length <= 15) {
-                                username = newValue
+                    // Adds an error/counting text below the field
+                    supportingText = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            if (isError) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.offset(x = (-16).dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Error,
+                                        contentDescription = "Error Icon",
+                                        tint = Color(0xFFE53935),
+                                        modifier = Modifier.size(16.dp)
+                                    )
 
-                                if (newValue.length >= 5) {
-                                    isError = false
+                                    Text(text = "Minimum 5 characters")
                                 }
                             }
-                        }
-                    )
 
-                    DropdownMenu(
-                        "Gender", listOf("Male", "Female"),
-                        gender
-                    ) { newValue ->
-                        gender = newValue
-                        userCharacteristics.let { characteristics ->
-                            characteristicsViewModel.updateUserCharacteristics(
-                                characteristics.copy(gender = newValue)
+                            // Empty space to push the counter to the right
+                            else {
+                                Text(text = "")
+                            }
+
+                            Text(
+                                text = "${username.length} / 15",
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.offset(x = 16.dp)
                             )
                         }
-                    }
+                    },
 
-                    NumberTextField(
-                        "Age",
-                        16f,
-                        130f,
-                        age,
+                    // Updates the UI, every time the text changes
+                    onValueChange = { newValue ->
+                        if (newValue.length <= 15) {
+                            username = newValue
 
-                        onFocusLost = {
-                            val ageValue = age.toFloatOrNull()
-                            if (ageValue == null || ageValue >= 16f) {
-                                userCharacteristics.let { characteristics ->
-                                    characteristicsViewModel.updateUserCharacteristics(
-                                        characteristics.copy(age = ageValue)
-                                    )
-                                }
+                            if (newValue.length >= 5) {
+                                isError = false
                             }
-                        },
-
-                        onValueChange = { newValue -> age = newValue }
-                    )
-
-                    NumberTextField(
-                        "Height (cm)",
-                        50f,
-                        280f,
-                        height,
-
-                        onFocusLost = {
-                            val heightValue = height.toFloatOrNull()
-                            if (heightValue == null || heightValue >= 50f) {
-                                userCharacteristics.let { characteristics ->
-                                    characteristicsViewModel.updateUserCharacteristics(
-                                        characteristics.copy(height = heightValue)
-                                    )
-                                }
-                            }
-                        },
-
-                        onValueChange = { newValue -> height = newValue }
-                    )
-
-                    NumberTextField(
-                        "Weight (kg)",
-                        20f,
-                        700f,
-                        weight,
-
-                        onFocusLost = {
-                            val weightValue = weight.toFloatOrNull()
-                            if (weightValue == null || weightValue >= 20f) {
-                                userCharacteristics.let { characteristics ->
-                                    characteristicsViewModel.updateUserCharacteristics(
-                                        characteristics.copy(weight = weightValue)
-                                    )
-                                }
-                            }
-                        },
-
-                        onValueChange = { newValue -> weight = newValue }
-                    )
-
-                    DropdownMenu(
-                        "Activity Level", listOf("Sedentary", "Moderate", "High"),
-                        activityLevel
-                    ) { newValue ->
-                        activityLevel = newValue
-                        userCharacteristics.let { characteristics ->
-                            characteristicsViewModel.updateUserCharacteristics(
-                                characteristics.copy(activityLevel = newValue)
-                            )
                         }
                     }
+                )
 
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)){
-                        Text(text = "Weight Goal")
+                DropdownMenu(
+                    "Gender", listOf("Male", "Female"),
+                    gender
+                ) { newValue ->
+                    gender = newValue
+                    userCharacteristics.let { characteristics ->
+                        characteristicsViewModel.updateUserCharacteristics(
+                            characteristics.copy(gender = newValue)
+                        )
+                    }
+                }
 
-                        WeightGoalSelector(
-                            userCharacteristics,
-                            userSettings
-                        ) { newWeightGoal, newKgGoal, newDaysGoal ->
+                NumberTextField(
+                    "Age",
+                    16f,
+                    130f,
+                    age,
+
+                    onFocusLost = {
+                        val ageValue = age.toFloatOrNull()
+                        if (ageValue == null || ageValue >= 16f) {
                             userCharacteristics.let { characteristics ->
                                 characteristicsViewModel.updateUserCharacteristics(
-                                    characteristics.copy(weightGoal = newWeightGoal, kgGoal = newKgGoal, daysGoal = newDaysGoal)
-                                )
-
-                                // Also updates initialWeightGoalDate so it starts the count again if the user changes the weight goal or
-                                // moves the sliders
-                                settingsViewModel.updateUserSettings(
-                                    userSettings.copy(initialWeightGoalDate = LocalDate.now().toString())
+                                    characteristics.copy(age = ageValue)
                                 )
                             }
+                        }
+                    },
+
+                    onValueChange = { newValue -> age = newValue }
+                )
+
+                NumberTextField(
+                    "Height (cm)",
+                    50f,
+                    280f,
+                    height,
+
+                    onFocusLost = {
+                        val heightValue = height.toFloatOrNull()
+                        if (heightValue == null || heightValue >= 50f) {
+                            userCharacteristics.let { characteristics ->
+                                characteristicsViewModel.updateUserCharacteristics(
+                                    characteristics.copy(height = heightValue)
+                                )
+                            }
+                        }
+                    },
+
+                    onValueChange = { newValue -> height = newValue }
+                )
+
+                NumberTextField(
+                    "Weight (kg)",
+                    20f,
+                    700f,
+                    weight,
+
+                    onFocusLost = {
+                        val weightValue = weight.toFloatOrNull()
+                        if (weightValue == null || weightValue >= 20f) {
+                            userCharacteristics.let { characteristics ->
+                                characteristicsViewModel.updateUserCharacteristics(
+                                    characteristics.copy(weight = weightValue)
+                                )
+                            }
+                        }
+                    },
+
+                    onValueChange = { newValue -> weight = newValue }
+                )
+
+                DropdownMenu(
+                    "Activity Level", listOf("Sedentary", "Moderate", "High"),
+                    activityLevel
+                ) { newValue ->
+                    activityLevel = newValue
+                    userCharacteristics.let { characteristics ->
+                        characteristicsViewModel.updateUserCharacteristics(
+                            characteristics.copy(activityLevel = newValue)
+                        )
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)){
+                    Text(text = "Weight Goal")
+
+                    WeightGoalSelector(
+                        userCharacteristics,
+                        userSettings
+                    ) { newWeightGoal, newKgGoal, newDaysGoal ->
+                        userCharacteristics.let { characteristics ->
+                            characteristicsViewModel.updateUserCharacteristics(
+                                characteristics.copy(weightGoal = newWeightGoal, kgGoal = newKgGoal, daysGoal = newDaysGoal)
+                            )
+
+                            // Also updates initialWeightGoalDate so it starts the count again if the user changes the weight goal or
+                            // moves the sliders
+                            settingsViewModel.updateUserSettings(
+                                userSettings.copy(initialWeightGoalDate = LocalDate.now().toString())
+                            )
                         }
                     }
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Step Tracking",
-                modifier = Modifier
-                    .align(Alignment.Start)
-            )
+        Text(
+            text = "Step Tracking",
+            modifier = Modifier
+                .align(Alignment.Start)
+        )
 
-            CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
-                RadioButtonGroup(
-                    listOf("Enabled", "Disabled"),
-                    userSettings.stepTracking
-                ) { newSetting ->
-                    userSettings.let { settings ->
-                        settingsViewModel.updateUserSettings(
-                            settings.copy(stepTracking = newSetting)
-                        )
-                    }
+        CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
+            RadioButtonGroup(
+                listOf("Enabled", "Disabled"),
+                userSettings.stepTracking
+            ) { newSetting ->
+                userSettings.let { settings ->
+                    settingsViewModel.updateUserSettings(
+                        settings.copy(stepTracking = newSetting)
+                    )
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Appearance",
-                modifier = Modifier
-                    .align(Alignment.Start)
-            )
+        Text(
+            text = "Appearance",
+            modifier = Modifier
+                .align(Alignment.Start)
+        )
 
-            CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
-                RadioButtonGroup(
-                    listOf("Light", "Dark", "Dynamic"),
-                    userSettings.appearance
-                ) { newAppearance ->
-                    userSettings.let { settings ->
-                        settingsViewModel.updateUserSettings(
-                            settings.copy(appearance = newAppearance)
-                        )
-                    }
+        CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
+            RadioButtonGroup(
+                listOf("Light", "Dark", "Dynamic"),
+                userSettings.appearance
+            ) { newAppearance ->
+                userSettings.let { settings ->
+                    settingsViewModel.updateUserSettings(
+                        settings.copy(appearance = newAppearance)
+                    )
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(64.dp))
+        Spacer(modifier = Modifier.height(64.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment =  Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment =  Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "UID: $uidText",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(start = 2.dp)
+                )
+
+                val siteHomeUrl = "https://powerkostas.github.io/healthterra-web/"
+                val uriHandler = LocalUriHandler.current
+                Text(
+                    text = "Support & Legal",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFF0645AD),
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier
+                        .padding(start = 2.dp)
+                        .clickable {
+                            uriHandler.openUri(siteHomeUrl)
+                        }
+                )
+            }
+
+            ActionButton(
+                colour = Color(0xFFE53935),
+                text = "Delete Account",
+                fontSize = 12.sp
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "UID: $uidText",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 10.sp,
-                        modifier = Modifier.padding(start = 2.dp)
-                    )
-
-                    val siteHomeUrl = "https://powerkostas.github.io/healthterra-web/"
-                    val uriHandler = LocalUriHandler.current
-                    Text(
-                        text = "Support & Legal",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF0645AD),
-                        textDecoration = TextDecoration.Underline,
-                        modifier = Modifier
-                            .padding(start = 2.dp)
-                            .clickable {
-                                uriHandler.openUri(siteHomeUrl)
-                            }
-                    )
-                }
-
-                ActionButton(
-                    colour = Color(0xFFE53935),
-                    text = "Delete Account",
-                    fontSize = 12.sp
-                ) {
-                    showDeleteDialog = true
-                }
+                showDeleteDialog = true
             }
         }
     }

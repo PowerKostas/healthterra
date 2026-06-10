@@ -3,10 +3,12 @@ package com.healthterra.ui.components.central
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,38 +33,42 @@ fun TopBar(title: String, onMenuClick: () -> Unit, onLogoClick: () -> Unit) {
     val isPressed by interactionSource.collectIsPressedAsState()
     val isHome = title == "Home"
 
-    TopAppBar(
-        navigationIcon = {
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Drawer Menu"
+    Column {
+        TopAppBar(
+            navigationIcon = {
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "Drawer Menu"
+                    )
+                }
+            },
+
+            title = { Text(text = title) },
+
+            actions = {
+                val healthColor = if (isPressed && !isHome) Color(0xFF059669).copy(alpha = 0.6f) else Color(0xFF059669)
+                val terraColor = if (isPressed && !isHome) Color(0xFF55403E).copy(alpha = 0.6f) else Color(0xFF55403E)
+
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = healthColor)) { append("Health") }
+                        withStyle(style = SpanStyle(color = terraColor)) { append("terra") }
+                    },
+
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
+
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = { onLogoClick() }
+                        )
                 )
             }
-        },
+        )
 
-        title = { Text(text = title) },
-
-        actions = {
-            val healthColor = if (isPressed && !isHome) Color(0xFF059669).copy(alpha = 0.6f) else Color(0xFF059669)
-            val terraColor = if (isPressed && !isHome) Color(0xFF55403E).copy(alpha = 0.6f) else Color(0xFF55403E)
-
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = healthColor)) { append("Health") }
-                    withStyle(style = SpanStyle(color = terraColor)) { append("terra") }
-                },
-
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
-
-                modifier = Modifier
-                    .padding(end = 12.dp)
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClick = { onLogoClick() }
-                    )
-            )
-        }
-    )
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
+    }
 }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -87,136 +86,128 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
     }
 
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterVertically),
         modifier = Modifier
             .fillMaxSize()
             .imePadding() // Adds bottom padding equal to the height of the keyboard, so the keyboard doesn't hide the text field
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
     ) {
-        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
+        Icon(
+            painter = painterResource(id = iconId),
+            contentDescription = "Category",
+            tint = Color.Unspecified,
+            modifier = Modifier.size(200.dp)
+        )
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterVertically),
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = iconId),
-                contentDescription = "Category",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(200.dp)
+        if (categoryName == "Calories") {
+            // It does +-10% of the goal because calories use a range
+            val minValue = roundGoal((categoryGoal - categoryGoal * 0.1).roundToInt())
+            val maxValue = roundGoal((categoryGoal + categoryGoal * 0.1).roundToInt())
+
+            val textColour = if (categoryProgress in minValue..maxValue) Color(0xFF4CAF50) else Color(0xFFE53935)
+            val annotatedText = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = textColour)) {
+                    append(categoryProgress.toString())
+                }
+
+                append(" / $minValue-$maxValue $metric")
+            }
+
+            Text(
+                text = annotatedText,
+                style = MaterialTheme.typography.titleLarge
             )
 
-            if (categoryName == "Calories") {
-                // It does +-10% of the goal because calories use a range
-                val minValue = roundGoal((categoryGoal - categoryGoal * 0.1).roundToInt())
-                val maxValue = roundGoal((categoryGoal + categoryGoal * 0.1).roundToInt())
+            BulletGraph(categoryProgress, minValue, maxValue, progressBarColour)
+        }
 
-                val textColour = if (categoryProgress in minValue..maxValue) Color(0xFF4CAF50) else Color(0xFFE53935)
-                val annotatedText = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = textColour)) {
-                        append(categoryProgress.toString())
-                    }
+        else {
+            Text(
+                text = "$categoryProgress / $categoryGoal $metric",
+                style = MaterialTheme.typography.titleLarge
+            )
 
-                    append(" / $minValue-$maxValue $metric")
+            ProgressBar(20.dp, progressBarColour, categoryProgress.toFloat() / categoryGoal)
+        }
+
+        if (categoryName == "Exercise") {
+            Text(
+                text = "Add $metric of any exercise to reach your daily goal!",
+                textAlign = TextAlign.Center
+            )
+        }
+
+        else {
+            Text(
+                text = "Add $metric to reach your daily goal!",
+                textAlign = TextAlign.Center
+            )
+        }
+
+        if (categoryName == "Calories") {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    val modifier = Modifier.weight(1f)
+
+                    ActionButton(modifier = modifier, colour = progressBarColour, text = "Custom", fontSize = 16.sp) { showCustomAlertDialog = true }
+                    ActionButton(modifier = modifier, colour = Color(0xFFE53935), text = "Undo", fontSize = 16.sp) { handleDeletePrevious() }
                 }
 
-                Text(
-                    text = annotatedText,
-                    style = MaterialTheme.typography.titleLarge
+                var hasSearched by rememberSaveable { mutableStateOf(false) }
+                SearchTextField(
+                    Modifier.fillMaxWidth(),
+                    "Enter a food item...",
+                    progressBarColour,
+                    3,
+
+                    onInputChange = {
+                        hasSearched = false
+                    },
+
+                    onSearch = { input ->
+                        foodViewModel.searchFood(input)
+                        hasSearched = true
+                    }
                 )
 
-                BulletGraph(categoryProgress, minValue, maxValue, progressBarColour)
-            }
-
-            else {
-                Text(
-                    text = "$categoryProgress / $categoryGoal $metric",
-                    style = MaterialTheme.typography.titleLarge
-                )
-
-                ProgressBar(20.dp, progressBarColour, categoryProgress.toFloat() / categoryGoal)
-            }
-
-            if (categoryName == "Exercise") {
-                Text(
-                    text = "Add $metric of any exercise to reach your daily goal!",
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            else {
-                Text(
-                    text = "Add $metric to reach your daily goal!",
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            if (categoryName == "Calories") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        val modifier = Modifier.weight(1f)
-
-                        ActionButton(modifier = modifier, colour = progressBarColour, text = "Custom", fontSize = 16.sp) { showCustomAlertDialog = true }
-                        ActionButton(modifier = modifier, colour = Color(0xFFE53935), text = "Undo", fontSize = 16.sp) { handleDeletePrevious() }
-                    }
-
-                    var hasSearched by rememberSaveable { mutableStateOf(false) }
-                    SearchTextField(
-                        Modifier.fillMaxWidth(),
-                        "Enter a food item...",
-                        progressBarColour,
-                        3,
-
-                        onInputChange = {
-                            hasSearched = false
-                        },
-
-                        onSearch = { input ->
-                            foodViewModel.searchFood(input)
-                            hasSearched = true
-                        }
-                    )
-
-                    if (hasSearched && !isLoading) {
-                        FoodTable(rows = searchResults, onFoodSelected = { calories -> handleAddAmount(calories) })
-                    }
-                }
-            }
-
-            else {
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        val modifier = Modifier.weight(1f)
-
-                        for ((i, text) in buttonTexts.withIndex()) {
-                            ActionButton(modifier, progressBarColour, buttonIconIds?.get(i), text, fontSize) { handleAddAmount(regex.find(buttonTexts[i])?.value?.toIntOrNull() ?: 0) }
-                        }
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        val modifier = Modifier.weight(1f)
-
-                        ActionButton(modifier = modifier, colour = progressBarColour, text = "Custom", fontSize = 16.sp) { showCustomAlertDialog = true }
-                        ActionButton(modifier = modifier, colour = Color(0xFFE53935), text = "Undo", fontSize = 16.sp) { handleDeletePrevious() }
-                    }
+                if (hasSearched && !isLoading) {
+                    FoodTable(rows = searchResults, onFoodSelected = { calories -> handleAddAmount(calories) })
                 }
             }
         }
 
-        if (showCustomAlertDialog) {
-            CustomButtonDialog (
-                metric = metric,
-                onDismiss = { showCustomAlertDialog = false },
-                onConfirm = { amount ->
-                    handleAddAmount(amount)
+        else {
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val modifier = Modifier.weight(1f)
+
+                    for ((i, text) in buttonTexts.withIndex()) {
+                        ActionButton(modifier, progressBarColour, buttonIconIds?.get(i), text, fontSize) { handleAddAmount(regex.find(buttonTexts[i])?.value?.toIntOrNull() ?: 0) }
+                    }
                 }
-            )
+
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    val modifier = Modifier.weight(1f)
+
+                    ActionButton(modifier = modifier, colour = progressBarColour, text = "Custom", fontSize = 16.sp) { showCustomAlertDialog = true }
+                    ActionButton(modifier = modifier, colour = Color(0xFFE53935), text = "Undo", fontSize = 16.sp) { handleDeletePrevious() }
+                }
+            }
         }
+    }
+
+    if (showCustomAlertDialog) {
+        CustomButtonDialog (
+            metric = metric,
+            onDismiss = { showCustomAlertDialog = false },
+            onConfirm = { amount ->
+                handleAddAmount(amount)
+            }
+        )
     }
 }

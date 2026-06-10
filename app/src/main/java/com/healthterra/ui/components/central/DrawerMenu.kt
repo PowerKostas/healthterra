@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -108,6 +109,7 @@ fun DrawerMenu() {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .navigationBarsPadding() // Applies a safe padding to account for the navigation bar, it's needed in landscape mode
                         .verticalScroll(scrollState)
                 ) {
                     // App logo is put in a box with a fixed height, so the horizontal divider here and in the screens match heights
@@ -184,6 +186,7 @@ fun DrawerMenu() {
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() })},
 
             topBar = {

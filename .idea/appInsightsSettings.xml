@@ -9,8 +9,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.healthterra" />
-                  <option name="mobileSdkAppId" value="1:487763726399:android:b2294378c8bc96a82f688a" />
+                  <option name="appId" value="com.healthterra.debug" />
+                  <option name="mobileSdkAppId" value="1:487763726399:android:dffa5851dee097ef2f688a" />
                   <option name="projectId" value="gohealth-bbb5c556" />
                   <option name="projectNumber" value="487763726399" />
                 </ConnectionSetting>

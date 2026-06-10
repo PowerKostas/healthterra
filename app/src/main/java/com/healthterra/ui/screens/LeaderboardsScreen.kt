@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -147,123 +146,117 @@ fun LeaderboardsScreen() {
     var showHealthiestUserDialog by rememberSaveable { mutableStateOf(false) }
 
     if (topWaterUser != null && topCaloriesUser != null && topExerciseUser != null && topStepsUser != null && topTotalStepsUser != null && currentUser != null && healthiestUser != null) { // Loading screen
-        // Draws the screen
-        Column(modifier = Modifier.fillMaxSize()) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(top = 24.dp, bottom = 12.dp)
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 24.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
 
+                Text(
+                    text = "Daily Goals Completed",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color(0xFFD4AF37),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
+            }
+
+            topWaterUser.let { user ->
+                // Checks if the current user is the top user, if he is, make his score null to know not to draw a specific component
+                // Also makes the LeaderboardBox clickable, when clicked the LeaderboardDialog shows
+                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.waterGoalsCompleted.toString())
+                LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "waterGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.water, "Water", user.waterGoalsCompleted.toString(), currentUserScore)
+            }
+
+            topCaloriesUser.let { user ->
+                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.caloriesGoalsCompleted.toString())
+                LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "caloriesGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.calories, "Calories", user.caloriesGoalsCompleted.toString(), currentUserScore)
+            }
+
+            topExerciseUser.let { user ->
+                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.exerciseGoalsCompleted.toString())
+                LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "exerciseGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.exercise, "Exercise", user.exerciseGoalsCompleted.toString(), currentUserScore)
+            }
+
+            topStepsUser.let { user ->
+                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.stepsGoalsCompleted.toString())
+                LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "stepsGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.stepsGoalsCompleted.toString(), currentUserScore)
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
+
+                Text(
+                    text = "Total Steps",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color(0xFFD4AF37),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
+            }
+
+            topTotalStepsUser.let { user ->
+                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.totalSteps.toString())
+                LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "totalSteps" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.totalSteps.toString(), currentUserScore)
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
 
-                    Text(
-                        text = "Daily Goals Completed",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color(0xFFD4AF37),
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 12.dp)
-                    )
+                Text(
+                    text = "Healthiest User",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color(0xFFD4AF37),
+                    fontWeight = FontWeight.ExtraBold,
+                )
 
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
-                }
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = "Info Button",
+                    tint = Color(0xFFD4AF37),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable { showHealthiestUserDialog = true }
+                )
 
-                topWaterUser.let { user ->
-                    // Checks if the current user is the top user, if he is, make his score null to know not to draw a specific component
-                    // Also makes the LeaderboardBox clickable, when clicked the LeaderboardDialog shows
-                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser.waterGoalsCompleted.toString())
-                    LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "waterGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.water, "Water", user.waterGoalsCompleted.toString(), currentUserScore)
-                }
-
-                topCaloriesUser.let { user ->
-                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser.caloriesGoalsCompleted.toString())
-                    LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "caloriesGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.calories, "Calories", user.caloriesGoalsCompleted.toString(), currentUserScore)
-                }
-
-                topExerciseUser.let { user ->
-                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser.exerciseGoalsCompleted.toString())
-                    LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "exerciseGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.exercise, "Exercise", user.exerciseGoalsCompleted.toString(), currentUserScore)
-                }
-
-                topStepsUser.let { user ->
-                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser.stepsGoalsCompleted.toString())
-                    LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "stepsGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.stepsGoalsCompleted.toString(), currentUserScore)
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
-
-                    Text(
-                        text = "Total Steps",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color(0xFFD4AF37),
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 12.dp)
-                    )
-
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
-                }
-
-                topTotalStepsUser.let { user ->
-                    val currentUserScore = if (currentUserId == user.userId) null else (currentUser.totalSteps.toString())
-                    LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "totalSteps" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.totalSteps.toString(), currentUserScore)
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
-
-                    Text(
-                        text = "Healthiest User",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color(0xFFD4AF37),
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = "Info Button",
-                        tint = Color(0xFFD4AF37),
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .clickable { showHealthiestUserDialog = true }
-                    )
-
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
-                }
-
-                HealthiestUserAnimatedRow(healthiestUser = healthiestUser, avatarMap = avatarMap)
-
-                HorizontalDivider(color = Color(0xFFD4AF37), thickness = 2.dp)
-            }
-        }
-
-
-        // Show the LeaderboardDialog, if a category is clicked
-        selectedLeaderboardDialog?.let { categoryString ->
-            val categoryLeaderboards = when (categoryString) {
-                "waterGoalsCompleted" -> waterLeaderboards
-                "caloriesGoalsCompleted" -> caloriesLeaderboards
-                "exerciseGoalsCompleted" -> exerciseLeaderboards
-                "stepsGoalsCompleted" -> stepsLeaderboards
-                "totalSteps" -> totalStepsLeaderboards
-                else -> emptyList()
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD4AF37), thickness = 2.dp)
             }
 
-            LeaderboardDialog(categoryString, categoryLeaderboards, avatarMap, onDismiss = { selectedLeaderboardDialog = null })
+            HealthiestUserAnimatedRow(healthiestUser = healthiestUser, avatarMap = avatarMap)
+
+            HorizontalDivider(color = Color(0xFFD4AF37), thickness = 2.dp)
+        }
+    }
+
+
+    // Show the LeaderboardDialog, if a category is clicked
+    selectedLeaderboardDialog?.let { categoryString ->
+        val categoryLeaderboards = when (categoryString) {
+            "waterGoalsCompleted" -> waterLeaderboards
+            "caloriesGoalsCompleted" -> caloriesLeaderboards
+            "exerciseGoalsCompleted" -> exerciseLeaderboards
+            "stepsGoalsCompleted" -> stepsLeaderboards
+            "totalSteps" -> totalStepsLeaderboards
+            else -> emptyList()
         }
 
-        if (showHealthiestUserDialog) {
-            InfoDialog(Icons.Default.Info, Color(0xFFD4AF37), null, AnnotatedString("The 'Healthiest User' is the person ranked highest amongst all the categories."), "Got it", null, true, FontWeight.Bold, { showHealthiestUserDialog = false }, { showHealthiestUserDialog = false })
-        }
+        LeaderboardDialog(categoryString, categoryLeaderboards, avatarMap, onDismiss = { selectedLeaderboardDialog = null })
+    }
+
+    if (showHealthiestUserDialog) {
+        InfoDialog(Icons.Default.Info, Color(0xFFD4AF37), null, AnnotatedString("The 'Healthiest User' is the person ranked highest amongst all the categories."), "Got it", null, true, FontWeight.Bold, { showHealthiestUserDialog = false }, { showHealthiestUserDialog = false })
     }
 }
