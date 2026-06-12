@@ -27,14 +27,21 @@ import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.auth
 import com.google.firebase.initialize
+import com.healthterra.data.UserDatabase
+import com.healthterra.helpers.calculateCaloriesGoal
+import com.healthterra.helpers.calculateExerciseGoal
+import com.healthterra.helpers.calculateStepsGoal
+import com.healthterra.helpers.calculateWaterGoal
 import com.healthterra.services.NotificationWorker
 import com.healthterra.services.StepTrackerService
 import com.healthterra.services.performDailyMaintenance
+import com.healthterra.services.syncDailyTrackingsToFirestore
 import com.healthterra.ui.components.central.DrawerMenu
 import com.healthterra.ui.themes.HealthterraTheme
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
 import com.healthterra.ui.viewModels.TrackingsViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -144,6 +151,34 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            // Syncs daily log to Firestore on stop to avoid many writes
+            val database = UserDatabase.getDatabase(applicationContext)
+            val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
+            val userCharacteristics = database.characteristicsDao().getAll().first().firstOrNull()
+
+            val waterGoal = calculateWaterGoal(userCharacteristics)
+            val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
+            val exerciseGoal = calculateExerciseGoal(userCharacteristics)
+            val stepsGoal = calculateStepsGoal(userCharacteristics)
+            if (userTrackings != null) {
+                syncDailyTrackingsToFirestore(
+                    waterProgress = userTrackings.waterProgress.sum(),
+                    caloriesProgress = userTrackings.caloriesProgress.sum(),
+                    exerciseProgress = userTrackings.exerciseProgress.sum(),
+                    stepsProgress = userTrackings.stepsProgress,
+                    waterGoal = waterGoal,
+                    caloriesGoal = caloriesGoal,
+                    exerciseGoal = exerciseGoal,
+                    stepsGoal = stepsGoal
+                )
+            }
         }
     }
 

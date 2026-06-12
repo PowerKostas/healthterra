@@ -100,7 +100,7 @@ fun ProfileScreen() {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 4.dp)
+            .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 4.dp)
     ) {
         ProfilePicture(profilePictureString) {
             // Function that triggers when a new profile picture is tapped, it makes sure that a user is actually loaded on the screen, updates

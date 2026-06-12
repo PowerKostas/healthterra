@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.healthterra.R
-import com.healthterra.helpers.checkActivityPermissions
+import com.healthterra.services.checkActivityPermissions
 import com.healthterra.ui.components.general.ProgressBar
 import com.healthterra.ui.viewModels.SettingsViewModel
 

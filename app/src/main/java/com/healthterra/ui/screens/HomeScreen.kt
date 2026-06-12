@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -29,6 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
@@ -43,16 +43,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.healthterra.R
 import com.healthterra.helpers.calculateCaloriesGoal
 import com.healthterra.helpers.calculateExerciseGoal
 import com.healthterra.helpers.calculateStepsGoal
 import com.healthterra.helpers.calculateWaterGoal
-import com.healthterra.helpers.checkAutoTimeSetting
 import com.healthterra.helpers.roundGoal
 import com.healthterra.ui.components.general.InfoDialog
 import com.healthterra.ui.components.screen.ProgressBox
@@ -102,30 +98,8 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
 
     val context = LocalContext.current
     val activity = context as Activity
-    val lifecycleOwner = LocalLifecycleOwner.current
 
-    var isAutoTimeEnabled by remember { mutableStateOf(checkAutoTimeSetting(context)) }
     val isProfileIncomplete = userCharacteristics.gender == null || userCharacteristics.age == null || userCharacteristics.height == null || userCharacteristics.weight == null || userCharacteristics.activityLevel == null
-
-    // For the edge case that the user leaves the app open, changes the 'Automatic date and time' setting and comes back, every time the
-    // user returns to the app, it checks the setting and hides the error button/dialog if needed
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                isAutoTimeEnabled = checkAutoTimeSetting(context)
-
-                if (isAutoTimeEnabled) {
-                    showSettingsErrorDialog = false
-                }
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
 
     // Draws the screen, verticalScroll creates infinite vertical space, which breaks fillMaxSize(). BoxWithConstraints can grab the true screen
     // height with maxHeight. The goal is to stretch the progress boxes as much as possible, without making the screen scrollable. On smaller
@@ -142,8 +116,9 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(24.dp),
             modifier = Modifier
                 .fillMaxSize()
+                .alpha(if (topHalfColumnPx > 0) 1f else 0f) // Hide the screen while measuring to avoid jumping
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 12.dp) // Smaller padding to account for the navigation bar padding
+                .padding(bottom = 12.dp)
         ) {
             // Top half column
             Column(
@@ -169,10 +144,10 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                         fontWeight = FontWeight.Bold
                     )
 
-                    // Only adds the error row if one of the warnings/errors is present
-                    if (isProfileIncomplete || !isAutoTimeEnabled) {
+                    // Only adds the row if one of the warnings is present
+                    if (isProfileIncomplete) {
                         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                            // Warning text, if the user hasn't filled all the characteristics in his profile
+                            // If the user hasn't filled all the characteristics in their profile
                             if (isProfileIncomplete) {
                                 Icon(
                                     imageVector = Icons.Default.Error,
@@ -181,18 +156,6 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                                     modifier = Modifier
                                         .clip(CircleShape)
                                         .clickable { showProfileWarningDialog = true }
-                                )
-                            }
-
-                            // Error text, if the user has turned off the automatic date and time setting
-                            if (!isAutoTimeEnabled) {
-                                Icon(
-                                    imageVector = Icons.Default.Error,
-                                    contentDescription = "Error Button",
-                                    tint = Color(0xFFE53935),
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .clickable { showSettingsErrorDialog = true }
                                 )
                             }
                         }

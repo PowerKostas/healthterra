@@ -1,0 +1,19 @@
+[debug] [2026-06-12T18:33:02.889Z] ----------------------------------------------------------------------
+[debug] [2026-06-12T18:33:02.891Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Kostas\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init functions
+[debug] [2026-06-12T18:33:02.891Z] CLI Version:   15.20.0
+[debug] [2026-06-12T18:33:02.891Z] Platform:      win32
+[debug] [2026-06-12T18:33:02.891Z] Node Version:  v24.16.0
+[debug] [2026-06-12T18:33:02.891Z] Time:          Fri Jun 12 2026 21:33:02 GMT+0300 (Θερινή ώρα Ανατολικής Ευρώπης)
+[debug] [2026-06-12T18:33:02.892Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\Kostas\Desktop\Coding\Codes\Healthterra\Code
+

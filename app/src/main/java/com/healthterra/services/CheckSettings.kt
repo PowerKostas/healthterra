@@ -1,10 +1,9 @@
-package com.healthterra.helpers
+package com.healthterra.services
 
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.provider.Settings
 import androidx.core.content.ContextCompat
 
 fun checkActivityPermissions(context: Context): Boolean {
@@ -17,8 +16,4 @@ fun checkActivityPermissions(context: Context): Boolean {
     else {
         true
     }
-}
-
-fun checkAutoTimeSetting(context: Context): Boolean {
-    return Settings.Global.getInt(context.contentResolver, Settings.Global.AUTO_TIME) == 1
 }

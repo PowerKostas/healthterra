@@ -43,9 +43,9 @@ import com.google.firebase.auth.auth
 import com.healthterra.R
 import com.healthterra.data.documents.LeaderboardEntry
 import com.healthterra.helpers.createGoldMetallicBrush
-import com.healthterra.helpers.getCategoryTopUsers
-import com.healthterra.helpers.getCurrentUser
-import com.healthterra.helpers.getHealthiestUser
+import com.healthterra.services.getCategoryTopUsers
+import com.healthterra.services.getCurrentUser
+import com.healthterra.services.getHealthiestUser
 import com.healthterra.ui.components.general.InfoDialog
 import com.healthterra.ui.components.screen.LeaderboardBox
 import com.healthterra.ui.components.screen.LeaderboardDialog
