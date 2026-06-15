@@ -75,8 +75,8 @@ fun ProgressBox(modifier: Modifier = Modifier, iconId: Int, category: String, pr
             // Special message if the user passes the calories range
             if (category == "Calories" && progress > maxCaloriesValue) {
                 Text(
-                    text = "Calories Exceeded",
-                    style = MaterialTheme.typography.labelLarge,
+                    text = "Calories Exceeded!",
+                    style = MaterialTheme.typography.labelSmall,
                     color = Color(0xFFE53935)
                 )
             }

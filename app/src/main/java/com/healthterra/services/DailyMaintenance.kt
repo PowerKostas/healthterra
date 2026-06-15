@@ -2,11 +2,12 @@ package com.healthterra.services
 
 import android.content.Context
 import android.content.Intent
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.healthterra.data.UserDatabase
-import com.healthterra.helpers.calculateCaloriesGoal
-import com.healthterra.helpers.calculateExerciseGoal
-import com.healthterra.helpers.calculateStepsGoal
-import com.healthterra.helpers.calculateWaterGoal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -50,21 +51,21 @@ suspend fun performDailyMaintenance(context: Context) {
                     context.startService(resetIntent)
                 }
 
-                // Syncs to Firestore, before the local data is wiped
-                val waterGoal = calculateWaterGoal(userCharacteristics)
-                val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
-                val exerciseGoal = calculateExerciseGoal(userCharacteristics)
-                val stepsGoal = calculateStepsGoal(userCharacteristics)
-                syncDailyTrackingsToFirestore(
-                    waterProgress = userTrackings.waterProgress.sum(),
-                    caloriesProgress = userTrackings.caloriesProgress.sum(),
-                    exerciseProgress = userTrackings.exerciseProgress.sum(),
-                    stepsProgress = userTrackings.stepsProgress,
-                    waterGoal = waterGoal,
-                    caloriesGoal = caloriesGoal,
-                    exerciseGoal = exerciseGoal,
-                    stepsGoal = stepsGoal
-                )
+                // Syncs to Firestore, because the local Room API reset happens faster, the data is stored in the worker with the snapshots
+                val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                val syncRequest = OneTimeWorkRequestBuilder<FirestoreSyncWorker>()
+                    .setConstraints(constraints)
+                    .setInputData(workDataOf(
+                        "sync_user" to false,
+                        "snapshot_water_progress" to userTrackings.waterProgress.sum(),
+                        "snapshot_calories_progress" to userTrackings.caloriesProgress.sum(),
+                        "snapshot_exercise_progress" to userTrackings.exerciseProgress.sum(),
+                        "snapshot_steps_progress" to userTrackings.stepsProgress,
+                        "snapshot_date" to userSettings.lastSavedDate
+                    ))
+                    .build()
+
+                WorkManager.getInstance(context).enqueue(syncRequest)
 
                 val updateUserTrackings = userTrackings.copy(
                     waterProgress = emptyList(),

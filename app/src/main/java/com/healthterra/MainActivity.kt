@@ -3,15 +3,18 @@ package com.healthterra
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,6 +23,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
@@ -27,21 +31,15 @@ import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.auth
 import com.google.firebase.initialize
-import com.healthterra.data.UserDatabase
-import com.healthterra.helpers.calculateCaloriesGoal
-import com.healthterra.helpers.calculateExerciseGoal
-import com.healthterra.helpers.calculateStepsGoal
-import com.healthterra.helpers.calculateWaterGoal
+import com.healthterra.services.FirestoreSyncWorker
 import com.healthterra.services.NotificationWorker
 import com.healthterra.services.StepTrackerService
 import com.healthterra.services.performDailyMaintenance
-import com.healthterra.services.syncDailyTrackingsToFirestore
 import com.healthterra.ui.components.central.DrawerMenu
 import com.healthterra.ui.themes.HealthterraTheme
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
 import com.healthterra.ui.viewModels.TrackingsViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -72,7 +70,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
@@ -106,6 +103,24 @@ class MainActivity : ComponentActivity() {
             }
 
             val useDynamicColor = userSettings.appearance == "Dynamic"
+
+            // Enables edge to edge and makes the system bars icons white in dark mode
+            val barStyle = if (isDarkTheme) {
+                SystemBarStyle.dark(Color.TRANSPARENT)
+            }
+
+            else {
+                SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+            }
+
+            DisposableEffect(isDarkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = barStyle,
+                    navigationBarStyle = barStyle
+                )
+
+                onDispose {}
+            }
 
             HealthterraTheme(darkTheme = isDarkTheme, dynamicColor = useDynamicColor) {
                 DrawerMenu()
@@ -157,29 +172,13 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            // Syncs daily log to Firestore on stop to avoid many writes
-            val database = UserDatabase.getDatabase(applicationContext)
-            val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
-            val userCharacteristics = database.characteristicsDao().getAll().first().firstOrNull()
+        // Syncs to Firestore on stop to avoid many writes, needs network
+        val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        val syncRequest = OneTimeWorkRequestBuilder<FirestoreSyncWorker>()
+            .setConstraints(constraints)
+            .build()
 
-            val waterGoal = calculateWaterGoal(userCharacteristics)
-            val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
-            val exerciseGoal = calculateExerciseGoal(userCharacteristics)
-            val stepsGoal = calculateStepsGoal(userCharacteristics)
-            if (userTrackings != null) {
-                syncDailyTrackingsToFirestore(
-                    waterProgress = userTrackings.waterProgress.sum(),
-                    caloriesProgress = userTrackings.caloriesProgress.sum(),
-                    exerciseProgress = userTrackings.exerciseProgress.sum(),
-                    stepsProgress = userTrackings.stepsProgress,
-                    waterGoal = waterGoal,
-                    caloriesGoal = caloriesGoal,
-                    exerciseGoal = exerciseGoal,
-                    stepsGoal = stepsGoal
-                )
-            }
-        }
+        WorkManager.getInstance(applicationContext).enqueue(syncRequest)
     }
 
 

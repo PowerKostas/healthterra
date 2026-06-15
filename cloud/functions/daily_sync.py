@@ -1,11 +1,18 @@
 from firebase_admin import firestore
 from firebase_functions import firestore_fn
 from google.cloud.firestore import Increment
+from datetime import datetime, timezone
 
 @firestore_fn.on_document_written(document = "users/{uid}/daily_trackings/{logDate}")
 def perform_daily_sync(event: firestore_fn.Event[firestore_fn.Change[firestore_fn.DocumentSnapshot]]) -> None: # Triggers on any change on any daily_trackings table
-    db = firestore.client()
-    uid = event.params["uid"]
+    # To avoid cheating, if the date is more than 1 day in the future, reject the sync. It's 1 day to account for timezones. For the past it's 7
+    # days to allow offline users
+    document_date = datetime.strptime(event.params["logDate"], "%Y-%m-%d").date()
+    server_date = datetime.now(timezone.utc).date()
+    day_difference = (document_date - server_date).days
+        
+    if day_difference < -7 or day_difference > 1:
+        return
 
     # Before and after states to prevent double counting
     before_data = event.data.before.to_dict() if event.data.before and event.data.before.exists else {}
@@ -48,22 +55,18 @@ def perform_daily_sync(event: firestore_fn.Event[firestore_fn.Change[firestore_f
     steps_before = before_data.get("stepsProgress", 0)
     steps_after = after_data.get("stepsProgress", 0)
     steps_delta = steps_after - steps_before
-
-    # Impossible to take above 100k steps or below 0 steps, between syncs, to avoid cheating
-    if steps_delta > 100000: 
-        steps_delta = 100000
-
-    if steps_delta < 0 and after_data: # Also checks if the document exists to avoid nullifying delta on document delete
-        steps_delta = 0
-
     steps_goal_delta = int(steps_after >= steps_goal_after) - int(steps_before >= steps_goal_before)
 
-    # Commits to Leaderboards document
+    # Commits to the leaderboards document
     if any([water_delta, calories_delta, exercise_delta, steps_goal_delta, steps_delta]):
-        db.collection("leaderboards").document(uid).set({
-            "waterGoalsCompleted": Increment(water_delta),
-            "caloriesGoalsCompleted": Increment(calories_delta),
-            "exerciseGoalsCompleted": Increment(exercise_delta),
-            "stepsGoalsCompleted": Increment(steps_goal_delta),
-            "totalSteps": Increment(steps_delta)
-        }, merge=True)
+        user_document = firestore.client().collection("users").document(event.params["uid"]).get()
+        
+        # Only updates the leaderboards if the user hasn't been deleted
+        if user_document.exists:
+            firestore.client().collection("leaderboards").document(event.params["uid"]).set({
+                "waterGoalsCompleted": Increment(water_delta),
+                "caloriesGoalsCompleted": Increment(calories_delta),
+                "exerciseGoalsCompleted": Increment(exercise_delta),
+                "stepsGoalsCompleted": Increment(steps_goal_delta),
+                "totalSteps": Increment(steps_delta)
+            }, merge=True)

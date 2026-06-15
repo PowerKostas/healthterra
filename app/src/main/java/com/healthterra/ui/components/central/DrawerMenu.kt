@@ -3,6 +3,7 @@ package com.healthterra.ui.components.central
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -96,6 +97,10 @@ fun DrawerMenu() {
     }
 
     ModalNavigationDrawer(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+
         drawerState = drawerState,
         gesturesEnabled = drawerState.isOpen, // Disables swipe gestures to open the drawer menu, but can still tap out of it when already opened
 

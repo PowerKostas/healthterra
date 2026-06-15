@@ -3,33 +3,50 @@ package com.healthterra.services
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.healthterra.data.entities.Characteristics
+import com.healthterra.data.entities.Trackings
+import com.healthterra.helpers.calculateCaloriesGoal
+import com.healthterra.helpers.calculateExerciseGoal
+import com.healthterra.helpers.calculateStepsGoal
+import com.healthterra.helpers.calculateWaterGoal
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
-// The function is triggered from onStop, it syncs the daily trackings to Firestore, to use the data for the daily_sync cloud function
-fun syncDailyTrackingsToFirestore(waterProgress: Int?, caloriesProgress: Int?, exerciseProgress: Int?, stepsProgress: Int?, waterGoal: Int, caloriesGoal: Int, exerciseGoal: Int, stepsGoal: Int) {
+// The function is triggered from FirestoreSyncWorker, the daily_sync cloud function uses this data
+suspend fun syncDailyTrackingsToFirestore(userTrackings: Trackings, userCharacteristics: Characteristics, waterProgress: Int? = null, caloriesProgress: Int? = null, exerciseProgress: Int? = null, stepsProgress: Int? = null, targetDate: String? = null) {
     val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-    // Creates a map with items like "waterProgress": 720
-    val updateData = mutableMapOf<String, Any>()
-    waterProgress?.let { updateData["waterProgress"] = it }
-    caloriesProgress?.let { updateData["caloriesProgress"] = it }
-    exerciseProgress?.let { updateData["exerciseProgress"] = it }
-    stepsProgress?.let { updateData["stepsProgress"] = it }
+    val waterGoal = calculateWaterGoal(userCharacteristics)
+    val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
+    val exerciseGoal = calculateExerciseGoal(userCharacteristics)
+    val stepsGoal = calculateStepsGoal(userCharacteristics)
 
-    if (updateData.isEmpty()) return
+    // If parameters are provided, they are used, otherwise use the Room API values
+    val waterProgress = waterProgress ?: userTrackings.waterProgress.sum()
+    val caloriesProgress = caloriesProgress ?: userTrackings.caloriesProgress.sum()
+    val exerciseProgress = exerciseProgress ?: userTrackings.exerciseProgress.sum()
+    val stepsProgress = stepsProgress ?: userTrackings.stepsProgress
+    val documentDate = targetDate ?: LocalDate.now().toString()
 
-    updateData["waterGoal"] = waterGoal
-    updateData["caloriesGoal"] = caloriesGoal
-    updateData["exerciseGoal"] = exerciseGoal
-    updateData["stepsGoal"] = stepsGoal
+    val updateData = mapOf(
+        "waterProgress" to waterProgress,
+        "caloriesProgress" to caloriesProgress,
+        "exerciseProgress" to exerciseProgress,
+        "stepsProgress" to stepsProgress,
+        "waterGoal" to waterGoal,
+        "caloriesGoal" to caloriesGoal,
+        "exerciseGoal" to exerciseGoal,
+        "stepsGoal" to stepsGoal
+    )
 
     try {
         FirebaseFirestore.getInstance()
             .collection("users")
             .document(uid)
             .collection("daily_trackings")
-            .document(LocalDate.now().toString())
+            .document(documentDate)
             .set(updateData, SetOptions.merge())
+            .await()
     }
 
     catch(e: Exception) {

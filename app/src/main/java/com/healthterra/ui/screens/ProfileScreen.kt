@@ -25,12 +25,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +56,9 @@ import com.healthterra.ui.components.screen.ProfilePicture
 import com.healthterra.ui.components.screen.WeightGoalSelector
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
+import com.healthterra.ui.viewModels.TrackingsViewModel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,8 +72,12 @@ fun ProfileScreen() {
     val userSettingsList by settingsViewModel.settings.collectAsState()
     val userSettings = userSettingsList.firstOrNull()
 
+    val trackingsViewModel: TrackingsViewModel = viewModel(factory = TrackingsViewModel.Factory)
+    val userTrackingsList by trackingsViewModel.trackings.collectAsState()
+    val userTrackings = userTrackingsList.firstOrNull()
+
     // Waits for the database to load
-    if (userCharacteristics == null || userSettings == null) {
+    if (userCharacteristics == null || userSettings == null || userTrackings == null) {
         return
     }
 
@@ -92,6 +101,9 @@ fun ProfileScreen() {
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     var uidText by remember { mutableStateOf(Firebase.auth.currentUser?.uid ?: "None") }
+
+    val focusManager = LocalFocusManager.current
+    val coroutineScope = rememberCoroutineScope()
 
     // Draws the screen
     Column(
@@ -205,6 +217,7 @@ fun ProfileScreen() {
                             characteristics.copy(gender = newValue)
                         )
                     }
+                    focusManager.clearFocus() // Clears focus upon selection
                 }
 
                 NumberTextField(
@@ -277,6 +290,8 @@ fun ProfileScreen() {
                             characteristics.copy(activityLevel = newValue)
                         )
                     }
+
+                    focusManager.clearFocus()
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)){
@@ -291,10 +306,15 @@ fun ProfileScreen() {
                                 characteristics.copy(weightGoal = newWeightGoal, kgGoal = newKgGoal, daysGoal = newDaysGoal)
                             )
 
-                            // Also updates initialWeightGoalDate so it starts the count again if the user changes the weight goal or
-                            // moves the sliders
+                            // Also updates initialWeightGoalDate so it starts the count again, it becomes null if maintain is selected
                             settingsViewModel.updateUserSettings(
-                                userSettings.copy(initialWeightGoalDate = LocalDate.now().toString())
+                                if (newWeightGoal == "Maintain") {
+                                    userSettings.copy(initialWeightGoalDate = null)
+                                }
+
+                                else {
+                                    userSettings.copy(initialWeightGoalDate = LocalDate.now().toString())
+                                }
                             )
                         }
                     }
@@ -436,10 +456,45 @@ fun ProfileScreen() {
                     )
                 }
 
+                userTrackings.let { trackings ->
+                    trackingsViewModel.updateUserTrackings(
+                        trackings.copy(
+                            waterProgress = emptyList(),
+                            caloriesProgress = emptyList(),
+                            exerciseProgress = emptyList(),
+                            stepsProgress = 0
+                        )
+                    )
+                }
+
                 // First Firestore delete, then Firebase Authentication delete and UI text change, the user would have to open the app again
-                // to get a new empty account
-                Firebase.firestore.collection("leaderboards").document(Firebase.auth.currentUser?.uid.toString()).delete().addOnSuccessListener {
-                    Firebase.auth.currentUser?.delete()
+                // to get a new empty account. All subdocuments must be deleted before a parent document is, that's the reason for the
+                // complicated code. Deletes the subdocuments in chunks to avoid Firestore's 500 document batch limit
+                coroutineScope.launch {
+                    val user = Firebase.auth.currentUser
+                    user ?: return@launch
+
+                    val db = Firebase.firestore
+                    val uid = Firebase.auth.currentUser?.uid.toString()
+
+                    val dailyTrackingsSnapshot = db.collection("users").document(uid).collection("daily_trackings").get().await()
+                    val chunks = dailyTrackingsSnapshot.documents.chunked(500)
+
+                    for (chunk in chunks) {
+                        val batch = db.batch()
+                        for (document in chunk) {
+                            batch.delete(document.reference)
+                        }
+
+                        batch.commit().await()
+                    }
+
+                    val parentBatch = db.batch()
+                    parentBatch.delete(db.collection("users").document(uid))
+                    parentBatch.delete(db.collection("leaderboards").document(uid))
+                    parentBatch.commit().await()
+                    user.delete().await()
+
                     showDeleteDialog = false
                     uidText = "None"
                 }
