@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -31,13 +32,20 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.healthterra.helpers.roundGoal
+import com.healthterra.services.SyncDailyTrackingsWorker
 import com.healthterra.ui.components.general.ActionButton
 import com.healthterra.ui.components.general.BulletGraph
 import com.healthterra.ui.components.general.ProgressBar
 import com.healthterra.ui.components.general.SearchTextField
 import com.healthterra.ui.components.screen.CustomButtonDialog
 import com.healthterra.ui.components.screen.FoodTable
+import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.FoodViewModel
 import com.healthterra.ui.viewModels.TrackingsViewModel
 import kotlin.math.roundToInt
@@ -45,8 +53,9 @@ import kotlin.math.roundToInt
 // Water, calories and exercise screen
 @Composable
 fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color, categoryProgress: Int, categoryGoal: Int, metric: String, buttonIconIds: List<Int>?, buttonTexts: List<String>, fontSize: TextUnit) {
-    // Uses regex to get 100 from "+100mL" or "+100"
-    val regex = "(?<=\\+)\\d+".toRegex()
+    val characteristicsViewModel: CharacteristicsViewModel = viewModel(factory = CharacteristicsViewModel.Factory)
+    val userCharacteristics by characteristicsViewModel.characteristics.collectAsState()
+    val characteristics = userCharacteristics.firstOrNull()
 
     val trackingsViewModel: TrackingsViewModel = viewModel(factory = TrackingsViewModel.Factory)
     val userTrackingsList by trackingsViewModel.trackings.collectAsState()
@@ -59,9 +68,21 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
 
     var showCustomAlertDialog by rememberSaveable { mutableStateOf(false) }
 
+    // Uses regex to get 100 from "+100mL" or "+100"
+    val regex = "(?<=\\+)\\d+".toRegex()
+
+    val context = LocalContext.current
+
     // Handles which category to update
     val handleAddAmount: (Int) -> Unit = { amount ->
         userTrackings?.let { trackings ->
+            val oldTrackings = when (categoryName) {
+                "Water" -> trackings.waterProgress.sum()
+                "Calories" -> trackings.caloriesProgress.sum()
+                "Exercise" -> trackings.exerciseProgress.sum()
+                else -> 0
+            }
+
             val updatedTrackings = when (categoryName) {
                 "Water" -> trackings.copy(waterProgress = trackings.waterProgress + amount)
                 "Calories" -> trackings.copy(caloriesProgress = trackings.caloriesProgress + amount)
@@ -70,6 +91,32 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
             }
 
             trackingsViewModel.updateUserTrackings(updatedTrackings)
+
+            // Syncs trackings to Firestore, if a goal was just reached, needs network
+            val newTrackings = oldTrackings + amount
+
+            // Uses minimum value for the calories range goal
+            val categoryGoalFix = if (categoryName == "Calories") {
+                roundGoal((categoryGoal - categoryGoal * 0.1).roundToInt())
+            }
+
+            else {
+                categoryGoal
+            }
+
+            val justReachedGoal = categoryGoalFix in (oldTrackings + 1)..newTrackings
+            if (justReachedGoal && characteristics != null) {
+                val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                val syncRequest = OneTimeWorkRequestBuilder<SyncDailyTrackingsWorker>()
+                    .setConstraints(constraints)
+                    .build()
+
+                WorkManager.getInstance(context).enqueueUniqueWork(
+                    "SyncDailyTrackingsWorker",
+                    ExistingWorkPolicy.REPLACE,
+                    syncRequest
+                )
+            }
         }
     }
 
@@ -84,6 +131,7 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
             trackingsViewModel.updateUserTrackings(updatedUser)
         }
     }
+
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

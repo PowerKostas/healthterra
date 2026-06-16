@@ -213,7 +213,9 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     if (userSettings.showMandatoryDialog) {
         InfoDialog(null, MaterialTheme.colorScheme.onPrimary, "Welcome!", annotatedText, "Consent", "Exit", false, FontWeight.Normal,
             { settingsViewModel.updateUserSettings(
-                userSettings.copy(showMandatoryDialog = false)
+                userSettings.copy(showMandatoryDialog = false),
+                context,
+                false
             )},
 
             { activity.finish() }

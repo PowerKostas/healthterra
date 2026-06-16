@@ -1,5 +1,6 @@
 package com.healthterra.ui.screens
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,13 +27,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
@@ -41,11 +43,15 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
 import com.healthterra.helpers.generateRandomProfilePictureString
 import com.healthterra.helpers.generateRandomUsername
+import com.healthterra.services.FirebaseDeleteWorker
 import com.healthterra.ui.components.general.ActionButton
 import com.healthterra.ui.components.general.CustomSurface
 import com.healthterra.ui.components.general.DropdownMenu
@@ -57,8 +63,6 @@ import com.healthterra.ui.components.screen.WeightGoalSelector
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
 import com.healthterra.ui.viewModels.TrackingsViewModel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,7 +72,15 @@ fun ProfileScreen() {
     val userCharacteristicsList by characteristicsViewModel.characteristics.collectAsState()
     val userCharacteristics = userCharacteristicsList.firstOrNull()
 
-    val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
+    // Uses the same instance of SettingsViewModel as MainActivity to fix bug on non-essential user settings Firestore syncing
+    val context = LocalContext.current
+    val activity = context as ComponentActivity
+
+    val settingsViewModel: SettingsViewModel = viewModel(
+        viewModelStoreOwner = activity,
+        factory = SettingsViewModel.Factory
+    )
+
     val userSettingsList by settingsViewModel.settings.collectAsState()
     val userSettings = userSettingsList.firstOrNull()
 
@@ -103,7 +115,6 @@ fun ProfileScreen() {
     var uidText by remember { mutableStateOf(Firebase.auth.currentUser?.uid ?: "None") }
 
     val focusManager = LocalFocusManager.current
-    val coroutineScope = rememberCoroutineScope()
 
     // Draws the screen
     Column(
@@ -111,6 +122,7 @@ fun ProfileScreen() {
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .verticalScroll(rememberScrollState())
             .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 4.dp)
     ) {
@@ -120,9 +132,7 @@ fun ProfileScreen() {
             newProfilePictureString ->
                 profilePictureString = newProfilePictureString
                 userSettings.let { settings ->
-                    settingsViewModel.updateUserSettings(
-                        settings.copy(profilePictureString = newProfilePictureString)
-                )
+                    settingsViewModel.updateUserSettings(settings.copy(profilePictureString = newProfilePictureString), context)
             }
         }
 
@@ -154,7 +164,7 @@ fun ProfileScreen() {
 
                                 // Local database update
                                 else {
-                                    settingsViewModel.updateUserSettings(userSettings.copy(username = username))
+                                    settingsViewModel.updateUserSettings(userSettings.copy(username = username), context)
                                 }
                             }
                         },
@@ -213,10 +223,9 @@ fun ProfileScreen() {
                 ) { newValue ->
                     gender = newValue
                     userCharacteristics.let { characteristics ->
-                        characteristicsViewModel.updateUserCharacteristics(
-                            characteristics.copy(gender = newValue)
-                        )
+                        characteristicsViewModel.updateUserCharacteristics(characteristics.copy(gender = newValue), context)
                     }
+
                     focusManager.clearFocus() // Clears focus upon selection
                 }
 
@@ -230,9 +239,7 @@ fun ProfileScreen() {
                         val ageValue = age.toFloatOrNull()
                         if (ageValue == null || ageValue >= 16f) {
                             userCharacteristics.let { characteristics ->
-                                characteristicsViewModel.updateUserCharacteristics(
-                                    characteristics.copy(age = ageValue)
-                                )
+                                characteristicsViewModel.updateUserCharacteristics(characteristics.copy(age = ageValue), context)
                             }
                         }
                     },
@@ -250,9 +257,7 @@ fun ProfileScreen() {
                         val heightValue = height.toFloatOrNull()
                         if (heightValue == null || heightValue >= 50f) {
                             userCharacteristics.let { characteristics ->
-                                characteristicsViewModel.updateUserCharacteristics(
-                                    characteristics.copy(height = heightValue)
-                                )
+                                characteristicsViewModel.updateUserCharacteristics(characteristics.copy(height = heightValue), context)
                             }
                         }
                     },
@@ -270,9 +275,7 @@ fun ProfileScreen() {
                         val weightValue = weight.toFloatOrNull()
                         if (weightValue == null || weightValue >= 20f) {
                             userCharacteristics.let { characteristics ->
-                                characteristicsViewModel.updateUserCharacteristics(
-                                    characteristics.copy(weight = weightValue)
-                                )
+                                characteristicsViewModel.updateUserCharacteristics(characteristics.copy(weight = weightValue), context)
                             }
                         }
                     },
@@ -286,9 +289,7 @@ fun ProfileScreen() {
                 ) { newValue ->
                     activityLevel = newValue
                     userCharacteristics.let { characteristics ->
-                        characteristicsViewModel.updateUserCharacteristics(
-                            characteristics.copy(activityLevel = newValue)
-                        )
+                        characteristicsViewModel.updateUserCharacteristics(characteristics.copy(activityLevel = newValue), context)
                     }
 
                     focusManager.clearFocus()
@@ -302,9 +303,7 @@ fun ProfileScreen() {
                         userSettings
                     ) { newWeightGoal, newKgGoal, newDaysGoal ->
                         userCharacteristics.let { characteristics ->
-                            characteristicsViewModel.updateUserCharacteristics(
-                                characteristics.copy(weightGoal = newWeightGoal, kgGoal = newKgGoal, daysGoal = newDaysGoal)
-                            )
+                            characteristicsViewModel.updateUserCharacteristics(characteristics.copy(weightGoal = newWeightGoal, kgGoal = newKgGoal, daysGoal = newDaysGoal), context)
 
                             // Also updates initialWeightGoalDate so it starts the count again, it becomes null if maintain is selected
                             settingsViewModel.updateUserSettings(
@@ -314,7 +313,9 @@ fun ProfileScreen() {
 
                                 else {
                                     userSettings.copy(initialWeightGoalDate = LocalDate.now().toString())
-                                }
+                                },
+
+                                context
                             )
                         }
                     }
@@ -336,9 +337,7 @@ fun ProfileScreen() {
                 userSettings.stepTracking
             ) { newSetting ->
                 userSettings.let { settings ->
-                    settingsViewModel.updateUserSettings(
-                        settings.copy(stepTracking = newSetting)
-                    )
+                    settingsViewModel.updateUserSettings(settings.copy(stepTracking = newSetting), context)
                 }
             }
         }
@@ -357,9 +356,7 @@ fun ProfileScreen() {
                 userSettings.appearance
             ) { newAppearance ->
                 userSettings.let { settings ->
-                    settingsViewModel.updateUserSettings(
-                        settings.copy(appearance = newAppearance)
-                    )
+                    settingsViewModel.updateUserSettings(settings.copy(appearance = newAppearance), context)
                 }
             }
         }
@@ -443,7 +440,9 @@ fun ProfileScreen() {
                             weightGoal = "Maintain",
                             kgGoal = 0,
                             daysGoal = 0
-                        )
+                        ),
+
+                        context
                     )
                 }
 
@@ -451,8 +450,10 @@ fun ProfileScreen() {
                     settingsViewModel.updateUserSettings(
                         settings.copy(
                             profilePictureString = randomProfilePictureString,
-                            username = randomUsername,
-                        )
+                            username = randomUsername
+                        ),
+
+                        context
                     )
                 }
 
@@ -467,37 +468,17 @@ fun ProfileScreen() {
                     )
                 }
 
-                // First Firestore delete, then Firebase Authentication delete and UI text change, the user would have to open the app again
-                // to get a new empty account. All subdocuments must be deleted before a parent document is, that's the reason for the
-                // complicated code. Deletes the subdocuments in chunks to avoid Firestore's 500 document batch limit
-                coroutineScope.launch {
-                    val user = Firebase.auth.currentUser
-                    user ?: return@launch
+                // Firebase delete, needs network
+                val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
-                    val db = Firebase.firestore
-                    val uid = Firebase.auth.currentUser?.uid.toString()
+                val deleteRequest = OneTimeWorkRequestBuilder<FirebaseDeleteWorker>()
+                    .setConstraints(constraints)
+                    .build()
 
-                    val dailyTrackingsSnapshot = db.collection("users").document(uid).collection("daily_trackings").get().await()
-                    val chunks = dailyTrackingsSnapshot.documents.chunked(500)
+                WorkManager.getInstance(context).enqueue(deleteRequest)
 
-                    for (chunk in chunks) {
-                        val batch = db.batch()
-                        for (document in chunk) {
-                            batch.delete(document.reference)
-                        }
-
-                        batch.commit().await()
-                    }
-
-                    val parentBatch = db.batch()
-                    parentBatch.delete(db.collection("users").document(uid))
-                    parentBatch.delete(db.collection("leaderboards").document(uid))
-                    parentBatch.commit().await()
-                    user.delete().await()
-
-                    showDeleteDialog = false
-                    uidText = "None"
-                }
+                showDeleteDialog = false
+                uidText = "None"
             },
 
             onDismiss = { showDeleteDialog = false }

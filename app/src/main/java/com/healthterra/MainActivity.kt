@@ -3,7 +3,6 @@ package com.healthterra
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,16 +11,22 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
@@ -30,10 +35,12 @@ import com.google.firebase.Firebase
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.initialize
-import com.healthterra.services.FirestoreSyncWorker
 import com.healthterra.services.NotificationWorker
 import com.healthterra.services.StepTrackerService
+import com.healthterra.services.SyncUserWorker
 import com.healthterra.services.performDailyMaintenance
 import com.healthterra.ui.components.central.DrawerMenu
 import com.healthterra.ui.themes.HealthterraTheme
@@ -44,6 +51,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -77,7 +85,21 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val userSettingsList by settingsViewModel.settings.collectAsState()
-            val userSettings = userSettingsList.firstOrNull() ?: return@setContent // Loading screen
+            val userSettings = userSettingsList.firstOrNull()
+
+            // Theme appropriate loading screen
+            if (userSettings == null) {
+                val backgroundColor = if (isSystemInDarkTheme()) {
+                    Color(0xFF1A1C1E)
+                }
+
+                else {
+                    Color(0xFFEAE3D9)
+                }
+
+                Box(modifier = Modifier.fillMaxSize().background(backgroundColor))
+                return@setContent
+            }
 
             // Settings is the table with the primary key, it's initialized automatically. The other 2 tables, with the foreign
             // keys, get initialized here
@@ -91,7 +113,7 @@ class MainActivity : ComponentActivity() {
             // All the initializations must be done, after the user has clicked agree on the mandatory dialog
             LaunchedEffect(userSettings.showMandatoryDialog) {
                 if (!userSettings.showMandatoryDialog) {
-                    initializeAppLogic()
+                    initializeAppLogic(userSettings.username, userSettings.profilePictureString)
                 }
             }
 
@@ -106,11 +128,11 @@ class MainActivity : ComponentActivity() {
 
             // Enables edge to edge and makes the system bars icons white in dark mode
             val barStyle = if (isDarkTheme) {
-                SystemBarStyle.dark(Color.TRANSPARENT)
+                SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
             }
 
             else {
-                SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
             }
 
             DisposableEffect(isDarkTheme) {
@@ -172,17 +194,26 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
 
-        // Syncs to Firestore on stop to avoid many writes, needs network
-        val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-        val syncRequest = OneTimeWorkRequestBuilder<FirestoreSyncWorker>()
-            .setConstraints(constraints)
-            .build()
+        // If there was a change, syncs non-essential user data on stop to avoid many writes
+        if (settingsViewModel.pendingSync) {
+            val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
-        WorkManager.getInstance(applicationContext).enqueue(syncRequest)
+            val syncRequest = OneTimeWorkRequestBuilder<SyncUserWorker>()
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(this).enqueueUniqueWork(
+                "SyncUserSettingsWorker",
+                ExistingWorkPolicy.REPLACE,
+                syncRequest
+            )
+
+            settingsViewModel.markSyncHandled()
+        }
     }
 
 
-    private fun initializeAppLogic() {
+    private fun initializeAppLogic(username: String, profilePictureString: String) {
         // Checks which permissions actually need to be requested
         val permissionsToRequest = mutableListOf<String>()
 
@@ -215,9 +246,35 @@ class MainActivity : ComponentActivity() {
             PlayIntegrityAppCheckProviderFactory.getInstance()
         )
 
-        // Authenticates the user anonymously to Firebase when the app first opens, if he doesn't already have a UID
+        // Authenticates the user anonymously to Firebase when the app first opens, if he doesn't already have a UID, also initializes the
+        // according users document
         if (Firebase.auth.currentUser == null) {
-            Firebase.auth.signInAnonymously()
+            Firebase.auth.signInAnonymously().addOnSuccessListener { authResult ->
+                val uid = authResult.user?.uid
+                if (uid != null) {
+                    val initialUserData = mapOf(
+                        "activityLevel" to null,
+                        "age" to null,
+                        "appearance" to "Light",
+                        "daysGoal" to 0,
+                        "gender" to null,
+                        "height" to null,
+                        "initialWeightGoalDate" to null,
+                        "kgGoal" to 0,
+                        "lastSavedDate" to LocalDate.now().toString(),
+                        "profilePictureString" to profilePictureString,
+                        "stepTracking" to "Enabled",
+                        "username" to username,
+                        "weight" to null,
+                        "weightGoal" to "Maintain"
+                    )
+
+                    FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .document(uid)
+                        .set(initialUserData, SetOptions.merge())
+                }
+            }
         }
 
         schedulePeriodicNotification()

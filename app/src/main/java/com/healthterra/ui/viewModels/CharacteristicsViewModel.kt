@@ -1,13 +1,20 @@
 package com.healthterra.ui.viewModels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.healthterra.data.UserDatabase
 import com.healthterra.data.daos.CharacteristicsDao
 import com.healthterra.data.entities.Characteristics
+import com.healthterra.services.SyncUserWorker
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -50,9 +57,25 @@ class CharacteristicsViewModel(private val characteristicsDao: CharacteristicsDa
     }
 
     // Public function that the respective screens call
-    fun updateUserCharacteristics(characteristics: Characteristics) {
+    fun updateUserCharacteristics(newCharacteristics: Characteristics, context: Context) {
         viewModelScope.launch {
-            characteristicsDao.update(characteristics)
+            val oldCharacteristics = characteristics.value.firstOrNull()
+            characteristicsDao.update(newCharacteristics) // Room API update
+
+            // Also syncs user data to Firestore, if any of the data changed, needs network
+            val hasChanged = oldCharacteristics != newCharacteristics
+            if (hasChanged) {
+                val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                val syncRequest = OneTimeWorkRequestBuilder<SyncUserWorker>()
+                    .setConstraints(constraints)
+                    .build()
+
+                WorkManager.getInstance(context).enqueueUniqueWork(
+                    "SyncUserCharacteristicsWorker",
+                    ExistingWorkPolicy.REPLACE,
+                    syncRequest
+                )
+            }
         }
     }
 }
