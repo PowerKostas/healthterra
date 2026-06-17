@@ -40,6 +40,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.initialize
 import com.healthterra.services.NotificationWorker
 import com.healthterra.services.StepTrackerService
+import com.healthterra.services.SyncDailyTrackingsWorker
 import com.healthterra.services.SyncUserWorker
 import com.healthterra.services.performDailyMaintenance
 import com.healthterra.ui.components.central.DrawerMenu
@@ -53,6 +54,7 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
@@ -203,7 +205,7 @@ class MainActivity : ComponentActivity() {
                 .build()
 
             WorkManager.getInstance(this).enqueueUniqueWork(
-                "SyncUserSettingsWorker",
+                "SyncUserWorker",
                 ExistingWorkPolicy.REPLACE,
                 syncRequest
             )
@@ -278,6 +280,7 @@ class MainActivity : ComponentActivity() {
         }
 
         schedulePeriodicNotification()
+        schedulePeriodicSync()
         performDailyMaintenanceAppActive()
 
         // Runs every time the settings table changes
@@ -354,5 +357,20 @@ class MainActivity : ComponentActivity() {
                 delay(1.minutes)
             }
         }
+    }
+
+    // Syncs trackings to Firestore every 6 hours to keep steps in the leaderboards more updated, needs network
+    private fun schedulePeriodicSync() {
+        val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+
+        val syncRequest = PeriodicWorkRequestBuilder<SyncDailyTrackingsWorker>(6, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "SyncDailyTrackingsWorkerPeriodic",
+            ExistingPeriodicWorkPolicy.KEEP, // Keep prevents the timer getting replaced every time the app opens
+            syncRequest
+        )
     }
 }

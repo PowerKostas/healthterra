@@ -9,8 +9,8 @@ import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
 // First Firestore delete, then Firebase Authentication delete and UI text change, the user would have to open the app again to get a new empty
-// account. All subdocuments must be deleted before a parent document is, that's the reason for the complicated code. Deletes the subdocuments in
-// chunks to avoid Firestore's 500 document batch limit
+// account. All the subdocuments must be deleted separately from the parent document, that's the reason for the complicated code. Deletes the
+// subdocuments in chunks to avoid Firestore's 500 document batch limit
 class FirebaseDeleteWorker(appContext: Context, workerParams: WorkerParameters) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result {
         return try {
@@ -38,7 +38,6 @@ class FirebaseDeleteWorker(appContext: Context, workerParams: WorkerParameters) 
             user.delete().await()
 
             Result.success()
-
         }
 
         catch (e: Exception) {

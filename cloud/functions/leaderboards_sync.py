@@ -5,6 +5,10 @@ from datetime import datetime, timezone
 
 @firestore_fn.on_document_written(document = "users/{uid}/daily_trackings/{logDate}")
 def perform_leaderboards_sync(event: firestore_fn.Event[firestore_fn.Change[firestore_fn.DocumentSnapshot]]) -> None: # Triggers on any change on any daily_trackings table
+    # If the document was deleted, return instantly
+    if not event.data.after or not event.data.after.exists:
+        return
+    
     # To avoid cheating, if the date is more than 1 day in the future, reject the sync. It's 1 day to account for timezones. For the past it's 7
     # days to allow offline users
     document_date = datetime.strptime(event.params["logDate"], "%Y-%m-%d").date()
@@ -59,18 +63,14 @@ def perform_leaderboards_sync(event: firestore_fn.Event[firestore_fn.Change[fire
 
     # Commits to the leaderboards document
     if any([water_delta, calories_delta, exercise_delta, steps_goal_delta, steps_delta]):
-        user_document = firestore.client().collection("users").document(event.params["uid"]).get()
-        
-        # Only updates the leaderboards if the user hasn't been deleted
-        if user_document.exists:
-            user_data = user_document.to_dict() or {}
+        user_data = firestore.client().collection("users").document(event.params["uid"]).get().to_dict() or {}
 
-            firestore.client().collection("leaderboards").document(event.params["uid"]).set({
-                "waterGoalsCompleted": Increment(water_delta),
-                "caloriesGoalsCompleted": Increment(calories_delta),
-                "exerciseGoalsCompleted": Increment(exercise_delta),
-                "stepsGoalsCompleted": Increment(steps_goal_delta),
-                "totalSteps": Increment(steps_delta),
-                "profilePictureString": user_data["profilePictureString"],
-                "username": user_data["username"]
-            }, merge=True)
+        firestore.client().collection("leaderboards").document(event.params["uid"]).set({
+            "waterGoalsCompleted": Increment(water_delta),
+            "caloriesGoalsCompleted": Increment(calories_delta),
+            "exerciseGoalsCompleted": Increment(exercise_delta),
+            "stepsGoalsCompleted": Increment(steps_goal_delta),
+            "totalSteps": Increment(steps_delta),
+            "profilePictureString": user_data["profilePictureString"],
+            "username": user_data["username"]
+        }, merge=True)

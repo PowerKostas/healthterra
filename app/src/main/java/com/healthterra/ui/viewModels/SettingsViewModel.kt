@@ -65,7 +65,7 @@ class SettingsViewModel(private val settingsDao: SettingsDao) : ViewModel() {
             // Leaderboards data
             val hasChangedEssential = oldSettings.profilePictureString != newSettings.profilePictureString || oldSettings.username != newSettings.username
 
-            // Date only used for backup
+            // Data only used for backup
             val hasChangedNonEssential= oldSettings.initialWeightGoalDate != newSettings.initialWeightGoalDate || oldSettings.appearance != newSettings.appearance ||
                     oldSettings.stepTracking != newSettings.stepTracking || oldSettings.lastSavedDate != newSettings.lastSavedDate
 
@@ -74,15 +74,14 @@ class SettingsViewModel(private val settingsDao: SettingsDao) : ViewModel() {
                 val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
                 val syncRequest = OneTimeWorkRequestBuilder<SyncUserWorker>()
                     .setConstraints(constraints)
+                    .setInitialDelay(3, java.util.concurrent.TimeUnit.SECONDS) // To avoid many writes, if the user is spamming the UI component
                     .build()
 
                 WorkManager.getInstance(context).enqueueUniqueWork(
-                    "SyncUserSettingsWorker",
+                    "SyncUserWorker",
                     ExistingWorkPolicy.REPLACE,
                     syncRequest
                 )
-
-                pendingSync = false
             }
 
             else if (hasChangedNonEssential) {

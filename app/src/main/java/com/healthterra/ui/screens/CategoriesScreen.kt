@@ -37,6 +37,11 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.healthterra.data.entities.Trackings
+import com.healthterra.helpers.calculateCaloriesGoal
+import com.healthterra.helpers.calculateExerciseGoal
+import com.healthterra.helpers.calculateWaterGoal
 import com.healthterra.helpers.roundGoal
 import com.healthterra.services.SyncDailyTrackingsWorker
 import com.healthterra.ui.components.general.ActionButton
@@ -48,14 +53,15 @@ import com.healthterra.ui.components.screen.FoodTable
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.FoodViewModel
 import com.healthterra.ui.viewModels.TrackingsViewModel
+import java.time.LocalDate
 import kotlin.math.roundToInt
 
 // Water, calories and exercise screen
 @Composable
 fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color, categoryProgress: Int, categoryGoal: Int, metric: String, buttonIconIds: List<Int>?, buttonTexts: List<String>, fontSize: TextUnit) {
     val characteristicsViewModel: CharacteristicsViewModel = viewModel(factory = CharacteristicsViewModel.Factory)
-    val userCharacteristics by characteristicsViewModel.characteristics.collectAsState()
-    val characteristics = userCharacteristics.firstOrNull()
+    val userCharacteristicsList by characteristicsViewModel.characteristics.collectAsState()
+    val userCharacteristics = userCharacteristicsList.firstOrNull()
 
     val trackingsViewModel: TrackingsViewModel = viewModel(factory = TrackingsViewModel.Factory)
     val userTrackingsList by trackingsViewModel.trackings.collectAsState()
@@ -73,10 +79,49 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
 
     val context = LocalContext.current
 
+
+    // Syncs trackings to Firestore, if a goal was just reached or lost, uses snapshots to handle multi-day offline syncing, needs network
+    fun checkGoalStatusAndSync(oldCategoryValue: Int, newCategoryValue: Int, updatedTrackings: Trackings) {
+        // Uses minimum value for the calories range goal
+        val categoryGoalFix = if (categoryName == "Calories") {
+            roundGoal((categoryGoal - categoryGoal * 0.1).roundToInt())
+        }
+
+        else {
+            categoryGoal
+        }
+
+        val justReachedGoal = categoryGoalFix in (oldCategoryValue + 1)..newCategoryValue
+        val justLostGoal = categoryGoalFix in (newCategoryValue + 1)..oldCategoryValue
+        val goalStatusChanged = justReachedGoal || justLostGoal
+        if (goalStatusChanged && userCharacteristics != null && userTrackings != null) {
+            val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+            val syncRequest = OneTimeWorkRequestBuilder<SyncDailyTrackingsWorker>()
+                .setConstraints(constraints)
+                .setInitialDelay(3, java.util.concurrent.TimeUnit.SECONDS) // To avoid many writes, if the user is spamming the UI component
+                .setInputData(workDataOf(
+                    "snapshot_water_progress" to updatedTrackings.waterProgress.sum(),
+                    "snapshot_calories_progress" to updatedTrackings.caloriesProgress.sum(),
+                    "snapshot_exercise_progress" to updatedTrackings.exerciseProgress.sum(),
+                    "snapshot_water_goal" to calculateWaterGoal(userCharacteristics),
+                    "snapshot_calories_goal" to calculateCaloriesGoal(userCharacteristics),
+                    "snapshot_exercise_goal" to calculateExerciseGoal(userCharacteristics),
+                    "snapshot_date" to LocalDate.now().toString()
+                ))
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "SyncDailyTrackingsWorker_${LocalDate.now()}", // Shared id with DailyMaintenance because they use the same worker
+                ExistingWorkPolicy.REPLACE,
+                syncRequest
+            )
+        }
+    }
+
     // Handles which category to update
-    val handleAddAmount: (Int) -> Unit = { amount ->
+    fun handleAddAmount(amount: Int) {
         userTrackings?.let { trackings ->
-            val oldTrackings = when (categoryName) {
+            val oldCategoryValue = when (categoryName) {
                 "Water" -> trackings.waterProgress.sum()
                 "Calories" -> trackings.caloriesProgress.sum()
                 "Exercise" -> trackings.exerciseProgress.sum()
@@ -92,43 +137,37 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
 
             trackingsViewModel.updateUserTrackings(updatedTrackings)
 
-            // Syncs trackings to Firestore, if a goal was just reached, needs network
-            val newTrackings = oldTrackings + amount
-
-            // Uses minimum value for the calories range goal
-            val categoryGoalFix = if (categoryName == "Calories") {
-                roundGoal((categoryGoal - categoryGoal * 0.1).roundToInt())
-            }
-
-            else {
-                categoryGoal
-            }
-
-            val justReachedGoal = categoryGoalFix in (oldTrackings + 1)..newTrackings
-            if (justReachedGoal && characteristics != null) {
-                val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-                val syncRequest = OneTimeWorkRequestBuilder<SyncDailyTrackingsWorker>()
-                    .setConstraints(constraints)
-                    .build()
-
-                WorkManager.getInstance(context).enqueueUniqueWork(
-                    "SyncDailyTrackingsWorker",
-                    ExistingWorkPolicy.REPLACE,
-                    syncRequest
-                )
-            }
+            val newCategoryValue = oldCategoryValue + amount
+            checkGoalStatusAndSync(oldCategoryValue, newCategoryValue, updatedTrackings) // Uses updatedTrackings instead of userTrackings to avoid synchronization bugs
         }
     }
 
-    val handleDeletePrevious: () -> Unit = {
+    fun handleDeletePrevious() {
         userTrackings?.let { trackings ->
-            val updatedUser = when (categoryName) {
+            val oldCategoryValue = when (categoryName) {
+                "Water" -> trackings.waterProgress.sum()
+                "Calories" -> trackings.caloriesProgress.sum()
+                "Exercise" -> trackings.exerciseProgress.sum()
+                else -> 0
+            }
+
+            val updatedTrackings = when (categoryName) {
                 "Water" -> trackings.copy(waterProgress = trackings.waterProgress.dropLast(1))
                 "Calories" -> trackings.copy(caloriesProgress = trackings.caloriesProgress.dropLast(1))
                 "Exercise" -> trackings.copy(exerciseProgress = trackings.exerciseProgress.dropLast(1))
                 else -> throw IllegalStateException("Invalid Input")
             }
-            trackingsViewModel.updateUserTrackings(updatedUser)
+
+            trackingsViewModel.updateUserTrackings(updatedTrackings)
+
+            val newCategoryValue = when (categoryName) {
+                "Water" -> updatedTrackings.waterProgress.sum()
+                "Calories" -> updatedTrackings.caloriesProgress.sum()
+                "Exercise" -> updatedTrackings.exerciseProgress.sum()
+                else -> 0
+            }
+
+            checkGoalStatusAndSync(oldCategoryValue, newCategoryValue, updatedTrackings)
         }
     }
 

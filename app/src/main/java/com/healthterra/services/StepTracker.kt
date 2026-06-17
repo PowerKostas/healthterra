@@ -16,15 +16,23 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.healthterra.MainActivity
 import com.healthterra.R
 import com.healthterra.data.UserDatabase
+import com.healthterra.helpers.calculateStepsGoal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class StepTrackerService : Service(), SensorEventListener {
     // Initializations
@@ -38,6 +46,8 @@ class StepTrackerService : Service(), SensorEventListener {
     private var isCacheInitialized = false
     private var inMemoryStepsProgress = 0
     private var inMemoryLastSavedSteps = 0
+    private var inMemoryStepsGoal = 0
+    private var inMemoryTrackingDate = ""
     private var userId: Int = 0
 
 
@@ -66,9 +76,16 @@ class StepTrackerService : Service(), SensorEventListener {
         createNotificationChannel()
         startForeground(1, createNotification())
 
-        if (intent?.action == "RESET_STEPS_MIDNIGHT") {
-            inMemoryStepsProgress = 0
-            saveToDatabase()
+        // Calls from outside the step tracker service
+        when (intent?.action) {
+            "RESET_STEPS_MIDNIGHT" -> {
+                inMemoryStepsProgress = 0
+                saveToDatabase()
+            }
+
+            "UPDATE_STEP_GOAL" -> {
+                inMemoryStepsGoal = intent.getIntExtra("NEW_STEP_GOAL", inMemoryStepsGoal)
+            }
         }
 
         // Only initialize the sensor and cache if it hasn't been done yet
@@ -84,11 +101,14 @@ class StepTrackerService : Service(), SensorEventListener {
             val database = UserDatabase.getDatabase(applicationContext)
             val userSettings = database.settingsDao().getAll().first().firstOrNull()
             val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
+            val userCharacteristics = database.characteristicsDao().getAll().first().firstOrNull()
 
-            if (userSettings != null && userTrackings != null) {
+            if (userSettings != null && userTrackings != null && userCharacteristics != null) {
                 isCacheInitialized = true
                 inMemoryLastSavedSteps = userSettings.lastSavedSteps
                 inMemoryStepsProgress = userTrackings.stepsProgress
+                inMemoryStepsGoal = calculateStepsGoal(userCharacteristics)
+                inMemoryTrackingDate = userSettings.lastSavedDate
                 userId = userSettings.userId
 
                 registerStepSensor()
@@ -108,6 +128,18 @@ class StepTrackerService : Service(), SensorEventListener {
     // Gets triggered on every new step
     override fun onSensorChanged(event: SensorEvent?) {
         if (!isCacheInitialized) return
+
+        // To correctly allocate step data, if the user hasn't opened the app in days, performDailyMaintenance is called from here too
+        val today = LocalDate.now().toString()
+        if (inMemoryTrackingDate.isNotEmpty() && today > inMemoryTrackingDate) {
+            inMemoryTrackingDate = today
+
+            serviceScope.launch {
+                performDailyMaintenance(applicationContext)
+            }
+
+            return
+        }
 
         // Every 10 new steps, it updates stepsProgress and lastSavedSteps. The step counter in Android counts steps since the last
         // reboot, this is why we subtract the lastSavedSteps from the totalSteps to get the new steps. New steps go into
@@ -131,9 +163,11 @@ class StepTrackerService : Service(), SensorEventListener {
             }
 
             else if (newSteps >= 10) {
+                val oldSteps = inMemoryStepsProgress
                 inMemoryStepsProgress += newSteps
                 inMemoryLastSavedSteps = totalSteps
                 saveToDatabase()
+                checkGoalAndSync(oldSteps, inMemoryStepsProgress)
             }
         }
     }
@@ -146,6 +180,29 @@ class StepTrackerService : Service(), SensorEventListener {
                 database.settingsDao().updateLastSavedSteps(uid, inMemoryLastSavedSteps)
                 database.trackingsDao().updateStepsProgress(uid, inMemoryStepsProgress)
             }
+        }
+    }
+
+    // Syncs trackings to Firestore, if the steps goal was just reached, uses snapshots to handle multi-day offline syncing, needs network
+    private fun checkGoalAndSync(oldSteps: Int, newSteps: Int) {
+        val justReachedGoal = inMemoryStepsGoal in (oldSteps + 1)..newSteps
+
+        if (justReachedGoal) {
+            val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+            val syncRequest = OneTimeWorkRequestBuilder<SyncDailyTrackingsWorker>()
+                .setConstraints(constraints)
+                .setInputData(workDataOf(
+                    "snapshot_steps_progress" to newSteps,
+                    "snapshot_steps_goal" to inMemoryStepsGoal,
+                    "snapshot_date" to LocalDate.now().toString()
+                ))
+                .build()
+
+            WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+                "SyncDailyTrackingsWorker_${LocalDate.now()}",
+                ExistingWorkPolicy.REPLACE,
+                syncRequest
+            )
         }
     }
 
