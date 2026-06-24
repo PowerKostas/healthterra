@@ -26,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
@@ -53,7 +54,8 @@ val avatarMap = mapOf(
     "pig" to R.drawable.pig,
     "sheep" to R.drawable.sheep,
     "snail" to R.drawable.snail,
-    "turtle" to R.drawable.turtle
+    "turtle" to R.drawable.turtle,
+    "black" to R.drawable.black
 ).withDefault { R.drawable.fox } // Only triggers on unexpected/cheating circumstances
 
 // Adds a profile picture and a button below it that opens a menu to optionally select a new picture
@@ -96,7 +98,7 @@ fun ProfilePicture(profilePictureString: String, onImageSelected: (String) -> Un
                     contentPadding = PaddingValues(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) { items(avatarMap.entries.toList()) { (imageString, image) ->
+                ) { items(avatarMap.entries.filterNot { it.key == "black" }) { (imageString, image) -> // Shows every picture, except of the anonymous picture
                     AsyncImage(
                         model = image,
                         contentDescription = "Animal Choice",
@@ -105,6 +107,7 @@ fun ProfilePicture(profilePictureString: String, onImageSelected: (String) -> Un
                             .border(width = 2.dp, color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
                             .padding(2.dp)
                             .background(color = MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
+                            .clip(CircleShape)
                             .clickable {
                                 onImageSelected(imageString)
                                 showMenu = false

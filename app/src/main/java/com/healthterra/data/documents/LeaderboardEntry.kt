@@ -2,9 +2,9 @@ package com.healthterra.data.documents
 
 // For the remote Firestore database
 data class LeaderboardEntry(
-    val userId: String = "",
-    val username: String = "",
+    val uid: String = "",
     val profilePictureString: String = "",
+    val username: String = "",
     val waterGoalsCompleted: Long = 0L,
     val caloriesGoalsCompleted: Long = 0L,
     val exerciseGoalsCompleted: Long = 0L,

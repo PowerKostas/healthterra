@@ -13,7 +13,6 @@ import com.healthterra.helpers.calculateStepsGoal
 import com.healthterra.helpers.calculateWaterGoal
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
-import java.time.LocalDate
 
 // The function is triggered from CategoriesScreen, DailyMaintenance, StepTracker and MainActivity.schedulePeriodicSync, the leaderboards_sync
 // cloud function uses this data
@@ -25,8 +24,9 @@ class SyncDailyTrackingsWorker(appContext: Context, workerParams: WorkerParamete
             val database = UserDatabase.getDatabase(applicationContext)
             val userCharacteristics = database.characteristicsDao().getAll().first().firstOrNull()
             val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
+            val userSettings = database.settingsDao().getAll().first().firstOrNull()
 
-            if (userCharacteristics == null || userTrackings == null) {
+            if (userCharacteristics == null || userTrackings == null || userSettings == null) {
                 return Result.success()
             }
 
@@ -53,7 +53,7 @@ class SyncDailyTrackingsWorker(appContext: Context, workerParams: WorkerParamete
             )
 
             val snapshotDate = inputData.getString("snapshot_date")
-            val documentDate = snapshotDate ?: LocalDate.now().toString()
+            val documentDate = snapshotDate ?: userSettings.lastSavedDate
             FirebaseFirestore.getInstance()
                 .collection("users")
                 .document(uid)

@@ -4,7 +4,7 @@ from google.cloud.firestore import Increment
 from datetime import datetime, timezone
 
 @firestore_fn.on_document_written(document = "users/{uid}/daily_trackings/{logDate}")
-def perform_leaderboards_sync(event: firestore_fn.Event[firestore_fn.Change[firestore_fn.DocumentSnapshot]]) -> None: # Triggers on any change on any daily_trackings table
+def perform_leaderboards_goals_sync(event: firestore_fn.Event[firestore_fn.Change[firestore_fn.DocumentSnapshot]]) -> None: # Triggers on any change on any daily_trackings table
     # If the document was deleted, return instantly
     if not event.data.after or not event.data.after.exists:
         return
@@ -35,7 +35,7 @@ def perform_leaderboards_sync(event: firestore_fn.Event[firestore_fn.Change[fire
     steps_goal_after = after_data.get("stepsGoal", 1)
 
     # Goal completions, +1 if goal achieved (went to met from not met), -1 if goal failed (went to not met from met, user took back inputs or 
-    # increased goal), +0 if unchanged (status stayed the same [still met, or still unmet])
+    # increased some goal), +0 if unchanged (status stayed the same [still met, or still unmet])
     water_before = before_data.get("waterProgress", 0)
     water_after = after_data.get("waterProgress", 0)
     water_delta = int(water_after >= water_goal_after) - int(water_before >= water_goal_before)
@@ -61,16 +61,16 @@ def perform_leaderboards_sync(event: firestore_fn.Event[firestore_fn.Change[fire
     steps_delta = steps_after - steps_before
     steps_goal_delta = int(steps_after >= steps_goal_after) - int(steps_before >= steps_goal_before)
 
+    # Calculates this user's score for the healthiest user tab, every goal = 1 point
+    healthiest_user_score_delta = water_delta + calories_delta + exercise_delta + steps_goal_delta
+
     # Commits to the leaderboards document
     if any([water_delta, calories_delta, exercise_delta, steps_goal_delta, steps_delta]):
-        user_data = firestore.client().collection("users").document(event.params["uid"]).get().to_dict() or {}
-
         firestore.client().collection("leaderboards").document(event.params["uid"]).set({
             "waterGoalsCompleted": Increment(water_delta),
             "caloriesGoalsCompleted": Increment(calories_delta),
             "exerciseGoalsCompleted": Increment(exercise_delta),
             "stepsGoalsCompleted": Increment(steps_goal_delta),
             "totalSteps": Increment(steps_delta),
-            "profilePictureString": user_data["profilePictureString"],
-            "username": user_data["username"]
-        }, merge=True)
+            "healthiestUserScore": Increment(healthiest_user_score_delta)
+        }, merge = True)

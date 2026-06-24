@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontWeight
@@ -32,7 +33,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import com.healthterra.data.documents.LeaderboardEntry
-import java.util.Locale
 
 @Composable
 fun LeaderboardDialog(categoryString: String, categoryLeaderboard: List<LeaderboardEntry>, avatarMap: Map<String, Int>, onDismiss: () -> Unit) {
@@ -43,6 +43,16 @@ fun LeaderboardDialog(categoryString: String, categoryLeaderboard: List<Leaderbo
         "stepsGoalsCompleted" -> "Daily Steps Goals Completed"
         "totalSteps" -> "Total Steps"
         else -> ""
+    }
+
+    val currentLocale = LocalConfiguration.current.locales.get(0)
+
+    // Turns "173938" to "173.9K"
+    val formatter = CompactDecimalFormat.getInstance(
+        currentLocale,
+        CompactDecimalFormat.CompactStyle.SHORT
+    ).apply {
+        maximumFractionDigits = 1
     }
 
     if (!categoryLeaderboard.isEmpty()) {
@@ -129,14 +139,6 @@ fun LeaderboardDialog(categoryString: String, categoryLeaderboard: List<Leaderbo
                                         .weight(1f)
                                         .horizontalScroll(rememberScrollState())
                                 )
-
-                                // Turns "173938" to "173.9K"
-                                val formatter = CompactDecimalFormat.getInstance(
-                                    Locale.getDefault(),
-                                    CompactDecimalFormat.CompactStyle.SHORT
-                                ).apply {
-                                    maximumFractionDigits = 1
-                                }
 
                                 Text(
                                     text = formatter.format(score),

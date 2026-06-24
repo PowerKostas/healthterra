@@ -47,7 +47,7 @@ fun TopBar(title: String, onMenuClick: () -> Unit, onLogoClick: () -> Unit) {
             title = { Text(text = title) },
 
             actions = {
-                val healthColor = if (isPressed && !isHome) Color(0xFF059669).copy(alpha = 0.6f) else Color(0xFF059669)
+                val healthColor = if (isPressed && !isHome) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.primary
                 val terraColor = if (isPressed && !isHome) Color(0xFF55403E).copy(alpha = 0.6f) else Color(0xFF55403E)
 
                 Text(

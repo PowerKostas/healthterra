@@ -20,7 +20,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
-// The function is triggered from onResume and from performDailyMaintenanceAppActive. Because of Mutex, if multiple triggers fire
+// The function is triggered from onResume, performDailyMaintenanceAppActive and StepTracker. Because of Mutex, if multiple triggers fire
 // simultaneously, duplicates are put on hold, preventing race conditions. If it's a new day, it sends a final sync to Firestore and resets the
 // trackings and settings tables
 private val mutex = Mutex()

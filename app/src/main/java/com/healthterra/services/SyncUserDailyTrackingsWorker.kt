@@ -13,7 +13,6 @@ import com.healthterra.helpers.calculateStepsGoal
 import com.healthterra.helpers.calculateWaterGoal
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
-import java.time.LocalDate
 
 // The function is triggered from CharacteristicsViewModel, characteristics, profilePictureString and username are for the leaderboards, the
 // others are for backup, daily trackings is for the leaderboards_sync cloud function
@@ -44,13 +43,6 @@ class SyncUserDailyTrackingsWorker(appContext: Context, workerParams: WorkerPara
                 "weightGoal" to userCharacteristics.weightGoal,
                 "kgGoal" to userCharacteristics.kgGoal,
                 "daysGoal" to userCharacteristics.daysGoal,
-
-                "profilePictureString" to userSettings.profilePictureString,
-                "username" to userSettings.username,
-                "appearance" to userSettings.appearance,
-                "stepTracking" to userSettings.stepTracking,
-                "lastSavedDate" to userSettings.lastSavedDate,
-                "initialWeightGoalDate" to userSettings.initialWeightGoalDate
             )
 
             // Adds the user update to the batch
@@ -77,7 +69,7 @@ class SyncUserDailyTrackingsWorker(appContext: Context, workerParams: WorkerPara
             )
 
             // Adds the daily trackings goals update to the batch
-            val snapshotDate = inputData.getString("snapshot_date") ?: LocalDate.now().toString()
+            val snapshotDate = inputData.getString("snapshot_date") ?: userSettings.lastSavedDate
             batch.set(firestore.collection("users").document(uid).collection("daily_trackings").document(snapshotDate), dailyTrackingsGoalsMap, SetOptions.merge())
 
             batch.commit().await()

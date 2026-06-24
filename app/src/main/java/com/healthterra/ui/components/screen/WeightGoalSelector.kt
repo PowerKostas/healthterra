@@ -23,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.healthterra.data.entities.Characteristics
@@ -101,7 +100,8 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
     ) {
         RadioButtonGroup(
             listOf("Lose", "Maintain", "Gain"),
-            selectedWeightGoal
+            selectedWeightGoal,
+            showBorder = false
         ) { optionSelected ->
             // UI change, if we go from maintain to lose/gain the screen remembers the selectedKgGoal and selectedDaysGoal values, because
             // they are never changed here
@@ -188,8 +188,7 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                     text = "To ensure safe calorie intake, your daily goal has been set to the recommended amount!",
                     style = MaterialTheme.typography.labelLarge,
                     color = Color(0xFFE53935),
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -205,8 +204,7 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                         text =  "You're all set! The weight goal plan will end on $formattedWeightGoalDate.",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center,
+                        textAlign = TextAlign.Center
                     )
 
                     // Updates initialWeightGoalDate thus the weight goal text as well, when the timeframe is hit

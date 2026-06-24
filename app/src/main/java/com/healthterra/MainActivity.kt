@@ -268,7 +268,8 @@ class MainActivity : ComponentActivity() {
                         "stepTracking" to "Enabled",
                         "username" to username,
                         "weight" to null,
-                        "weightGoal" to "Maintain"
+                        "weightGoal" to "Maintain",
+                        "leaderboardsVisibility" to "Anonymous"
                     )
 
                     FirebaseFirestore.getInstance()

@@ -6,6 +6,7 @@ import androidx.compose.runtime.produceState
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
+import com.healthterra.data.documents.HealthiestUser
 import com.healthterra.data.documents.LeaderboardEntry
 
 @Composable
@@ -25,7 +26,7 @@ fun getCategoryTopUsers(category: String, limitCount: Long): State<List<Leaderbo
 
                 value = snapshot.documents.mapNotNull { doc ->
                     LeaderboardEntry(
-                        userId = doc.id,
+                        uid = doc.id,
                         username = doc.getString("username") ?: "",
                         profilePictureString = doc.getString("profilePictureString") ?: "",
                         waterGoalsCompleted = doc.getLong("waterGoalsCompleted") ?: 0L,
@@ -62,7 +63,7 @@ fun getCurrentUser(userId: String?): State<LeaderboardEntry?> {
                 }
 
                 value = LeaderboardEntry(
-                    userId = snapshot.id,
+                    uid = snapshot.id,
                     username = snapshot.getString("username") ?: "",
                     profilePictureString = snapshot.getString("profilePictureString") ?: "",
                     waterGoalsCompleted = snapshot.getLong("waterGoalsCompleted") ?: 0L,
@@ -79,62 +80,25 @@ fun getCurrentUser(userId: String?): State<LeaderboardEntry?> {
     }
 }
 
-// Same job as getTopCategoryUser, but gets the user ranked highest amongst all the categories, doesn't scale well
+// Same job as getTopCategoryUser, but gets the healthiest user
 @Composable
-fun getHealthiestUser(): State<LeaderboardEntry?> {
+fun getHealthiestUser(): State<HealthiestUser?> {
     return produceState(initialValue = null) {
         val db = Firebase.firestore
 
-        val listenerRegistration = db.collection("leaderboards")
+        val listenerRegistration = db.collection("app_state").document("healthiest_user")
             .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    return@addSnapshotListener
-                }
-
-                // Gets all the data, of all the users
-                val allUsers = snapshot.documents.mapNotNull { doc ->
-                    LeaderboardEntry(
-                        userId = doc.id,
-                        username = doc.getString("username") ?: "",
-                        profilePictureString = doc.getString("profilePictureString") ?: "",
-                        waterGoalsCompleted = doc.getLong("waterGoalsCompleted") ?: 0L,
-                        caloriesGoalsCompleted = doc.getLong("caloriesGoalsCompleted") ?: 0L,
-                        exerciseGoalsCompleted = doc.getLong("exerciseGoalsCompleted") ?: 0L,
-                        stepsGoalsCompleted = doc.getLong("stepsGoalsCompleted") ?: 0L,
-                        totalSteps = doc.getLong("totalSteps") ?: 0L
-                    )
-                }
-
-                if (allUsers.isEmpty()) {
+                if (error != null || snapshot == null || !snapshot.exists()) {
                     value = null
                     return@addSnapshotListener
                 }
 
-                // Gets a list of all the categories
-                val categories = listOf(
-                    LeaderboardEntry::waterGoalsCompleted,
-                    LeaderboardEntry::caloriesGoalsCompleted,
-                    LeaderboardEntry::exerciseGoalsCompleted,
-                    LeaderboardEntry::stepsGoalsCompleted,
-                    LeaderboardEntry::totalSteps
+                value = HealthiestUser(
+                    uid = snapshot.getString("uid") ?: "",
+                    healthiestUserScore = snapshot.getLong("healthiestUserScore") ?: 0L,
+                    profilePictureString = snapshot.getString("profilePictureString") ?: "",
+                    username = snapshot.getString("username") ?: ""
                 )
-
-                // Map that holds the accumulated rank score of each user
-                val usersScore = mutableMapOf<String, Int>()
-                allUsers.forEach { usersScore[it.userId] = 0 }
-
-                // Calculates ranks for each category
-                for (category in categories) {
-                    val allUsersSorted = allUsers.sortedByDescending(category)
-
-                    allUsersSorted.forEachIndexed { index, user ->
-                        usersScore[user.userId] = (usersScore[user.userId] ?: 0) + index
-                    }
-                }
-
-                // 4. Finds the user with the lowest overall score
-                val healthiestUserId = usersScore.minBy { it.value }.key
-                value = allUsers.find { it.userId == healthiestUserId }
             }
 
         awaitDispose {

@@ -2,4 +2,6 @@ from firebase_admin import initialize_app
 
 initialize_app()
 
-from leaderboards_sync import perform_leaderboards_sync
+from leaderboards_goals_sync import perform_leaderboards_goals_sync
+from leaderboards_user_sync import perform_leaderboards_user_sync
+from healthiest_user import calculate_healthiest_user

@@ -101,14 +101,11 @@ fun ProfileScreen() {
         }
     }
 
-    // Initializes the variables with the values from the database
-    var profilePictureString by remember { mutableStateOf(userSettings.profilePictureString) }
+    // Initializes the variables that are used in text fields with the values from the database
     var username by remember { mutableStateOf(userSettings.username) }
-    var gender by remember { mutableStateOf(userCharacteristics.gender ?: "") }
     var age by remember { mutableStateOf(formatNumber(userCharacteristics.age)) }
     var height by remember { mutableStateOf(formatNumber(userCharacteristics.height)) }
     var weight by remember { mutableStateOf(formatNumber(userCharacteristics.weight)) }
-    var activityLevel by remember { mutableStateOf(userCharacteristics.activityLevel ?: "") }
 
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -126,13 +123,11 @@ fun ProfileScreen() {
             .verticalScroll(rememberScrollState())
             .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 4.dp)
     ) {
-        ProfilePicture(profilePictureString) {
+        ProfilePicture(userSettings.profilePictureString) { newProfilePictureString ->
             // Function that triggers when a new profile picture is tapped, it makes sure that a user is actually loaded on the screen, updates
             // the UI instantly, creates a copy of the user and only updates the profile picture String in the local database
-            newProfilePictureString ->
-                profilePictureString = newProfilePictureString
-                userSettings.let { settings ->
-                    settingsViewModel.updateUserSettings(settings.copy(profilePictureString = newProfilePictureString), context)
+            userSettings.let { settings ->
+                settingsViewModel.updateUserSettings(settings.copy(profilePictureString = newProfilePictureString), context)
             }
         }
 
@@ -149,7 +144,7 @@ fun ProfileScreen() {
                 verticalArrangement = Arrangement.spacedBy(24.dp),
                 modifier = Modifier.padding(24.dp)
             ) {
-                var isError = username.length < 5
+                val isError = username.length < 5
                 OutlinedTextField(
                     value = username,
                     label = { Text("Username") },
@@ -158,12 +153,8 @@ fun ProfileScreen() {
                         .fillMaxWidth()
                         .onFocusChanged { focusState ->
                             if (!focusState.isFocused) {
-                                if (username.length < 5) {
-                                    isError = true
-                                }
-
                                 // Local database update
-                                else {
+                                if (username.length >= 5) {
                                     settingsViewModel.updateUserSettings(userSettings.copy(username = username), context)
                                 }
                             }
@@ -209,19 +200,14 @@ fun ProfileScreen() {
                     onValueChange = { newValue ->
                         if (newValue.length <= 15) {
                             username = newValue
-
-                            if (newValue.length >= 5) {
-                                isError = false
-                            }
                         }
                     }
                 )
 
                 DropdownMenu(
                     "Gender", listOf("Male", "Female"),
-                    gender
+                    userCharacteristics.gender ?: ""
                 ) { newValue ->
-                    gender = newValue
                     userCharacteristics.let { characteristics ->
                         characteristicsViewModel.updateUserCharacteristics(characteristics.copy(gender = newValue), context)
                     }
@@ -285,9 +271,8 @@ fun ProfileScreen() {
 
                 DropdownMenu(
                     "Activity Level", listOf("Sedentary", "Moderate", "High"),
-                    activityLevel
+                    userCharacteristics.activityLevel ?: ""
                 ) { newValue ->
-                    activityLevel = newValue
                     userCharacteristics.let { characteristics ->
                         characteristicsViewModel.updateUserCharacteristics(characteristics.copy(activityLevel = newValue), context)
                     }
@@ -295,7 +280,7 @@ fun ProfileScreen() {
                     focusManager.clearFocus()
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)){
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(text = "Weight Goal")
 
                     WeightGoalSelector(
@@ -326,37 +311,62 @@ fun ProfileScreen() {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Step Tracking",
+            text = "Settings",
             modifier = Modifier
                 .align(Alignment.Start)
         )
 
         CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
-            RadioButtonGroup(
-                listOf("Enabled", "Disabled"),
-                userSettings.stepTracking
-            ) { newSetting ->
-                userSettings.let { settings ->
-                    settingsViewModel.updateUserSettings(settings.copy(stepTracking = newSetting), context)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(32.dp),
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Appearance",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+
+                    RadioButtonGroup(
+                        listOf("Light", "Dark", "Dynamic"),
+                        userSettings.appearance
+                    ) { newAppearance ->
+                        userSettings.let { settings ->
+                            settingsViewModel.updateUserSettings(settings.copy(appearance = newAppearance), context)
+                        }
+                    }
                 }
-            }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Leaderboards Visibility",
+                        style = MaterialTheme.typography.labelLarge
+                    )
 
-        Text(
-            text = "Appearance",
-            modifier = Modifier
-                .align(Alignment.Start)
-        )
+                    RadioButtonGroup(
+                        listOf("Public", "Anonymous"),
+                        userSettings.leaderboardsVisibility
+                    ) { newSetting ->
+                        userSettings.let { settings ->
+                            settingsViewModel.updateUserSettings(settings.copy(leaderboardsVisibility = newSetting), context)
+                        }
+                    }
+                }
 
-        CustomSurface(startPadding = 0.dp, topPadding = 4.dp, endPadding = 0.dp) {
-            RadioButtonGroup(
-                listOf("Light", "Dark", "Dynamic"),
-                userSettings.appearance
-            ) { newAppearance ->
-                userSettings.let { settings ->
-                    settingsViewModel.updateUserSettings(settings.copy(appearance = newAppearance), context)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Step Tracking",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+
+                    RadioButtonGroup(
+                        listOf("Enabled", "Disabled"),
+                        userSettings.stepTracking
+                    ) { newSetting ->
+                        userSettings.let { settings ->
+                            settingsViewModel.updateUserSettings(settings.copy(stepTracking = newSetting), context)
+                        }
+                    }
                 }
             }
         }
@@ -415,18 +425,14 @@ fun ProfileScreen() {
             onConfirm = {
                 showDeleteDialog = false
 
-                // UI delete
-                val randomProfilePictureString = generateRandomProfilePictureString()
+                // Text fields UI delete
                 val randomUsername = generateRandomUsername()
-                profilePictureString = randomProfilePictureString
                 username = randomUsername
-                gender = ""
                 age = ""
                 height = ""
                 weight = ""
-                activityLevel = ""
 
-                // Local database delete
+                // UI and local database delete
                 userCharacteristics.let { characteristics ->
                     characteristicsViewModel.updateUserCharacteristics(
                         characteristics.copy(
@@ -435,8 +441,6 @@ fun ProfileScreen() {
                             height = null,
                             weight = null,
                             activityLevel = null,
-
-                            // Does the UI delete too, different from the others because WeightGoalSelector handles its own variables
                             weightGoal = "Maintain",
                             kgGoal = 0,
                             daysGoal = 0
@@ -449,8 +453,9 @@ fun ProfileScreen() {
                 userSettings.let { settings ->
                     settingsViewModel.updateUserSettings(
                         settings.copy(
-                            profilePictureString = randomProfilePictureString,
-                            username = randomUsername
+                            profilePictureString = generateRandomProfilePictureString(),
+                            username = randomUsername,
+                            leaderboardsVisibility = "Anonymous"
                         ),
 
                         context

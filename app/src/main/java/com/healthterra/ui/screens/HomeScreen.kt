@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -93,13 +94,14 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     val maxCaloriesValue = roundGoal((caloriesGoal + caloriesGoal * 0.1).roundToInt())
     val completedGoals = listOf(waterProgressSum >= waterGoal, caloriesProgressSum in minCaloriesValue..maxCaloriesValue, exerciseProgressSum >= exerciseGoal, stepsProgress >= stepsGoal).count { it }
 
-    var showProfileWarningDialog by rememberSaveable { mutableStateOf(false) }
-    var showSettingsErrorDialog by rememberSaveable { mutableStateOf(false) }
+    val isProfileIncomplete = userCharacteristics.gender == null || userCharacteristics.age == null || userCharacteristics.height == null || userCharacteristics.weight == null || userCharacteristics.activityLevel == null
+    val isAnonymous = userSettings.leaderboardsVisibility == "Anonymous"
+
+    var showProfileIncompleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showAnonymousDialog by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val activity = context as Activity
-
-    val isProfileIncomplete = userCharacteristics.gender == null || userCharacteristics.age == null || userCharacteristics.height == null || userCharacteristics.weight == null || userCharacteristics.activityLevel == null
 
     // Draws the screen, verticalScroll creates infinite vertical space, which breaks fillMaxSize(). BoxWithConstraints can grab the true screen
     // height with maxHeight. The goal is to stretch the progress boxes as much as possible, without making the screen scrollable. On smaller
@@ -145,17 +147,28 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                     )
 
                     // Only adds the row if one of the warnings is present
-                    if (isProfileIncomplete) {
+                    if (isProfileIncomplete || isAnonymous) {
                         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                             // If the user hasn't filled all the characteristics in their profile
                             if (isProfileIncomplete) {
                                 Icon(
                                     imageVector = Icons.Default.Error,
-                                    contentDescription = "Warning Button",
+                                    contentDescription = "Warning Button 1",
                                     tint = Color(0xFFFFA000),
                                     modifier = Modifier
                                         .clip(CircleShape)
-                                        .clickable { showProfileWarningDialog = true }
+                                        .clickable { showProfileIncompleteDialog = true }
+                                )
+                            }
+
+                            if (isAnonymous) {
+                                Icon(
+                                    imageVector = Icons.Default.VisibilityOff,
+                                    contentDescription = "Warning Button 3",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .clickable { showAnonymousDialog = true }
                                 )
                             }
                         }
@@ -222,11 +235,11 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
         )
     }
 
-    if (showProfileWarningDialog) {
-        InfoDialog(Icons.Default.Error, Color(0xFFFFA000), null, AnnotatedString("Complete your profile for more personalized results."), "Got it", null, true, FontWeight.Bold, { showProfileWarningDialog = false }, { showProfileWarningDialog = false })
+    if (showProfileIncompleteDialog) {
+        InfoDialog(Icons.Default.Error, Color(0xFFFFA000), null, AnnotatedString("Complete your Profile for more personalized results."), "Got it", null, true, FontWeight.Bold, { showProfileIncompleteDialog = false }, { showProfileIncompleteDialog= false })
     }
 
-    if (showSettingsErrorDialog) {
-        InfoDialog(Icons.Default.Error, Color(0xFFE53935), null, AnnotatedString("Leaderboard syncing is paused! Please enable 'Automatic date and time' in your device settings."), "Got it", null, true, FontWeight.Bold, { showSettingsErrorDialog = false }, { showSettingsErrorDialog = false })
+    if (showAnonymousDialog) {
+        InfoDialog(Icons.Default.VisibilityOff, MaterialTheme.colorScheme.primary, null, AnnotatedString("You are currently anonymous on the Leaderboards. You can change this anytime in your Profile."), "Got it", null, true, FontWeight.Bold, { showAnonymousDialog = false }, { showAnonymousDialog = false })
     }
 }

@@ -41,7 +41,7 @@ import coil3.compose.AsyncImage
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.healthterra.R
-import com.healthterra.data.documents.LeaderboardEntry
+import com.healthterra.data.documents.HealthiestUser
 import com.healthterra.helpers.createGoldMetallicBrush
 import com.healthterra.services.getCategoryTopUsers
 import com.healthterra.services.getCurrentUser
@@ -53,7 +53,7 @@ import com.healthterra.ui.components.screen.avatarMap
 
 // Have to isolate the animated row so the screen doesn't recompose on every frame and block clicks
 @Composable
-fun HealthiestUserAnimatedRow(avatarMap: Map<String, Int>, healthiestUser: LeaderboardEntry) {
+fun HealthiestUserAnimatedRow(avatarMap: Map<String, Int>, healthiestUser: HealthiestUser) {
     // Creates a float number that counts from 0 to 1 at a steady speed (LinearEasing), it takes durationMillis seconds to
     // hit 1, it reverses to 0, the moment it reaches 1 (RepeatMode.Reverse)
     val infiniteTransition = rememberInfiniteTransition()
@@ -121,11 +121,11 @@ fun HealthiestUserAnimatedRow(avatarMap: Map<String, Int>, healthiestUser: Leade
 // Even if the user has no network connection, the screen will show the old data, except on a fresh install, then it will be empty
 @Composable
 fun LeaderboardsScreen() {
-    val waterLeaderboards by getCategoryTopUsers("waterGoalsCompleted", 50)
-    val caloriesLeaderboards by getCategoryTopUsers("caloriesGoalsCompleted", 50)
-    val exerciseLeaderboards by getCategoryTopUsers("exerciseGoalsCompleted", 50)
-    val stepsLeaderboards by getCategoryTopUsers("stepsGoalsCompleted", 50)
-    val totalStepsLeaderboards by getCategoryTopUsers("totalSteps", 50)
+    val waterLeaderboards by getCategoryTopUsers("waterGoalsCompleted", 1)
+    val caloriesLeaderboards by getCategoryTopUsers("caloriesGoalsCompleted", 1)
+    val exerciseLeaderboards by getCategoryTopUsers("exerciseGoalsCompleted", 1)
+    val stepsLeaderboards by getCategoryTopUsers("stepsGoalsCompleted", 1)
+    val totalStepsLeaderboards by getCategoryTopUsers("totalSteps", 1)
 
     val topWaterUser = waterLeaderboards.firstOrNull()
     val topCaloriesUser = caloriesLeaderboards.firstOrNull()
@@ -172,22 +172,22 @@ fun LeaderboardsScreen() {
             topWaterUser.let { user ->
                 // Checks if the current user is the top user, if he is, make his score null to know not to draw a specific component
                 // Also makes the LeaderboardBox clickable, when clicked the LeaderboardDialog shows
-                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.waterGoalsCompleted.toString())
+                val currentUserScore = if (currentUserId == user.uid) null else (currentUser.waterGoalsCompleted.toString())
                 LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "waterGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.water, "Water", user.waterGoalsCompleted.toString(), currentUserScore)
             }
 
             topCaloriesUser.let { user ->
-                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.caloriesGoalsCompleted.toString())
+                val currentUserScore = if (currentUserId == user.uid) null else (currentUser.caloriesGoalsCompleted.toString())
                 LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "caloriesGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.calories, "Calories", user.caloriesGoalsCompleted.toString(), currentUserScore)
             }
 
             topExerciseUser.let { user ->
-                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.exerciseGoalsCompleted.toString())
+                val currentUserScore = if (currentUserId == user.uid) null else (currentUser.exerciseGoalsCompleted.toString())
                 LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "exerciseGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.exercise, "Exercise", user.exerciseGoalsCompleted.toString(), currentUserScore)
             }
 
             topStepsUser.let { user ->
-                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.stepsGoalsCompleted.toString())
+                val currentUserScore = if (currentUserId == user.uid) null else (currentUser.stepsGoalsCompleted.toString())
                 LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "stepsGoalsCompleted" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.stepsGoalsCompleted.toString(), currentUserScore)
             }
 
@@ -206,7 +206,7 @@ fun LeaderboardsScreen() {
             }
 
             topTotalStepsUser.let { user ->
-                val currentUserScore = if (currentUserId == user.userId) null else (currentUser.totalSteps.toString())
+                val currentUserScore = if (currentUserId == user.uid) null else (currentUser.totalSteps.toString())
                 LeaderboardBox(Modifier.clickable { selectedLeaderboardDialog = "totalSteps" }, avatarMap.getValue(user.profilePictureString), user.username, R.drawable.steps, "Steps", user.totalSteps.toString(), currentUserScore)
             }
 
@@ -244,19 +244,11 @@ fun LeaderboardsScreen() {
 
     // Show the LeaderboardDialog, if a category is clicked
     selectedLeaderboardDialog?.let { categoryString ->
-        val categoryLeaderboards = when (categoryString) {
-            "waterGoalsCompleted" -> waterLeaderboards
-            "caloriesGoalsCompleted" -> caloriesLeaderboards
-            "exerciseGoalsCompleted" -> exerciseLeaderboards
-            "stepsGoalsCompleted" -> stepsLeaderboards
-            "totalSteps" -> totalStepsLeaderboards
-            else -> emptyList()
-        }
-
+        val categoryLeaderboards by getCategoryTopUsers(categoryString, 50)
         LeaderboardDialog(categoryString, categoryLeaderboards, avatarMap, onDismiss = { selectedLeaderboardDialog = null })
     }
 
     if (showHealthiestUserDialog) {
-        InfoDialog(Icons.Default.Info, Color(0xFFD4AF37), null, AnnotatedString("The 'Healthiest User' is the person ranked highest amongst all the categories."), "Got it", null, true, FontWeight.Bold, { showHealthiestUserDialog = false }, { showHealthiestUserDialog = false })
+        InfoDialog(Icons.Default.Info, Color(0xFFD4AF37), null, AnnotatedString("The 'Healthiest User' is the person with the highest total score. You earn points by completing each of your daily goals."), "Got it", null, true, FontWeight.Bold, { showHealthiestUserDialog = false }, { showHealthiestUserDialog = false })
     }
 }
