@@ -19,7 +19,7 @@ fun DrawerMenuItem(appIcon: Int, title: String, currentScreen: String, onItemCli
         label = { Text(title) },
         selected = currentScreen == title,
         shape = RectangleShape,
-        modifier = Modifier.height(80.dp),
+        modifier = Modifier.height(70.dp),
         onClick = { onItemClick(title) }
     )
 }

@@ -9,6 +9,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.healthterra.data.UserDatabase
+import com.healthterra.data.entities.DailyTrackings
 import com.healthterra.helpers.calculateCaloriesGoal
 import com.healthterra.helpers.calculateExerciseGoal
 import com.healthterra.helpers.calculateStepsGoal
@@ -32,6 +33,7 @@ suspend fun performDailyMaintenance(context: Context) {
                 val trackingsDao = database.trackingsDao()
                 val settingsDao = database.settingsDao()
                 val characteristicsDao = database.characteristicsDao()
+                val dailyTrackingsDao = database.dailyTrackingsDao()
 
                 val userTrackings = trackingsDao.getAll().first().firstOrNull()
                 val userSettings = settingsDao.getAll().first().firstOrNull()
@@ -56,21 +58,47 @@ suspend fun performDailyMaintenance(context: Context) {
                     context.startService(resetIntent)
                 }
 
+                val waterGoal = calculateWaterGoal(userCharacteristics)
+                val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
+                val exerciseGoal = calculateExerciseGoal(userCharacteristics)
+                val stepsGoal = calculateStepsGoal(userCharacteristics)
+                val waterProgress = userTrackings.waterProgress.sum()
+                val caloriesProgress = userTrackings.caloriesProgress.sum()
+                val exerciseProgress = userTrackings.exerciseProgress.sum()
+                val stepsProgress = userTrackings.stepsProgress
+                val lastSavedDate = userSettings.lastSavedDate
+
+                // Local sync for the daily trackings table
+                val yesterdayTracking = DailyTrackings(
+                    userId = userTrackings.userId,
+                    date = lastSavedDate,
+                    waterProgress = waterProgress,
+                    caloriesProgress = caloriesProgress,
+                    exerciseProgress = exerciseProgress,
+                    stepsProgress = stepsProgress,
+                    waterGoal = waterGoal,
+                    caloriesGoal = caloriesGoal,
+                    exerciseGoal = exerciseGoal,
+                    stepsGoal = stepsGoal
+                )
+
+                dailyTrackingsDao.upsert(yesterdayTracking)
+
                 // Syncs trackings to Firestore to preserve data before the Room API reset, because the reset happens faster than the sync and
                 // to also handle multi-day offline syncing, the data is stored in the worker using snapshots, needs network
                 val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
                 val syncRequest = OneTimeWorkRequestBuilder<SyncDailyTrackingsWorker>()
                     .setConstraints(constraints)
                     .setInputData(workDataOf(
-                        "snapshot_water_progress" to userTrackings.waterProgress.sum(),
-                        "snapshot_calories_progress" to userTrackings.caloriesProgress.sum(),
-                        "snapshot_exercise_progress" to userTrackings.exerciseProgress.sum(),
-                        "snapshot_steps_progress" to userTrackings.stepsProgress,
-                        "snapshot_water_goal" to calculateWaterGoal(userCharacteristics),
-                        "snapshot_calories_goal" to calculateCaloriesGoal(userCharacteristics),
-                        "snapshot_exercise_goal" to calculateExerciseGoal(userCharacteristics),
-                        "snapshot_steps_goal" to calculateStepsGoal(userCharacteristics),
-                        "snapshot_date" to userSettings.lastSavedDate // Can't use LocalDate.now() because the function runs on a new day
+                        "snapshot_water_progress" to waterProgress,
+                        "snapshot_calories_progress" to caloriesProgress,
+                        "snapshot_exercise_progress" to exerciseProgress,
+                        "snapshot_steps_progress" to stepsProgress,
+                        "snapshot_water_goal" to waterGoal,
+                        "snapshot_calories_goal" to caloriesGoal,
+                        "snapshot_exercise_goal" to exerciseGoal,
+                        "snapshot_steps_goal" to stepsGoal,
+                        "snapshot_date" to lastSavedDate // Can't use LocalDate.now() because the function runs on a new day
                     ))
                     .build()
 

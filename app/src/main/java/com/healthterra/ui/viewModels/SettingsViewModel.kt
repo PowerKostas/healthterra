@@ -63,11 +63,11 @@ class SettingsViewModel(private val settingsDao: SettingsDao) : ViewModel() {
             }
 
             // Leaderboards data
-            val hasChangedEssential = oldSettings.profilePictureString != newSettings.profilePictureString || oldSettings.username != newSettings.username
+            val hasChangedEssential = oldSettings.profilePictureString != newSettings.profilePictureString || oldSettings.username != newSettings.username || oldSettings.leaderboardsVisibility != newSettings.leaderboardsVisibility
 
             // Data only used for backup
             val hasChangedNonEssential= oldSettings.initialWeightGoalDate != newSettings.initialWeightGoalDate || oldSettings.appearance != newSettings.appearance ||
-                    oldSettings.stepTracking != newSettings.stepTracking || oldSettings.lastSavedDate != newSettings.lastSavedDate || oldSettings.leaderboardsVisibility != newSettings.leaderboardsVisibility
+                    oldSettings.stepTracking != newSettings.stepTracking || oldSettings.lastSavedDate != newSettings.lastSavedDate
 
             // Syncs user data to Firestore, if any of the leaderboards data changed, needs network
             if (hasChangedEssential) {

@@ -17,6 +17,7 @@ import androidx.room.PrimaryKey
         )
     ]
 )
+
 data class Characteristics(
     @PrimaryKey val userId: Int,
     @ColumnInfo(name = "gender") val gender: String? = null,

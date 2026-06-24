@@ -49,9 +49,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.healthterra.helpers.generateRandomProfilePictureString
 import com.healthterra.helpers.generateRandomUsername
 import com.healthterra.services.FirebaseDeleteWorker
+import com.healthterra.services.roomDelete
 import com.healthterra.ui.components.general.ActionButton
 import com.healthterra.ui.components.general.CustomSurface
 import com.healthterra.ui.components.general.DropdownMenu
@@ -61,6 +61,7 @@ import com.healthterra.ui.components.general.RadioButtonGroup
 import com.healthterra.ui.components.screen.ProfilePicture
 import com.healthterra.ui.components.screen.WeightGoalSelector
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
+import com.healthterra.ui.viewModels.DailyTrackingsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
 import com.healthterra.ui.viewModels.TrackingsViewModel
 import java.time.LocalDate
@@ -71,6 +72,7 @@ fun ProfileScreen() {
     val characteristicsViewModel: CharacteristicsViewModel = viewModel(factory = CharacteristicsViewModel.Factory)
     val userCharacteristicsList by characteristicsViewModel.characteristics.collectAsState()
     val userCharacteristics = userCharacteristicsList.firstOrNull()
+    val dailyTrackingsViewModel: DailyTrackingsViewModel = viewModel(factory = DailyTrackingsViewModel.Factory)
 
     // Uses the same instance of SettingsViewModel as MainActivity to fix bug on non-essential user settings Firestore syncing
     val context = LocalContext.current
@@ -433,45 +435,7 @@ fun ProfileScreen() {
                 weight = ""
 
                 // UI and local database delete
-                userCharacteristics.let { characteristics ->
-                    characteristicsViewModel.updateUserCharacteristics(
-                        characteristics.copy(
-                            gender = null,
-                            age = null,
-                            height = null,
-                            weight = null,
-                            activityLevel = null,
-                            weightGoal = "Maintain",
-                            kgGoal = 0,
-                            daysGoal = 0
-                        ),
-
-                        context
-                    )
-                }
-
-                userSettings.let { settings ->
-                    settingsViewModel.updateUserSettings(
-                        settings.copy(
-                            profilePictureString = generateRandomProfilePictureString(),
-                            username = randomUsername,
-                            leaderboardsVisibility = "Anonymous"
-                        ),
-
-                        context
-                    )
-                }
-
-                userTrackings.let { trackings ->
-                    trackingsViewModel.updateUserTrackings(
-                        trackings.copy(
-                            waterProgress = emptyList(),
-                            caloriesProgress = emptyList(),
-                            exerciseProgress = emptyList(),
-                            stepsProgress = 0
-                        )
-                    )
-                }
+                roomDelete(characteristicsViewModel, settingsViewModel, trackingsViewModel, dailyTrackingsViewModel, randomUsername, context)
 
                 // Firebase delete, needs network
                 val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()

@@ -55,7 +55,7 @@ val avatarMap = mapOf(
     "sheep" to R.drawable.sheep,
     "snail" to R.drawable.snail,
     "turtle" to R.drawable.turtle,
-    "black" to R.drawable.black
+    "anonymous" to R.drawable.anonymous
 ).withDefault { R.drawable.fox } // Only triggers on unexpected/cheating circumstances
 
 // Adds a profile picture and a button below it that opens a menu to optionally select a new picture
@@ -98,7 +98,7 @@ fun ProfilePicture(profilePictureString: String, onImageSelected: (String) -> Un
                     contentPadding = PaddingValues(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) { items(avatarMap.entries.filterNot { it.key == "black" }) { (imageString, image) -> // Shows every picture, except of the anonymous picture
+                ) { items(avatarMap.entries.filterNot { it.key == "anonymous" }) { (imageString, image) -> // Shows every picture, except of the anonymous picture
                     AsyncImage(
                         model = image,
                         contentDescription = "Animal Choice",

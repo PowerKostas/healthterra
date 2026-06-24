@@ -240,6 +240,6 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     }
 
     if (showAnonymousDialog) {
-        InfoDialog(Icons.Default.VisibilityOff, MaterialTheme.colorScheme.primary, null, AnnotatedString("You are currently anonymous on the Leaderboards. You can change this anytime in your Profile."), "Got it", null, true, FontWeight.Bold, { showAnonymousDialog = false }, { showAnonymousDialog = false })
+        InfoDialog(Icons.Default.VisibilityOff, MaterialTheme.colorScheme.primary, null, AnnotatedString("You are currently anonymous on the Leaderboards. Manage your visibility in your Profile."), "Got it", null, true, FontWeight.Bold, { showAnonymousDialog = false }, { showAnonymousDialog = false })
     }
 }

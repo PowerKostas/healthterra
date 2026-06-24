@@ -48,7 +48,9 @@ import com.healthterra.helpers.calculateCaloriesGoal
 import com.healthterra.helpers.calculateExerciseGoal
 import com.healthterra.helpers.calculateStepsGoal
 import com.healthterra.helpers.calculateWaterGoal
+import com.healthterra.ui.screens.AchievementsScreen
 import com.healthterra.ui.screens.CategoriesScreen
+import com.healthterra.ui.screens.HistoryScreen
 import com.healthterra.ui.screens.HomeScreen
 import com.healthterra.ui.screens.LeaderboardsScreen
 import com.healthterra.ui.screens.ProfileScreen
@@ -179,6 +181,20 @@ fun DrawerMenu() {
                     )
 
                     DrawerMenuItem(
+                        appIcon = R.drawable.history,
+                        title = "History",
+                        currentScreen = currentScreen,
+                        onItemClick = { navigateToScreen("History") }
+                    )
+
+                    DrawerMenuItem(
+                        appIcon = R.drawable.achievements,
+                        title = "Achievements",
+                        currentScreen = currentScreen,
+                        onItemClick = { navigateToScreen("Achievements") }
+                    )
+
+                    DrawerMenuItem(
                         appIcon = R.drawable.leaderboards,
                         title = "Leaderboards",
                         currentScreen = currentScreen,
@@ -244,6 +260,14 @@ fun DrawerMenu() {
 
                     composable("Profile") {
                         ProfileScreen()
+                    }
+
+                    composable("History") {
+                        HistoryScreen()
+                    }
+
+                    composable("Achievements") {
+                        AchievementsScreen()
                     }
 
                     composable("Leaderboards") {

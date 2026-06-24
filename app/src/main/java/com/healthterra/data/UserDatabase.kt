@@ -7,9 +7,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.healthterra.data.daos.CharacteristicsDao
+import com.healthterra.data.daos.DailyTrackingsDao
 import com.healthterra.data.daos.SettingsDao
 import com.healthterra.data.daos.TrackingsDao
 import com.healthterra.data.entities.Characteristics
+import com.healthterra.data.entities.DailyTrackings
 import com.healthterra.data.entities.Settings
 import com.healthterra.data.entities.Trackings
 
@@ -18,11 +20,11 @@ import com.healthterra.data.entities.Trackings
 // accidentally do, just delete the app in the emulator and redo the process
 @TypeConverters(Converters::class) // Automatically runs the converters, I can just use the lists as lists in code now
 @Database(
-    entities = [Settings::class, Characteristics::class, Trackings::class],
-    version = 4,
+    entities = [Settings::class, Characteristics::class, Trackings::class, DailyTrackings::class],
+    version = 5,
     autoMigrations = [
-        AutoMigration(from = 3, to = 4),
-        //AutoMigration(from = 4, to = 5, spec = AppDatabase.MyRenameMigration::class)
+        AutoMigration(from = 4, to = 5),
+        //AutoMigration(from = 5, to = 6, spec = AppDatabase.MyRenameMigration::class)
     ]
 )
 abstract class UserDatabase : RoomDatabase() {
@@ -38,6 +40,7 @@ abstract class UserDatabase : RoomDatabase() {
     abstract fun characteristicsDao(): CharacteristicsDao
     abstract fun settingsDao(): SettingsDao
     abstract fun trackingsDao(): TrackingsDao
+    abstract fun dailyTrackingsDao(): DailyTrackingsDao
 
     companion object {
         @Volatile
