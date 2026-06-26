@@ -7,11 +7,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerValue
@@ -116,7 +121,12 @@ fun DrawerMenu() {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .navigationBarsPadding() // Applies a safe padding to account for the navigation bar, it's needed in landscape mode
+
+                        // Applies padding to the left of the drawer menu to account for the navigation bar, it's needed in landscape mode
+                        .windowInsetsPadding(
+                            WindowInsets.navigationBars.only(WindowInsetsSides.Start)
+                        )
+
                         .verticalScroll(scrollState)
                 ) {
                     // App logo is put in a box with a fixed height, so the horizontal divider here and in the screens match heights
@@ -207,7 +217,7 @@ fun DrawerMenu() {
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
-                .navigationBarsPadding()
+                .navigationBarsPadding() // Applies a safe padding to account for the navigation bar, it's needed in landscape mode
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() })},
 
             topBar = {

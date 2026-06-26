@@ -330,8 +330,8 @@ fun ProfileScreen() {
                     )
 
                     RadioButtonGroup(
-                        listOf("Light", "Dark", "Dynamic"),
-                        userSettings.appearance
+                        options = listOf("Light", "Dark", "Dynamic"),
+                        selectedOption = userSettings.appearance
                     ) { newAppearance ->
                         userSettings.let { settings ->
                             settingsViewModel.updateUserSettings(settings.copy(appearance = newAppearance), context)
@@ -346,8 +346,8 @@ fun ProfileScreen() {
                     )
 
                     RadioButtonGroup(
-                        listOf("Public", "Anonymous"),
-                        userSettings.leaderboardsVisibility
+                        options = listOf("Public", "Anonymous"),
+                        selectedOption = userSettings.leaderboardsVisibility
                     ) { newSetting ->
                         userSettings.let { settings ->
                             settingsViewModel.updateUserSettings(settings.copy(leaderboardsVisibility = newSetting), context)
@@ -362,8 +362,8 @@ fun ProfileScreen() {
                     )
 
                     RadioButtonGroup(
-                        listOf("Enabled", "Disabled"),
-                        userSettings.stepTracking
+                        options = listOf("Enabled", "Disabled"),
+                        selectedOption = userSettings.stepTracking
                     ) { newSetting ->
                         userSettings.let { settings ->
                             settingsViewModel.updateUserSettings(settings.copy(stepTracking = newSetting), context)

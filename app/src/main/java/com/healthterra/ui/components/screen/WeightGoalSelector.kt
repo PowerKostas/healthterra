@@ -99,8 +99,8 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
             .padding(20.dp)
     ) {
         RadioButtonGroup(
-            listOf("Lose", "Maintain", "Gain"),
-            selectedWeightGoal,
+            options = listOf("Lose", "Maintain", "Gain"),
+            selectedOption = selectedWeightGoal,
             showBorder = false
         ) { optionSelected ->
             // UI change, if we go from maintain to lose/gain the screen remembers the selectedKgGoal and selectedDaysGoal values, because

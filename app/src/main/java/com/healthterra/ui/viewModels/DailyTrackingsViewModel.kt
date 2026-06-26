@@ -28,6 +28,14 @@ class DailyTrackingsViewModel(private val dailyTrackingsDao: DailyTrackingsDao) 
         return dailyTrackingsDao.getDailyTrackings(limit)
     }
 
+    fun dailyTrackingsFromYearMonth(yearMonth: String): Flow<List<DailyTrackings>> {
+        return dailyTrackingsDao.getDailyTrackingsFromYearMonth(yearMonth)
+    }
+
+    fun oldestYearMonthUserDailyTrackings(): Flow<String?> {
+        return dailyTrackingsDao.getOldestYearMonth()
+    }
+
     fun upsertUserDailyTrackings(dailyTrackings: DailyTrackings) {
         viewModelScope.launch {
             dailyTrackingsDao.upsert(dailyTrackings)
