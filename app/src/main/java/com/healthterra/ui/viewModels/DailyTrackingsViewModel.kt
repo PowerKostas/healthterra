@@ -24,8 +24,8 @@ class DailyTrackingsViewModel(private val dailyTrackingsDao: DailyTrackingsDao) 
         }
     }
 
-    fun dailyTrackings(limit: Int): Flow<List<DailyTrackings>> {
-        return dailyTrackingsDao.getDailyTrackings(limit)
+    fun dailyTrackings(): Flow<List<DailyTrackings>> {
+        return dailyTrackingsDao.getDailyTrackings()
     }
 
     fun dailyTrackingsFromYearMonth(yearMonth: String): Flow<List<DailyTrackings>> {

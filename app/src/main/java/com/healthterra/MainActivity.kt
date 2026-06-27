@@ -47,7 +47,7 @@ import com.healthterra.ui.components.central.DrawerMenu
 import com.healthterra.ui.themes.HealthterraTheme
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
-import com.healthterra.ui.viewModels.TrackingsViewModel
+import com.healthterra.ui.viewModels.TodayTrackingsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -63,7 +63,7 @@ import kotlin.time.Duration.Companion.minutes
 class MainActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels { SettingsViewModel.Factory }
     private val characteristicsViewModel: CharacteristicsViewModel by viewModels { CharacteristicsViewModel.Factory }
-    private val trackingsViewModel: TrackingsViewModel by viewModels { TrackingsViewModel.Factory }
+    private val todayTrackingsViewModel: TodayTrackingsViewModel by viewModels { TodayTrackingsViewModel.Factory }
 
     // On first time open, the code doesn't wait for user input on the permissions dialog and the foreground service doesn't have the
     // permissions to run, to fix this, foreground service runs from here too
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(userSettings.userId) {
                 userSettings.userId.let { uid ->
                     characteristicsViewModel.initializeUserCharacteristics(uid)
-                    trackingsViewModel.initializeUserTrackings(uid)
+                    todayTrackingsViewModel.initializeUserTodayTrackings(uid)
                 }
             }
 

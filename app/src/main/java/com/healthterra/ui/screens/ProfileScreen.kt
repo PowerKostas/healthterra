@@ -63,7 +63,7 @@ import com.healthterra.ui.components.screen.WeightGoalSelector
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.DailyTrackingsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
-import com.healthterra.ui.viewModels.TrackingsViewModel
+import com.healthterra.ui.viewModels.TodayTrackingsViewModel
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,12 +86,12 @@ fun ProfileScreen() {
     val userSettingsList by settingsViewModel.settings.collectAsState()
     val userSettings = userSettingsList.firstOrNull()
 
-    val trackingsViewModel: TrackingsViewModel = viewModel(factory = TrackingsViewModel.Factory)
-    val userTrackingsList by trackingsViewModel.trackings.collectAsState()
-    val userTrackings = userTrackingsList.firstOrNull()
+    val todayTrackingsViewModel: TodayTrackingsViewModel = viewModel(factory = TodayTrackingsViewModel.Factory)
+    val userTodayTrackingsList by todayTrackingsViewModel.todayTrackings.collectAsState()
+    val userTodayTrackings = userTodayTrackingsList.firstOrNull()
 
     // Waits for the database to load
-    if (userCharacteristics == null || userSettings == null || userTrackings == null) {
+    if (userCharacteristics == null || userSettings == null || userTodayTrackings == null) {
         return
     }
 
@@ -435,7 +435,7 @@ fun ProfileScreen() {
                 weight = ""
 
                 // UI and local database delete
-                roomDelete(characteristicsViewModel, settingsViewModel, trackingsViewModel, dailyTrackingsViewModel, randomUsername, context)
+                roomDelete(characteristicsViewModel, settingsViewModel, todayTrackingsViewModel, dailyTrackingsViewModel, randomUsername, context)
 
                 // Firebase delete, needs network
                 val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()

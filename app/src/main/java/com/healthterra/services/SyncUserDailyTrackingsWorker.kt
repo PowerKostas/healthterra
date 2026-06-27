@@ -24,9 +24,9 @@ class SyncUserDailyTrackingsWorker(appContext: Context, workerParams: WorkerPara
             val database = UserDatabase.getDatabase(applicationContext)
             val userCharacteristics = database.characteristicsDao().getAll().first().firstOrNull()
             val userSettings = database.settingsDao().getAll().first().firstOrNull()
-            val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
+            val userTodayTrackings = database.todayTrackingsDao().getAll().first().firstOrNull()
 
-            if (userCharacteristics == null || userSettings == null || userTrackings == null) {
+            if (userCharacteristics == null || userSettings == null || userTodayTrackings == null) {
                 return Result.success()
             }
 
@@ -62,10 +62,10 @@ class SyncUserDailyTrackingsWorker(appContext: Context, workerParams: WorkerPara
                 "caloriesGoal" to (snapshotCaloriesGoal ?: calculateCaloriesGoal(userCharacteristics)),
                 "exerciseGoal" to (snapshotExerciseGoal ?: calculateExerciseGoal(userCharacteristics)),
                 "stepsGoal" to (snapshotStepsGoal ?: calculateStepsGoal(userCharacteristics)),
-                "waterProgress" to userTrackings.waterProgress.sum(),
-                "caloriesProgress" to userTrackings.caloriesProgress.sum(),
-                "exerciseProgress" to userTrackings.exerciseProgress.sum(),
-                "stepsProgress" to userTrackings.stepsProgress
+                "waterProgress" to userTodayTrackings.waterProgress.sum(),
+                "caloriesProgress" to userTodayTrackings.caloriesProgress.sum(),
+                "exerciseProgress" to userTodayTrackings.exerciseProgress.sum(),
+                "stepsProgress" to userTodayTrackings.stepsProgress
             )
 
             // Adds the daily trackings goals update to the batch

@@ -23,10 +23,10 @@ class SyncDailyTrackingsWorker(appContext: Context, workerParams: WorkerParamete
         return try {
             val database = UserDatabase.getDatabase(applicationContext)
             val userCharacteristics = database.characteristicsDao().getAll().first().firstOrNull()
-            val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
+            val userTodayTrackings = database.todayTrackingsDao().getAll().first().firstOrNull()
             val userSettings = database.settingsDao().getAll().first().firstOrNull()
 
-            if (userCharacteristics == null || userTrackings == null || userSettings == null) {
+            if (userCharacteristics == null || userTodayTrackings == null || userSettings == null) {
                 return Result.success()
             }
 
@@ -42,10 +42,10 @@ class SyncDailyTrackingsWorker(appContext: Context, workerParams: WorkerParamete
 
             // If parameters are provided, they are used, otherwise use the Room API values
             val updateData = mapOf(
-                "waterProgress" to (snapshotWater ?: userTrackings.waterProgress.sum()),
-                "caloriesProgress" to (snapshotCalories ?: userTrackings.caloriesProgress.sum()),
-                "exerciseProgress" to (snapshotExercise ?: userTrackings.exerciseProgress.sum()),
-                "stepsProgress" to (snapshotSteps ?: userTrackings.stepsProgress),
+                "waterProgress" to (snapshotWater ?: userTodayTrackings.waterProgress.sum()),
+                "caloriesProgress" to (snapshotCalories ?: userTodayTrackings.caloriesProgress.sum()),
+                "exerciseProgress" to (snapshotExercise ?: userTodayTrackings.exerciseProgress.sum()),
+                "stepsProgress" to (snapshotSteps ?: userTodayTrackings.stepsProgress),
                 "waterGoal" to (snapshotWaterGoal ?: calculateWaterGoal(userCharacteristics)),
                 "caloriesGoal" to (snapshotCaloriesGoal ?: calculateCaloriesGoal(userCharacteristics)),
                 "exerciseGoal" to (snapshotExerciseGoal ?: calculateExerciseGoal(userCharacteristics)),

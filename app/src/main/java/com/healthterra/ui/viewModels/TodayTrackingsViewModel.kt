@@ -6,47 +6,47 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.healthterra.data.UserDatabase
-import com.healthterra.data.daos.TrackingsDao
-import com.healthterra.data.entities.Trackings
+import com.healthterra.data.daos.TodayTrackingsDao
+import com.healthterra.data.entities.TodayTrackings
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class TrackingsViewModel(private val trackingsDao: TrackingsDao) : ViewModel() {
+class TodayTrackingsViewModel(private val todayTrackingsDao: TodayTrackingsDao) : ViewModel() {
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 val application = checkNotNull(extras[APPLICATION_KEY])
                 val database = UserDatabase.getDatabase(application)
-                return TrackingsViewModel(database.trackingsDao()) as T
+                return TodayTrackingsViewModel(database.todayTrackingsDao()) as T
             }
         }
     }
 
-    val trackings: StateFlow<List<Trackings>> = trackingsDao.getAll().stateIn(
+    val todayTrackings: StateFlow<List<TodayTrackings>> = todayTrackingsDao.getAll().stateIn(
         scope = viewModelScope,
         initialValue = emptyList(),
         started = SharingStarted.WhileSubscribed(5000)
     )
 
-    fun initializeUserTrackings(userId: Int) {
+    fun initializeUserTodayTrackings(userId: Int) {
         viewModelScope.launch {
-            if (trackingsDao.getAll().first().isEmpty()) {
-                val defaultTrackings = Trackings(
+            if (todayTrackingsDao.getAll().first().isEmpty()) {
+                val defaultTodayTrackings = TodayTrackings(
                     userId = userId,
                 )
 
-                trackingsDao.insert(defaultTrackings)
+                todayTrackingsDao.insert(defaultTodayTrackings)
             }
         }
     }
 
-    fun updateUserTrackings(trackings: Trackings) {
+    fun updateUserTodayTrackings(todayTrackings: TodayTrackings) {
         viewModelScope.launch {
-            trackingsDao.update(trackings)
+            todayTrackingsDao.update(todayTrackings)
         }
     }
 }

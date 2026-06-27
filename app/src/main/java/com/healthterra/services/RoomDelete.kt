@@ -5,14 +5,14 @@ import com.healthterra.helpers.generateRandomProfilePictureString
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.DailyTrackingsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
-import com.healthterra.ui.viewModels.TrackingsViewModel
+import com.healthterra.ui.viewModels.TodayTrackingsViewModel
 
-fun roomDelete(characteristicsViewModel: CharacteristicsViewModel, settingsViewModel: SettingsViewModel, trackingsViewModel: TrackingsViewModel, dailyTrackingsViewModel: DailyTrackingsViewModel, randomUsername: String, context: Context) {
+fun roomDelete(characteristicsViewModel: CharacteristicsViewModel, settingsViewModel: SettingsViewModel, todayTrackingsViewModel: TodayTrackingsViewModel, dailyTrackingsViewModel: DailyTrackingsViewModel, randomUsername: String, context: Context) {
     val userCharacteristics = characteristicsViewModel.characteristics.value.firstOrNull()
     val userSettings = settingsViewModel.settings.value.firstOrNull()
-    val userTrackings = trackingsViewModel.trackings.value.firstOrNull()
+    val userTodayTrackings = todayTrackingsViewModel.todayTrackings.value.firstOrNull()
 
-    if (userCharacteristics == null || userSettings == null || userTrackings == null) {
+    if (userCharacteristics == null || userSettings == null || userTodayTrackings == null) {
         return
     }
 
@@ -41,8 +41,8 @@ fun roomDelete(characteristicsViewModel: CharacteristicsViewModel, settingsViewM
         context
     )
 
-    trackingsViewModel.updateUserTrackings(
-        userTrackings.copy(
+    todayTrackingsViewModel.updateUserTodayTrackings(
+        userTodayTrackings.copy(
             waterProgress = emptyList(),
             caloriesProgress = emptyList(),
             exerciseProgress = emptyList(),

@@ -30,17 +30,17 @@ suspend fun performDailyMaintenance(context: Context) {
         withContext(Dispatchers.IO) {
             try {
                 val database = UserDatabase.getDatabase(context)
-                val trackingsDao = database.trackingsDao()
+                val todayTrackingsDao = database.todayTrackingsDao()
                 val settingsDao = database.settingsDao()
                 val characteristicsDao = database.characteristicsDao()
                 val dailyTrackingsDao = database.dailyTrackingsDao()
 
-                val userTrackings = trackingsDao.getAll().first().firstOrNull()
+                val userTodayTrackings = todayTrackingsDao.getAll().first().firstOrNull()
                 val userSettings = settingsDao.getAll().first().firstOrNull()
                 val userCharacteristics = characteristicsDao.getAll().first().firstOrNull()
 
                 // Triggers on a fresh install
-                if (userTrackings == null || userSettings == null || userCharacteristics == null) {
+                if (userTodayTrackings == null || userSettings == null || userCharacteristics == null) {
                     return@withContext
                 }
 
@@ -62,15 +62,15 @@ suspend fun performDailyMaintenance(context: Context) {
                 val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
                 val exerciseGoal = calculateExerciseGoal(userCharacteristics)
                 val stepsGoal = calculateStepsGoal(userCharacteristics)
-                val waterProgress = userTrackings.waterProgress.sum()
-                val caloriesProgress = userTrackings.caloriesProgress.sum()
-                val exerciseProgress = userTrackings.exerciseProgress.sum()
-                val stepsProgress = userTrackings.stepsProgress
+                val waterProgress = userTodayTrackings.waterProgress.sum()
+                val caloriesProgress = userTodayTrackings.caloriesProgress.sum()
+                val exerciseProgress = userTodayTrackings.exerciseProgress.sum()
+                val stepsProgress = userTodayTrackings.stepsProgress
                 val lastSavedDate = userSettings.lastSavedDate
 
                 // Local sync for the daily trackings table
                 val yesterdayTracking = DailyTrackings(
-                    userId = userTrackings.userId,
+                    userId = userTodayTrackings.userId,
                     date = lastSavedDate,
                     waterProgress = waterProgress,
                     caloriesProgress = caloriesProgress,
@@ -108,14 +108,14 @@ suspend fun performDailyMaintenance(context: Context) {
                     syncRequest
                 )
 
-                val updateUserTrackings = userTrackings.copy(
+                val updateUserTodayTrackings = userTodayTrackings.copy(
                     waterProgress = emptyList(),
                     caloriesProgress = emptyList(),
                     exerciseProgress = emptyList(),
                     stepsProgress = 0
                 )
 
-                trackingsDao.update(updateUserTrackings)
+                todayTrackingsDao.update(updateUserTodayTrackings)
 
                 val updateUserSettings = userSettings.copy(lastSavedDate = LocalDate.now().toString())
                 settingsDao.update(updateUserSettings)

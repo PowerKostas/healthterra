@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 
-// Holds history of all the trackings
+// Holds the history of all today's trackings
 @Entity(
     tableName = "daily_trackings",
     primaryKeys = ["userId", "date"], // Composite primary key, that's why its put here

@@ -56,15 +56,15 @@ import com.healthterra.ui.components.screen.ProgressBox
 import com.healthterra.ui.components.screen.ProgressHeader
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
-import com.healthterra.ui.viewModels.TrackingsViewModel
+import com.healthterra.ui.viewModels.TodayTrackingsViewModel
 import kotlin.math.roundToInt
 
 @Composable
 fun HomeScreen(onNavigate: (String) -> Unit) {
     // Gets values from the database
-    val trackingsViewModel = viewModel<TrackingsViewModel>(factory = TrackingsViewModel.Factory)
-    val userTrackingsList by trackingsViewModel.trackings.collectAsState()
-    val userTrackings = userTrackingsList.firstOrNull()
+    val todayTrackingsViewModel = viewModel<TodayTrackingsViewModel>(factory = TodayTrackingsViewModel.Factory)
+    val userTodayTrackingsList by todayTrackingsViewModel.todayTrackings.collectAsState()
+    val userTodayTrackings = userTodayTrackingsList.firstOrNull()
 
     val characteristicsViewModel = viewModel<CharacteristicsViewModel>(factory = CharacteristicsViewModel.Factory)
     val userCharacteristicsList by characteristicsViewModel.characteristics.collectAsState()
@@ -75,14 +75,14 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     val userSettings = userSettingsList.firstOrNull()
 
     // Waits for the database to load
-    if (userTrackings == null || userCharacteristics == null || userSettings == null) {
+    if (userTodayTrackings == null || userCharacteristics == null || userSettings == null) {
         return
     }
 
-    val waterProgressSum = userTrackings.waterProgress.sum()
-    val caloriesProgressSum = userTrackings.caloriesProgress.sum()
-    val exerciseProgressSum = userTrackings.exerciseProgress.sum()
-    val stepsProgress = userTrackings.stepsProgress
+    val waterProgressSum = userTodayTrackings.waterProgress.sum()
+    val caloriesProgressSum = userTodayTrackings.caloriesProgress.sum()
+    val exerciseProgressSum = userTodayTrackings.exerciseProgress.sum()
+    val stepsProgress = userTodayTrackings.stepsProgress
 
     val waterGoal = calculateWaterGoal(userCharacteristics)
     val caloriesGoal = calculateCaloriesGoal(userCharacteristics)

@@ -38,7 +38,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.healthterra.data.entities.Trackings
+import com.healthterra.data.entities.TodayTrackings
 import com.healthterra.helpers.calculateCaloriesGoal
 import com.healthterra.helpers.calculateExerciseGoal
 import com.healthterra.helpers.calculateWaterGoal
@@ -52,7 +52,7 @@ import com.healthterra.ui.components.screen.CustomButtonDialog
 import com.healthterra.ui.components.screen.FoodTable
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.FoodViewModel
-import com.healthterra.ui.viewModels.TrackingsViewModel
+import com.healthterra.ui.viewModels.TodayTrackingsViewModel
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -63,9 +63,9 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
     val userCharacteristicsList by characteristicsViewModel.characteristics.collectAsState()
     val userCharacteristics = userCharacteristicsList.firstOrNull()
 
-    val trackingsViewModel: TrackingsViewModel = viewModel(factory = TrackingsViewModel.Factory)
-    val userTrackingsList by trackingsViewModel.trackings.collectAsState()
-    val userTrackings = userTrackingsList.firstOrNull()
+    val todayTrackingsViewModel: TodayTrackingsViewModel = viewModel(factory = TodayTrackingsViewModel.Factory)
+    val userTodayTrackingsList by todayTrackingsViewModel.todayTrackings.collectAsState()
+    val userTodayTrackings = userTodayTrackingsList.firstOrNull()
 
     // Gets auto updatable variables for the food table
     val foodViewModel: FoodViewModel = viewModel(factory = FoodViewModel.Factory)
@@ -81,7 +81,7 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
 
 
     // Syncs trackings to Firestore, if a goal was just reached or lost, uses snapshots to handle multi-day offline syncing, needs network
-    fun checkGoalStatusAndSync(oldCategoryValue: Int, newCategoryValue: Int, updatedTrackings: Trackings) {
+    fun checkGoalStatusAndSync(oldCategoryValue: Int, newCategoryValue: Int, updatedTodayTrackings: TodayTrackings) {
         // Uses minimum value for the calories range goal
         val categoryGoalFix = if (categoryName == "Calories") {
             roundGoal((categoryGoal - categoryGoal * 0.1).roundToInt())
@@ -94,15 +94,15 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
         val justReachedGoal = categoryGoalFix in (oldCategoryValue + 1)..newCategoryValue
         val justLostGoal = categoryGoalFix in (newCategoryValue + 1)..oldCategoryValue
         val goalStatusChanged = justReachedGoal || justLostGoal
-        if (goalStatusChanged && userCharacteristics != null && userTrackings != null) {
+        if (goalStatusChanged && userCharacteristics != null && userTodayTrackings != null) {
             val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
             val syncRequest = OneTimeWorkRequestBuilder<SyncDailyTrackingsWorker>()
                 .setConstraints(constraints)
                 .setInitialDelay(3, java.util.concurrent.TimeUnit.SECONDS) // To avoid many writes, if the user is spamming the UI component
                 .setInputData(workDataOf(
-                    "snapshot_water_progress" to updatedTrackings.waterProgress.sum(),
-                    "snapshot_calories_progress" to updatedTrackings.caloriesProgress.sum(),
-                    "snapshot_exercise_progress" to updatedTrackings.exerciseProgress.sum(),
+                    "snapshot_water_progress" to updatedTodayTrackings.waterProgress.sum(),
+                    "snapshot_calories_progress" to updatedTodayTrackings.caloriesProgress.sum(),
+                    "snapshot_exercise_progress" to updatedTodayTrackings.exerciseProgress.sum(),
                     "snapshot_water_goal" to calculateWaterGoal(userCharacteristics),
                     "snapshot_calories_goal" to calculateCaloriesGoal(userCharacteristics),
                     "snapshot_exercise_goal" to calculateExerciseGoal(userCharacteristics),
@@ -120,54 +120,54 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
 
     // Handles which category to update
     fun handleAddAmount(amount: Int) {
-        userTrackings?.let { trackings ->
+        userTodayTrackings?.let { todayTrackings ->
             val oldCategoryValue = when (categoryName) {
-                "Water" -> trackings.waterProgress.sum()
-                "Calories" -> trackings.caloriesProgress.sum()
-                "Exercise" -> trackings.exerciseProgress.sum()
+                "Water" -> todayTrackings.waterProgress.sum()
+                "Calories" -> todayTrackings.caloriesProgress.sum()
+                "Exercise" -> todayTrackings.exerciseProgress.sum()
                 else -> 0
             }
 
-            val updatedTrackings = when (categoryName) {
-                "Water" -> trackings.copy(waterProgress = trackings.waterProgress + amount)
-                "Calories" -> trackings.copy(caloriesProgress = trackings.caloriesProgress + amount)
-                "Exercise" -> trackings.copy(exerciseProgress = trackings.exerciseProgress + amount)
+            val updatedTodayTrackings = when (categoryName) {
+                "Water" -> todayTrackings.copy(waterProgress = todayTrackings.waterProgress + amount)
+                "Calories" -> todayTrackings.copy(caloriesProgress = todayTrackings.caloriesProgress + amount)
+                "Exercise" -> todayTrackings.copy(exerciseProgress = todayTrackings.exerciseProgress + amount)
                 else -> throw IllegalStateException("Invalid Input")
             }
 
-            trackingsViewModel.updateUserTrackings(updatedTrackings)
+            todayTrackingsViewModel.updateUserTodayTrackings(updatedTodayTrackings)
 
             val newCategoryValue = oldCategoryValue + amount
-            checkGoalStatusAndSync(oldCategoryValue, newCategoryValue, updatedTrackings) // Uses updatedTrackings instead of userTrackings to avoid synchronization bugs
+            checkGoalStatusAndSync(oldCategoryValue, newCategoryValue, updatedTodayTrackings) // Uses updatedTrackings instead of userTrackings to avoid synchronization bugs
         }
     }
 
     fun handleDeletePrevious() {
-        userTrackings?.let { trackings ->
+        userTodayTrackings?.let { todayTrackings ->
             val oldCategoryValue = when (categoryName) {
-                "Water" -> trackings.waterProgress.sum()
-                "Calories" -> trackings.caloriesProgress.sum()
-                "Exercise" -> trackings.exerciseProgress.sum()
+                "Water" -> todayTrackings.waterProgress.sum()
+                "Calories" -> todayTrackings.caloriesProgress.sum()
+                "Exercise" -> todayTrackings.exerciseProgress.sum()
                 else -> 0
             }
 
-            val updatedTrackings = when (categoryName) {
-                "Water" -> trackings.copy(waterProgress = trackings.waterProgress.dropLast(1))
-                "Calories" -> trackings.copy(caloriesProgress = trackings.caloriesProgress.dropLast(1))
-                "Exercise" -> trackings.copy(exerciseProgress = trackings.exerciseProgress.dropLast(1))
+            val updatedTodayTrackings = when (categoryName) {
+                "Water" -> todayTrackings.copy(waterProgress = todayTrackings.waterProgress.dropLast(1))
+                "Calories" -> todayTrackings.copy(caloriesProgress = todayTrackings.caloriesProgress.dropLast(1))
+                "Exercise" -> todayTrackings.copy(exerciseProgress = todayTrackings.exerciseProgress.dropLast(1))
                 else -> throw IllegalStateException("Invalid Input")
             }
 
-            trackingsViewModel.updateUserTrackings(updatedTrackings)
+            todayTrackingsViewModel.updateUserTodayTrackings(updatedTodayTrackings)
 
             val newCategoryValue = when (categoryName) {
-                "Water" -> updatedTrackings.waterProgress.sum()
-                "Calories" -> updatedTrackings.caloriesProgress.sum()
-                "Exercise" -> updatedTrackings.exerciseProgress.sum()
+                "Water" -> updatedTodayTrackings.waterProgress.sum()
+                "Calories" -> updatedTodayTrackings.caloriesProgress.sum()
+                "Exercise" -> updatedTodayTrackings.exerciseProgress.sum()
                 else -> 0
             }
 
-            checkGoalStatusAndSync(oldCategoryValue, newCategoryValue, updatedTrackings)
+            checkGoalStatusAndSync(oldCategoryValue, newCategoryValue, updatedTodayTrackings)
         }
     }
 

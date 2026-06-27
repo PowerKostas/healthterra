@@ -25,14 +25,14 @@ class NotificationWorker(context: Context, params: WorkerParameters) : Coroutine
     // Only sends notifications between 12pm and 12am and only if the user hasn't completed the exercise goal
     override suspend fun doWork(): Result {
         val database = UserDatabase.getDatabase(applicationContext)
-        val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
+        val userTodayTrackings = database.todayTrackingsDao().getAll().first().firstOrNull()
         val userCharacteristics = database.characteristicsDao().getAll().first().firstOrNull()
 
-        if (userTrackings == null || userCharacteristics == null) {
+        if (userTodayTrackings == null || userCharacteristics == null) {
             return Result.success()
         }
 
-        if (LocalTime.now() >= LocalTime.of(12, 0) && userTrackings.exerciseProgress.sum() < calculateExerciseGoal(userCharacteristics)) {
+        if (LocalTime.now() >= LocalTime.of(12, 0) && userTodayTrackings.exerciseProgress.sum() < calculateExerciseGoal(userCharacteristics)) {
             sendNotification()
         }
 

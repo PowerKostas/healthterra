@@ -100,13 +100,13 @@ class StepTrackerService : Service(), SensorEventListener {
         serviceScope.launch {
             val database = UserDatabase.getDatabase(applicationContext)
             val userSettings = database.settingsDao().getAll().first().firstOrNull()
-            val userTrackings = database.trackingsDao().getAll().first().firstOrNull()
+            val userTodayTrackings = database.todayTrackingsDao().getAll().first().firstOrNull()
             val userCharacteristics = database.characteristicsDao().getAll().first().firstOrNull()
 
-            if (userSettings != null && userTrackings != null && userCharacteristics != null) {
+            if (userSettings != null && userTodayTrackings != null && userCharacteristics != null) {
                 isCacheInitialized = true
                 inMemoryLastSavedSteps = userSettings.lastSavedSteps
-                inMemoryStepsProgress = userTrackings.stepsProgress
+                inMemoryStepsProgress = userTodayTrackings.stepsProgress
                 inMemoryStepsGoal = calculateStepsGoal(userCharacteristics)
                 inMemoryTrackingDate = userSettings.lastSavedDate
                 userId = userSettings.userId
@@ -178,7 +178,7 @@ class StepTrackerService : Service(), SensorEventListener {
                 // Because StepTracker uses a stale in-memory version of the local database, only update the steps, not the other columns
                 val database = UserDatabase.getDatabase(applicationContext)
                 database.settingsDao().updateLastSavedSteps(uid, inMemoryLastSavedSteps)
-                database.trackingsDao().updateStepsProgress(uid, inMemoryStepsProgress)
+                database.todayTrackingsDao().updateStepsProgress(uid, inMemoryStepsProgress)
             }
         }
     }

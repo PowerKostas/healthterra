@@ -61,7 +61,7 @@ import com.healthterra.ui.screens.LeaderboardsScreen
 import com.healthterra.ui.screens.ProfileScreen
 import com.healthterra.ui.screens.StepsScreen
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
-import com.healthterra.ui.viewModels.TrackingsViewModel
+import com.healthterra.ui.viewModels.TodayTrackingsViewModel
 import kotlinx.coroutines.launch
 
 // Drawer menu is the central screen of the app. It has the Scaffold, the top bar that remains static and is in charge of switching the
@@ -70,9 +70,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun DrawerMenu() {
     // Initiates the database
-    val trackingsViewModel = viewModel<TrackingsViewModel>(factory = TrackingsViewModel.Factory)
-    val userTrackingsList by trackingsViewModel.trackings.collectAsState()
-    val userTrackings = userTrackingsList.firstOrNull()
+    val todayTrackingsViewModel = viewModel<TodayTrackingsViewModel>(factory = TodayTrackingsViewModel.Factory)
+    val userTodayTrackingsList by todayTrackingsViewModel.todayTrackings.collectAsState()
+    val userTodayTrackings = userTodayTrackingsList.firstOrNull()
 
     val characteristicsViewModel = viewModel<CharacteristicsViewModel>(factory = CharacteristicsViewModel.Factory)
     val userCharacteristicsList by characteristicsViewModel.characteristics.collectAsState()
@@ -253,19 +253,19 @@ fun DrawerMenu() {
                     }
 
                     composable("Water") {
-                        CategoriesScreen("Water", R.drawable.water, Color(0xFF2196F3), userTrackings?.waterProgress?.sum() ?: 0, calculateWaterGoal(userCharacteristics), "mL", listOf(R.drawable.water_low, R.drawable.water_full, R.drawable.water_bottle, R.drawable.water_bottle_large), listOf("+100mL", "+280mL", "+500mL", "+1000mL"), 12.sp)
+                        CategoriesScreen("Water", R.drawable.water, Color(0xFF2196F3), userTodayTrackings?.waterProgress?.sum() ?: 0, calculateWaterGoal(userCharacteristics), "mL", listOf(R.drawable.water_low, R.drawable.water_full, R.drawable.water_bottle, R.drawable.water_bottle_large), listOf("+100mL", "+280mL", "+500mL", "+1000mL"), 12.sp)
                     }
 
                     composable("Calories") {
-                        CategoriesScreen("Calories", R.drawable.calories, Color(0xFF8B4513), userTrackings?.caloriesProgress?.sum() ?: 0, calculateCaloriesGoal(userCharacteristics), "kcal", null, listOf("+10", "+100", "+1000"), 16.sp)
+                        CategoriesScreen("Calories", R.drawable.calories, Color(0xFF8B4513), userTodayTrackings?.caloriesProgress?.sum() ?: 0, calculateCaloriesGoal(userCharacteristics), "kcal", null, listOf("+10", "+100", "+1000"), 16.sp)
                     }
 
                     composable("Exercise") {
-                        CategoriesScreen("Exercise", R.drawable.exercise, Color.Black, userTrackings?.exerciseProgress?.sum() ?: 0, calculateExerciseGoal(userCharacteristics), "reps", null, listOf("+1", "+5", "+10"), 16.sp)
+                        CategoriesScreen("Exercise", R.drawable.exercise, Color.Black, userTodayTrackings?.exerciseProgress?.sum() ?: 0, calculateExerciseGoal(userCharacteristics), "reps", null, listOf("+1", "+5", "+10"), 16.sp)
                     }
 
                     composable("Steps") {
-                        StepsScreen(userTrackings?.stepsProgress ?: 0, calculateStepsGoal(userCharacteristics))
+                        StepsScreen(userTodayTrackings?.stepsProgress ?: 0, calculateStepsGoal(userCharacteristics))
                     }
 
                     composable("Profile") {

@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DailyTrackingsDao {
-    @Query("SELECT * FROM daily_trackings ORDER BY date DESC LIMIT :limit")
-    fun getDailyTrackings(limit: Int): Flow<List<DailyTrackings>>
+    @Query("SELECT * FROM daily_trackings ORDER BY date")
+    fun getDailyTrackings(): Flow<List<DailyTrackings>>
 
     @Query("SELECT * FROM daily_trackings WHERE date LIKE :yearMonth || '%'")
     fun getDailyTrackingsFromYearMonth(yearMonth: String): Flow<List<DailyTrackings>>
