@@ -53,8 +53,8 @@ import com.healthterra.helpers.generateRandomUsername
 import com.healthterra.services.FirebaseDeleteWorker
 import com.healthterra.services.roomDelete
 import com.healthterra.ui.components.general.ActionButton
+import com.healthterra.ui.components.general.CustomDropdownMenu
 import com.healthterra.ui.components.general.CustomSurface
-import com.healthterra.ui.components.general.DropdownMenu
 import com.healthterra.ui.components.general.InfoDialog
 import com.healthterra.ui.components.general.NumberTextField
 import com.healthterra.ui.components.general.RadioButtonGroup
@@ -206,7 +206,7 @@ fun ProfileScreen() {
                     }
                 )
 
-                DropdownMenu(
+                CustomDropdownMenu(
                     "Gender", listOf("Male", "Female"),
                     userCharacteristics.gender ?: ""
                 ) { newValue ->
@@ -271,7 +271,7 @@ fun ProfileScreen() {
                     onValueChange = { newValue -> weight = newValue }
                 )
 
-                DropdownMenu(
+                CustomDropdownMenu(
                     "Activity Level", listOf("Sedentary", "Moderate", "High"),
                     userCharacteristics.activityLevel ?: ""
                 ) { newValue ->

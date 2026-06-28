@@ -50,6 +50,7 @@ fun RadioButtonGroup(modifier: Modifier = Modifier, options: List<String>, selec
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
+                    .weight(1f)
                     .padding(8.dp)
 
                     // It makes the whole column selectable so the user doesn't have to precisely tap the tiny circle

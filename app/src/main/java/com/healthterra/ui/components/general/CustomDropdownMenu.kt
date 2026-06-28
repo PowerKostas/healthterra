@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 
 @ExperimentalMaterial3Api
 @Composable
-fun DropdownMenu(
+fun CustomDropdownMenu(
     text: String,
     options: List<String>,
     selectedValue: String,

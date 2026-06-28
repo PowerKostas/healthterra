@@ -16,9 +16,9 @@ fun colorCoding(goalsMetCount: Int, maxGoalsMetCount: Int): Color {
     return if (maxGoalsMetCount == 4) {
         when (goalsMetCount) {
             0 -> surfaceColor
-            1 -> if (isDark) Color(0xFF8B473D) else Color(0xFFD47A6A)
-            2 -> if (isDark) Color(0xFF9E7528) else Color(0xFFD4A352)
-            3 -> if (isDark) Color(0xFF4A7338) else Color(0xFF7FB069)
+            1 -> if (isDark) Color(0xFFB36733) else Color(0xFFDE8D54)
+            2 -> if (isDark) Color(0xFFAA7E35) else Color(0xFFD4A352)
+            3 -> if (isDark) Color(0xFF66823A) else Color(0xFFA8B862)
             else -> MaterialTheme.colorScheme.primary
         }
     }
