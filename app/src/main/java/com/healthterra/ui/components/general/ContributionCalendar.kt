@@ -1,12 +1,14 @@
 package com.healthterra.ui.components.general
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
@@ -14,20 +16,26 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import com.healthterra.data.entities.DailyTrackings
 import com.healthterra.helpers.colorCoding
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun ContributionCalendar(currentYearMonth: YearMonth, oldestYearMonth: YearMonth, contributionsMap: Map<String, Int>, maxGoalsMetCount: Int, onYearMonthChange: (YearMonth) -> Unit) {
+fun ContributionCalendar(currentYearMonth: YearMonth, oldestYearMonth: YearMonth, contributionsMap: Map<String, Int>, maxGoalsMetCount: Int, selectedSquareDate: String?, selectedSquareDetails: DailyTrackings?, onYearMonthChange: (YearMonth) -> Unit, onSquareClick: (String) -> Unit, onPopupDismiss: () -> Unit) {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
     // The component shows the day corresponding to every column, because every month starts with a different day, the order of the days needs
@@ -72,11 +80,62 @@ fun ContributionCalendar(currentYearMonth: YearMonth, oldestYearMonth: YearMonth
                                         .aspectRatio(1f)
                                         .clip(RoundedCornerShape(2.dp))
                                         .background(squareColor)
+                                        .clickable { onSquareClick(dateString) }
                                 ) {
                                     Text(
                                         text = (dayIndex + 1).toString(),
                                         style = MaterialTheme.typography.labelSmall
                                     )
+
+                                    // Clickable popup
+                                    if (dateString == selectedSquareDate) {
+                                        Popup(
+                                            alignment = Alignment.Center, // Popup opens directly over the square
+                                            onDismissRequest = onPopupDismiss,
+
+                                            // Because focusable is false, clicks outside the component go to onDismiss and clicks inside the
+                                            // component go to onSquareClick
+                                            properties = PopupProperties(focusable = false)
+                                        ) {
+                                            Surface(
+                                                shape = RoundedCornerShape(16.dp),
+                                                shadowElevation = 8.dp,
+                                                color = MaterialTheme.colorScheme.surfaceVariant
+                                            ) {
+                                                if (selectedSquareDetails != null) {
+                                                    Column(
+                                                        modifier = Modifier.padding(12.dp),
+                                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = dateString,
+                                                            fontWeight = FontWeight.Bold,
+                                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 14.sp),
+                                                            modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 2.dp)
+                                                        )
+
+                                                        Text("Water: ${selectedSquareDetails.waterProgress} ml", style = MaterialTheme.typography.labelSmall)
+                                                        Text("Calories: ${selectedSquareDetails.caloriesProgress} kcal", style = MaterialTheme.typography.labelSmall)
+                                                        Text("Exercise: ${selectedSquareDetails.exerciseProgress} reps", style = MaterialTheme.typography.labelSmall)
+                                                        Text("Steps: ${selectedSquareDetails.stepsProgress} steps", style = MaterialTheme.typography.labelSmall)
+                                                    }
+                                                }
+
+                                                else {
+                                                    Column(modifier = Modifier.padding(12.dp)) {
+                                                        Text(
+                                                            text = dateString,
+                                                            fontWeight = FontWeight.Bold,
+                                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 14.sp),
+                                                            modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 2.dp)
+                                                        )
+
+                                                        Text("No data recorded.", style = MaterialTheme.typography.labelSmall)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
 

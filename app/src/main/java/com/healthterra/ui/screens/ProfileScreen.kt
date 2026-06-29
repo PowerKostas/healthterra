@@ -60,6 +60,7 @@ import com.healthterra.ui.components.general.NumberTextField
 import com.healthterra.ui.components.general.RadioButtonGroup
 import com.healthterra.ui.components.screen.ProfilePicture
 import com.healthterra.ui.components.screen.WeightGoalSelector
+import com.healthterra.ui.viewModels.AchievementsViewModel
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.DailyTrackingsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
@@ -72,23 +73,21 @@ fun ProfileScreen() {
     val characteristicsViewModel: CharacteristicsViewModel = viewModel(factory = CharacteristicsViewModel.Factory)
     val userCharacteristicsList by characteristicsViewModel.characteristics.collectAsState()
     val userCharacteristics = userCharacteristicsList.firstOrNull()
-    val dailyTrackingsViewModel: DailyTrackingsViewModel = viewModel(factory = DailyTrackingsViewModel.Factory)
 
     // Uses the same instance of SettingsViewModel as MainActivity to fix bug on non-essential user settings Firestore syncing
     val context = LocalContext.current
     val activity = context as ComponentActivity
 
-    val settingsViewModel: SettingsViewModel = viewModel(
-        viewModelStoreOwner = activity,
-        factory = SettingsViewModel.Factory
-    )
-
+    val settingsViewModel: SettingsViewModel = viewModel(viewModelStoreOwner = activity, factory = SettingsViewModel.Factory)
     val userSettingsList by settingsViewModel.settings.collectAsState()
     val userSettings = userSettingsList.firstOrNull()
 
     val todayTrackingsViewModel: TodayTrackingsViewModel = viewModel(factory = TodayTrackingsViewModel.Factory)
     val userTodayTrackingsList by todayTrackingsViewModel.todayTrackings.collectAsState()
     val userTodayTrackings = userTodayTrackingsList.firstOrNull()
+
+    val dailyTrackingsViewModel: DailyTrackingsViewModel = viewModel(factory = DailyTrackingsViewModel.Factory)
+    val achievementsViewModel: AchievementsViewModel = viewModel(factory = AchievementsViewModel.Factory)
 
     // Waits for the database to load
     if (userCharacteristics == null || userSettings == null || userTodayTrackings == null) {
@@ -435,7 +434,7 @@ fun ProfileScreen() {
                 weight = ""
 
                 // UI and local database delete
-                roomDelete(characteristicsViewModel, settingsViewModel, todayTrackingsViewModel, dailyTrackingsViewModel, randomUsername, context)
+                roomDelete(characteristicsViewModel, settingsViewModel, todayTrackingsViewModel, dailyTrackingsViewModel, achievementsViewModel, randomUsername, context)
 
                 // Firebase delete, needs network
                 val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()

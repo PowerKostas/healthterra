@@ -1,11 +1,15 @@
 package com.healthterra.ui.components.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -115,8 +119,15 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Amount to ${selectedWeightGoal.lowercase()}")
-                    Text(text = "${selectedKgGoal.roundToInt()} kg")
+                    Text(
+                        text = "Amount to ${selectedWeightGoal.lowercase()}",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+
+                    Text(
+                        text = "${selectedKgGoal.roundToInt()} kg",
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
 
                 Slider(
@@ -131,7 +142,20 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                         SliderDefaults.Track(
                             sliderState = sliderState,
                             colors = customSliderColors,
-                            drawStopIndicator = null
+                            drawStopIndicator = null,
+                            modifier = Modifier.height(16.dp)
+                        )
+                    },
+
+                    thumb = {
+                        Box(
+                            modifier = Modifier
+                                .width(4.dp)
+                                .height(40.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(2.dp)
+                                )
                         )
                     },
 
@@ -145,8 +169,15 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Timeframe")
-                    Text(text = formatTimeframe(selectedDaysGoal))
+                    Text(
+                        text = "Timeframe",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+
+                    Text(
+                        text = formatTimeframe(selectedDaysGoal),
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
 
                 Slider(
@@ -161,7 +192,20 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
                         SliderDefaults.Track(
                             sliderState = sliderState,
                             colors = customSliderColors,
-                            drawStopIndicator = null
+                            drawStopIndicator = null,
+                            modifier = Modifier.height(16.dp)
+                        )
+                    },
+
+                    thumb = {
+                        Box(
+                            modifier = Modifier
+                                .width(4.dp)
+                                .height(40.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(2.dp)
+                                )
                         )
                     },
 
@@ -178,7 +222,10 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
 
             enabled = hasChanges,
         ) {
-            Text("Save Changes")
+            Text(
+                text = "Save Changes",
+                style = MaterialTheme.typography.labelSmall
+            )
         }
 
         if (!hasChanges) { // The messages only show when the save changes button has been pressed
@@ -186,7 +233,7 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
             if (showError) {
                 Text(
                     text = "To ensure safe calorie intake, your daily goal has been set to the recommended amount!",
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelSmall,
                     color = Color(0xFFE53935),
                     textAlign = TextAlign.Center
                 )
@@ -202,7 +249,7 @@ fun WeightGoalSelector(userCharacteristics: Characteristics, userSettings: Setti
 
                     Text(
                         text =  "You're all set! The weight goal plan will end on $formattedWeightGoalDate.",
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center
                     )

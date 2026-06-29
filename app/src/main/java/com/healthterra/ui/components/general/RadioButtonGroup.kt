@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -51,7 +52,7 @@ fun RadioButtonGroup(modifier: Modifier = Modifier, options: List<String>, selec
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .weight(1f)
-                    .padding(8.dp)
+                    .padding(vertical = 8.dp)
 
                     // It makes the whole column selectable so the user doesn't have to precisely tap the tiny circle
                     .selectable(
@@ -75,13 +76,22 @@ fun RadioButtonGroup(modifier: Modifier = Modifier, options: List<String>, selec
                     )
                 }
 
-                RadioButton(
-                    selected = (option == selectedOption),
-                    onClick = null // Set to null because the column handles the click
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    RadioButton(
+                        selected = (option == selectedOption),
+                        onClick = null, // Set to null because the column handles the click
+                        modifier = Modifier.scale(0.9f)
+                    )
 
-                if (showText) {
-                    Text(text = option)
+                    if (showText) {
+                        Text(
+                            text = option,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
             }
         }

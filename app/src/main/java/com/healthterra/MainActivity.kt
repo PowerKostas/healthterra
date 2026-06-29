@@ -35,16 +35,16 @@ import com.google.firebase.Firebase
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.initialize
 import com.healthterra.services.NotificationWorker
 import com.healthterra.services.StepTrackerService
 import com.healthterra.services.SyncDailyTrackingsWorker
 import com.healthterra.services.SyncUserWorker
+import com.healthterra.services.createInitialUserDocument
 import com.healthterra.services.performDailyMaintenance
 import com.healthterra.ui.components.central.DrawerMenu
 import com.healthterra.ui.themes.HealthterraTheme
+import com.healthterra.ui.viewModels.AchievementsViewModel
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
 import com.healthterra.ui.viewModels.TodayTrackingsViewModel
@@ -52,7 +52,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Duration
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
@@ -64,6 +63,7 @@ class MainActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels { SettingsViewModel.Factory }
     private val characteristicsViewModel: CharacteristicsViewModel by viewModels { CharacteristicsViewModel.Factory }
     private val todayTrackingsViewModel: TodayTrackingsViewModel by viewModels { TodayTrackingsViewModel.Factory }
+    private val achievementsViewModel: AchievementsViewModel by viewModels { AchievementsViewModel.Factory }
 
     // On first time open, the code doesn't wait for user input on the permissions dialog and the foreground service doesn't have the
     // permissions to run, to fix this, foreground service runs from here too
@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
                 userSettings.userId.let { uid ->
                     characteristicsViewModel.initializeUserCharacteristics(uid)
                     todayTrackingsViewModel.initializeUserTodayTrackings(uid)
+                    achievementsViewModel.initializeUserAchievements(uid)
                 }
             }
 
@@ -197,7 +198,7 @@ class MainActivity : ComponentActivity() {
         super.onStop()
 
         // If there was a change, syncs non-essential user data on stop to avoid many writes
-        if (settingsViewModel.pendingSync) {
+        if (settingsViewModel.pendingSync || achievementsViewModel.pendingSync) {
             val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
             val syncRequest = OneTimeWorkRequestBuilder<SyncUserWorker>()
@@ -211,6 +212,7 @@ class MainActivity : ComponentActivity() {
             )
 
             settingsViewModel.markSyncHandled()
+            achievementsViewModel.markSyncHandled()
         }
     }
 
@@ -249,33 +251,12 @@ class MainActivity : ComponentActivity() {
         )
 
         // Authenticates the user anonymously to Firebase when the app first opens, if he doesn't already have a UID, also initializes the
-        // according users document
+        // according user document
         if (Firebase.auth.currentUser == null) {
             Firebase.auth.signInAnonymously().addOnSuccessListener { authResult ->
                 val uid = authResult.user?.uid
                 if (uid != null) {
-                    val initialUserData = mapOf(
-                        "activityLevel" to null,
-                        "age" to null,
-                        "appearance" to "Light",
-                        "daysGoal" to 0,
-                        "gender" to null,
-                        "height" to null,
-                        "initialWeightGoalDate" to null,
-                        "kgGoal" to 0,
-                        "lastSavedDate" to LocalDate.now().toString(),
-                        "profilePictureString" to profilePictureString,
-                        "stepTracking" to "Enabled",
-                        "username" to username,
-                        "weight" to null,
-                        "weightGoal" to "Maintain",
-                        "leaderboardsVisibility" to "Anonymous"
-                    )
-
-                    FirebaseFirestore.getInstance()
-                        .collection("users")
-                        .document(uid)
-                        .set(initialUserData, SetOptions.merge())
+                    createInitialUserDocument(uid, username, profilePictureString)
                 }
             }
         }

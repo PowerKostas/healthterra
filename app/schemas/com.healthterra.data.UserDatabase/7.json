@@ -1,0 +1,434 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "c3adfa254212bb53814668565e157726",
+    "entities": [
+      {
+        "tableName": "settings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `profile_picture_string` TEXT NOT NULL, `username` TEXT NOT NULL, `initial_weight_goal_date` TEXT, `appearance` TEXT NOT NULL, `step_tracking` TEXT NOT NULL, `last_saved_date` TEXT NOT NULL, `last_saved_steps` INTEGER NOT NULL, `show_mandatory_dialog` INTEGER NOT NULL DEFAULT 1, `leaderboards_visibility` TEXT NOT NULL DEFAULT 'Anonymous')",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profilePictureString",
+            "columnName": "profile_picture_string",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "username",
+            "columnName": "username",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "initialWeightGoalDate",
+            "columnName": "initial_weight_goal_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "appearance",
+            "columnName": "appearance",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepTracking",
+            "columnName": "step_tracking",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSavedDate",
+            "columnName": "last_saved_date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSavedSteps",
+            "columnName": "last_saved_steps",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "showMandatoryDialog",
+            "columnName": "show_mandatory_dialog",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "leaderboardsVisibility",
+            "columnName": "leaderboards_visibility",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'Anonymous'"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "userId"
+          ]
+        }
+      },
+      {
+        "tableName": "characteristics",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `gender` TEXT, `age` REAL, `height` REAL, `weight` REAL, `activity_level` TEXT, `weight_goal` TEXT NOT NULL, `kg_goal` INTEGER NOT NULL, `days_goal` INTEGER NOT NULL, PRIMARY KEY(`userId`), FOREIGN KEY(`userId`) REFERENCES `settings`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gender",
+            "columnName": "gender",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "age",
+            "columnName": "age",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "height",
+            "columnName": "height",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "weight",
+            "columnName": "weight",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "activityLevel",
+            "columnName": "activity_level",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "weightGoal",
+            "columnName": "weight_goal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kgGoal",
+            "columnName": "kg_goal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "daysGoal",
+            "columnName": "days_goal",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "userId"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "settings",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "userId"
+            ],
+            "referencedColumns": [
+              "userId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "today_trackings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `water_progress` TEXT NOT NULL, `calories_progress` TEXT NOT NULL, `exercise_progress` TEXT NOT NULL, `steps_progress` INTEGER NOT NULL, PRIMARY KEY(`userId`), FOREIGN KEY(`userId`) REFERENCES `settings`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "waterProgress",
+            "columnName": "water_progress",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "caloriesProgress",
+            "columnName": "calories_progress",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "exerciseProgress",
+            "columnName": "exercise_progress",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepsProgress",
+            "columnName": "steps_progress",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "userId"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "settings",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "userId"
+            ],
+            "referencedColumns": [
+              "userId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "daily_trackings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `date` TEXT NOT NULL, `water_progress` INTEGER NOT NULL, `calories_progress` INTEGER NOT NULL, `exercise_progress` INTEGER NOT NULL, `steps_progress` INTEGER NOT NULL, `water_goal` INTEGER NOT NULL, `calories_goal` INTEGER NOT NULL, `exercise_goal` INTEGER NOT NULL, `steps_goal` INTEGER NOT NULL, PRIMARY KEY(`userId`, `date`), FOREIGN KEY(`userId`) REFERENCES `settings`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "waterProgress",
+            "columnName": "water_progress",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "caloriesProgress",
+            "columnName": "calories_progress",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "exerciseProgress",
+            "columnName": "exercise_progress",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepsProgress",
+            "columnName": "steps_progress",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "waterGoal",
+            "columnName": "water_goal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "caloriesGoal",
+            "columnName": "calories_goal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "exerciseGoal",
+            "columnName": "exercise_goal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepsGoal",
+            "columnName": "steps_goal",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "userId",
+            "date"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "settings",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "userId"
+            ],
+            "referencedColumns": [
+              "userId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "achievements",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `max_steps` INTEGER NOT NULL, `active_water_streak` INTEGER NOT NULL, `active_calories_streak` INTEGER NOT NULL, `active_exercise_streak` INTEGER NOT NULL, `active_steps_streak` INTEGER NOT NULL, `max_water_streak` INTEGER NOT NULL, `max_calories_streak` INTEGER NOT NULL, `max_exercise_streak` INTEGER NOT NULL, `max_steps_streak` INTEGER NOT NULL, `appeared_on_water_leaderboards` INTEGER NOT NULL, `appeared_on_calories_leaderboards` INTEGER NOT NULL, `appeared_on_exercise_leaderboards` INTEGER NOT NULL, `appeared_on_steps_leaderboards` INTEGER NOT NULL, `appeared_on_total_steps_leaderboards` INTEGER NOT NULL, `appeared_on_healthiest_user` INTEGER NOT NULL, `secret` INTEGER NOT NULL, `early_playtester` INTEGER NOT NULL, PRIMARY KEY(`userId`), FOREIGN KEY(`userId`) REFERENCES `settings`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxSteps",
+            "columnName": "max_steps",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeWaterStreak",
+            "columnName": "active_water_streak",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeCaloriesStreak",
+            "columnName": "active_calories_streak",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeExerciseStreak",
+            "columnName": "active_exercise_streak",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeStepsStreak",
+            "columnName": "active_steps_streak",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxWaterStreak",
+            "columnName": "max_water_streak",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxCaloriesStreak",
+            "columnName": "max_calories_streak",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxExerciseStreak",
+            "columnName": "max_exercise_streak",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxStepsStreak",
+            "columnName": "max_steps_streak",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appearedOnWaterLeaderboards",
+            "columnName": "appeared_on_water_leaderboards",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appearedOnCaloriesLeaderboards",
+            "columnName": "appeared_on_calories_leaderboards",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appearedOnExerciseLeaderboards",
+            "columnName": "appeared_on_exercise_leaderboards",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appearedOnStepsLeaderboards",
+            "columnName": "appeared_on_steps_leaderboards",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appearedOnTotalStepsLeaderboards",
+            "columnName": "appeared_on_total_steps_leaderboards",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appearedOnHealthiestUser",
+            "columnName": "appeared_on_healthiest_user",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "secret",
+            "columnName": "secret",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "earlyPlaytester",
+            "columnName": "early_playtester",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "userId"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "settings",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "userId"
+            ],
+            "referencedColumns": [
+              "userId"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c3adfa254212bb53814668565e157726')"
+    ]
+  }
+}

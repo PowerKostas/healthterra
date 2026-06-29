@@ -2,17 +2,19 @@ package com.healthterra.services
 
 import android.content.Context
 import com.healthterra.helpers.generateRandomProfilePictureString
+import com.healthterra.ui.viewModels.AchievementsViewModel
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.DailyTrackingsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
 import com.healthterra.ui.viewModels.TodayTrackingsViewModel
 
-fun roomDelete(characteristicsViewModel: CharacteristicsViewModel, settingsViewModel: SettingsViewModel, todayTrackingsViewModel: TodayTrackingsViewModel, dailyTrackingsViewModel: DailyTrackingsViewModel, randomUsername: String, context: Context) {
+fun roomDelete(characteristicsViewModel: CharacteristicsViewModel, settingsViewModel: SettingsViewModel, todayTrackingsViewModel: TodayTrackingsViewModel, dailyTrackingsViewModel: DailyTrackingsViewModel, achievementsViewModel: AchievementsViewModel, randomUsername: String, context: Context) {
     val userCharacteristics = characteristicsViewModel.characteristics.value.firstOrNull()
     val userSettings = settingsViewModel.settings.value.firstOrNull()
     val userTodayTrackings = todayTrackingsViewModel.todayTrackings.value.firstOrNull()
+    val userAchievements = achievementsViewModel.achievements.value.firstOrNull()
 
-    if (userCharacteristics == null || userSettings == null || userTodayTrackings == null) {
+    if (userCharacteristics == null || userSettings == null || userTodayTrackings == null || userAchievements == null) {
         return
     }
 
@@ -51,4 +53,26 @@ fun roomDelete(characteristicsViewModel: CharacteristicsViewModel, settingsViewM
     )
 
     dailyTrackingsViewModel.deleteUserDailyTrackings()
+
+    achievementsViewModel.updateUserAchievements(
+        userAchievements.copy(
+            maxSteps = 0,
+            activeWaterStreak = 0,
+            activeCaloriesStreak = 0,
+            activeExerciseStreak = 0,
+            activeStepsStreak = 0,
+            maxWaterStreak = 0,
+            maxCaloriesStreak = 0,
+            maxExerciseStreak = 0,
+            maxStepsStreak = 0,
+            appearedOnWaterLeaderboards = false,
+            appearedOnCaloriesLeaderboards = false,
+            appearedOnExerciseLeaderboards = false,
+            appearedOnStepsLeaderboards = false,
+            appearedOnTotalStepsLeaderboards = false,
+            appearedOnHealthiestUser = false,
+            secret = false,
+            earlyPlaytester = false
+        )
+    )
 }

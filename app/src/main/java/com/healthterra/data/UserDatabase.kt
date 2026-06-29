@@ -3,15 +3,15 @@ package com.healthterra.data
 import android.content.Context
 import androidx.room.AutoMigration
 import androidx.room.Database
-import androidx.room.RenameTable
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.AutoMigrationSpec
+import com.healthterra.data.daos.AchievementsDao
 import com.healthterra.data.daos.CharacteristicsDao
 import com.healthterra.data.daos.DailyTrackingsDao
 import com.healthterra.data.daos.SettingsDao
 import com.healthterra.data.daos.TodayTrackingsDao
+import com.healthterra.data.entities.Achievements
 import com.healthterra.data.entities.Characteristics
 import com.healthterra.data.entities.DailyTrackings
 import com.healthterra.data.entities.Settings
@@ -22,24 +22,27 @@ import com.healthterra.data.entities.TodayTrackings
 // accidentally do, just delete the app in the emulator and redo the process
 @TypeConverters(Converters::class) // Automatically runs the converters, I can just use the lists as lists in code now
 @Database(
-    entities = [Settings::class, Characteristics::class, TodayTrackings::class, DailyTrackings::class],
-    version = 6,
+    entities = [Settings::class, Characteristics::class, TodayTrackings::class, DailyTrackings::class, Achievements::class],
+    version = 7,
     autoMigrations = [
-        //AutoMigration(from = 5, to = 6),
-        AutoMigration(from = 5, to = 6, spec = UserDatabase.MyRenameMigration::class)
+        AutoMigration(from = 6, to = 7),
+        //AutoMigration(from = 7, to = 8, spec = UserDatabase.MyRenameMigration::class)
     ]
 )
 abstract class UserDatabase : RoomDatabase() {
+    /*
     @RenameTable(
         fromTableName = "trackings",
         toTableName = "today_trackings"
     )
     class MyRenameMigration : AutoMigrationSpec
+    */
 
     abstract fun characteristicsDao(): CharacteristicsDao
     abstract fun settingsDao(): SettingsDao
     abstract fun todayTrackingsDao(): TodayTrackingsDao
     abstract fun dailyTrackingsDao(): DailyTrackingsDao
+    abstract fun achievementsDao(): AchievementsDao
 
     companion object {
         @Volatile

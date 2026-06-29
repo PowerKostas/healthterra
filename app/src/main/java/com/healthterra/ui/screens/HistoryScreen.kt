@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.healthterra.R
+import com.healthterra.data.entities.DailyTrackings
 import com.healthterra.helpers.generateContributionsMap
 import com.healthterra.helpers.processGraphData
 import com.healthterra.ui.components.general.ContributionCalendar
@@ -36,6 +37,7 @@ import com.healthterra.ui.components.screen.ColorCodingHelper
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.DailyTrackingsViewModel
 import com.healthterra.ui.viewModels.TodayTrackingsViewModel
+import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
@@ -83,6 +85,36 @@ fun HistoryScreen() {
         } ?: YearMonth.now()
     }
 
+    var selectedSquareDate by remember { mutableStateOf<String?>(null) }
+
+    // Finds the tracking data for the selected square date, today's data is separate
+    val selectedSquareDetails = remember(selectedSquareDate, monthlyDailyTrackingsList, userTodayTrackings) {
+        val safeDate = selectedSquareDate ?: LocalDate.now().toString()
+
+        if (selectedSquareDate == null) {
+            null
+        }
+
+        else {
+            if (LocalDate.now().toString() == selectedSquareDate) {
+                userTodayTrackings?.let { today ->
+                    DailyTrackings(
+                        userId = today.userId,
+                        date = safeDate,
+                        waterProgress = today.waterProgress.sum(),
+                        caloriesProgress = today.caloriesProgress.sum(),
+                        exerciseProgress = today.exerciseProgress.sum(),
+                        stepsProgress = today.stepsProgress
+                    )
+                }
+            }
+
+            else {
+                monthlyDailyTrackingsList.find { it.date == selectedSquareDate }
+            }
+        }
+    }
+
     // Data preparation for the graphs, works similar to the ContributionCalendar one above
     val dailyTrackingsList by dailyTrackingsViewModel.dailyTrackings().collectAsState(initial = emptyList())
     var selectedGraphRange by remember { mutableStateOf("Week") }
@@ -116,7 +148,11 @@ fun HistoryScreen() {
                     oldestYearMonth = oldestYearMonth,
                     contributionsMap = categoryContributionsMap,
                     maxGoalsMetCount = maxGoalsMetCount,
-                    onYearMonthChange = { newYearMonth -> currentYearMonth = newYearMonth }
+                    selectedSquareDate = selectedSquareDate,
+                    selectedSquareDetails = selectedSquareDetails,
+                    onYearMonthChange = { newYearMonth -> currentYearMonth = newYearMonth },
+                    onSquareClick = { clickedSquareDate -> selectedSquareDate = clickedSquareDate },
+                    onPopupDismiss = { selectedSquareDate = null }
                 )
 
                 Row(
