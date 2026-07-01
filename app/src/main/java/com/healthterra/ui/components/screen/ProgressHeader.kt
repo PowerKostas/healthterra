@@ -27,7 +27,7 @@ fun ProgressHeader(color: Color, completedGoals: Int, allGoals: Int) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.primary)
-                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .padding(16.dp)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(

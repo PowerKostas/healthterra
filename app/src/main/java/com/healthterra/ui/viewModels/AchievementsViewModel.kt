@@ -44,25 +44,9 @@ class AchievementsViewModel(private val achievementsDao: AchievementsDao) : View
         }
     }
 
-    var pendingSync: Boolean = false
-        private set
-
     fun updateUserAchievements(newAchievements: Achievements) {
         viewModelScope.launch {
-            val oldAchievements = achievements.value.firstOrNull()
             achievementsDao.update(newAchievements)
-
-            if (oldAchievements == null) {
-                return@launch
-            }
-
-            if (oldAchievements != newAchievements) {
-                pendingSync = true
-            }
         }
-    }
-
-    fun markSyncHandled() {
-        pendingSync = false
     }
 }

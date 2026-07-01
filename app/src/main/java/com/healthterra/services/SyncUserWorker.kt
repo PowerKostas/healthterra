@@ -19,9 +19,8 @@ class SyncUserWorker(appContext: Context, workerParams: WorkerParameters) : Coro
         return try {
             val database = UserDatabase.getDatabase(applicationContext)
             val userSettings = database.settingsDao().getAll().first().firstOrNull() ?: return Result.success()
-            val userAchievements = database.achievementsDao().getAll().first().firstOrNull() ?: return Result.success()
 
-            val userUpdateData = mutableMapOf<String, Any?>(
+            val updateData = mutableMapOf<String, Any?>(
                 "profilePictureString" to userSettings.profilePictureString,
                 "username" to userSettings.username,
                 "appearance" to userSettings.appearance,
@@ -31,33 +30,10 @@ class SyncUserWorker(appContext: Context, workerParams: WorkerParameters) : Coro
                 "leaderboardsVisibility" to userSettings.leaderboardsVisibility
             )
 
-            val achievementsUpdateData = mapOf(
-                "maxSteps" to userAchievements.maxSteps,
-                "activeWaterStreak" to userAchievements.activeWaterStreak,
-                "activeCaloriesStreak" to userAchievements.activeCaloriesStreak,
-                "activeExerciseStreak" to userAchievements.activeExerciseStreak,
-                "activeStepsStreak" to userAchievements.activeStepsStreak,
-                "maxWaterStreak" to userAchievements.maxWaterStreak,
-                "maxCaloriesStreak" to userAchievements.maxCaloriesStreak,
-                "maxExerciseStreak" to userAchievements.maxExerciseStreak,
-                "maxStepsStreak" to userAchievements.maxStepsStreak,
-                "appearedOnWaterLeaderboards" to userAchievements.appearedOnWaterLeaderboards,
-                "appearedOnCaloriesLeaderboards" to userAchievements.appearedOnCaloriesLeaderboards,
-                "appearedOnExerciseLeaderboards" to userAchievements.appearedOnExerciseLeaderboards,
-                "appearedOnStepsLeaderboards" to userAchievements.appearedOnStepsLeaderboards,
-                "appearedOnTotalStepsLeaderboards" to userAchievements.appearedOnTotalStepsLeaderboards,
-                "appearedOnHealthiestUser" to userAchievements.appearedOnHealthiestUser,
-                "secret" to userAchievements.secret,
-                "earlyPlaytester" to userAchievements.earlyPlaytester
-            )
-
-            // Achievements data is nested inside one field in the user's document
-            userUpdateData["achievements"] = achievementsUpdateData
-
             FirebaseFirestore.getInstance()
                 .collection("users")
                 .document(uid)
-                .set(userUpdateData, SetOptions.merge())
+                .set(updateData, SetOptions.merge())
                 .await()
 
             Result.success()

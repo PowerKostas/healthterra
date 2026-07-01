@@ -198,7 +198,7 @@ class MainActivity : ComponentActivity() {
         super.onStop()
 
         // If there was a change, syncs non-essential user data on stop to avoid many writes
-        if (settingsViewModel.pendingSync || achievementsViewModel.pendingSync) {
+        if (settingsViewModel.pendingSync) {
             val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
             val syncRequest = OneTimeWorkRequestBuilder<SyncUserWorker>()
@@ -212,7 +212,6 @@ class MainActivity : ComponentActivity() {
             )
 
             settingsViewModel.markSyncHandled()
-            achievementsViewModel.markSyncHandled()
         }
     }
 

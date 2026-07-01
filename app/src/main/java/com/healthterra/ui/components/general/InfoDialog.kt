@@ -2,7 +2,6 @@ package com.healthterra.ui.components.general
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -60,10 +59,7 @@ fun InfoDialog(icon: ImageVector?, iconColour: Color, title: String?, text: Anno
         },
 
         confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
-            ) {
+            TextButton(onClick = onConfirm) {
                 Text(
                     text = confirmText,
                     fontWeight = FontWeight.Bold
@@ -73,10 +69,7 @@ fun InfoDialog(icon: ImageVector?, iconColour: Color, title: String?, text: Anno
 
         dismissButton = dismissText?.let { safeDismissText ->
             {
-                TextButton(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
-                ) {
+                TextButton(onClick = onDismiss) {
                     Text(
                         text = safeDismissText,
                         fontWeight = FontWeight.Bold

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "c3adfa254212bb53814668565e157726",
+    "identityHash": "146d4eaa4de296a866786c95f8334186",
     "entities": [
       {
         "tableName": "settings",
@@ -294,65 +294,11 @@
       },
       {
         "tableName": "achievements",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `max_steps` INTEGER NOT NULL, `active_water_streak` INTEGER NOT NULL, `active_calories_streak` INTEGER NOT NULL, `active_exercise_streak` INTEGER NOT NULL, `active_steps_streak` INTEGER NOT NULL, `max_water_streak` INTEGER NOT NULL, `max_calories_streak` INTEGER NOT NULL, `max_exercise_streak` INTEGER NOT NULL, `max_steps_streak` INTEGER NOT NULL, `appeared_on_water_leaderboards` INTEGER NOT NULL, `appeared_on_calories_leaderboards` INTEGER NOT NULL, `appeared_on_exercise_leaderboards` INTEGER NOT NULL, `appeared_on_steps_leaderboards` INTEGER NOT NULL, `appeared_on_total_steps_leaderboards` INTEGER NOT NULL, `appeared_on_healthiest_user` INTEGER NOT NULL, `secret` INTEGER NOT NULL, `early_playtester` INTEGER NOT NULL, PRIMARY KEY(`userId`), FOREIGN KEY(`userId`) REFERENCES `settings`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `appeared_on_water_leaderboards` INTEGER NOT NULL, `appeared_on_calories_leaderboards` INTEGER NOT NULL, `appeared_on_exercise_leaderboards` INTEGER NOT NULL, `appeared_on_steps_leaderboards` INTEGER NOT NULL, `appeared_on_total_steps_leaderboards` INTEGER NOT NULL, `appeared_on_healthiest_user` INTEGER NOT NULL, `secret` INTEGER NOT NULL, PRIMARY KEY(`userId`), FOREIGN KEY(`userId`) REFERENCES `settings`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "userId",
             "columnName": "userId",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "maxSteps",
-            "columnName": "max_steps",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "activeWaterStreak",
-            "columnName": "active_water_streak",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "activeCaloriesStreak",
-            "columnName": "active_calories_streak",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "activeExerciseStreak",
-            "columnName": "active_exercise_streak",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "activeStepsStreak",
-            "columnName": "active_steps_streak",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "maxWaterStreak",
-            "columnName": "max_water_streak",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "maxCaloriesStreak",
-            "columnName": "max_calories_streak",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "maxExerciseStreak",
-            "columnName": "max_exercise_streak",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "maxStepsStreak",
-            "columnName": "max_steps_streak",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -397,12 +343,6 @@
             "columnName": "secret",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "earlyPlaytester",
-            "columnName": "early_playtester",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
@@ -428,7 +368,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c3adfa254212bb53814668565e157726')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '146d4eaa4de296a866786c95f8334186')"
     ]
   }
 }

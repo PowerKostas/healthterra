@@ -56,23 +56,13 @@ fun roomDelete(characteristicsViewModel: CharacteristicsViewModel, settingsViewM
 
     achievementsViewModel.updateUserAchievements(
         userAchievements.copy(
-            maxSteps = 0,
-            activeWaterStreak = 0,
-            activeCaloriesStreak = 0,
-            activeExerciseStreak = 0,
-            activeStepsStreak = 0,
-            maxWaterStreak = 0,
-            maxCaloriesStreak = 0,
-            maxExerciseStreak = 0,
-            maxStepsStreak = 0,
             appearedOnWaterLeaderboards = false,
             appearedOnCaloriesLeaderboards = false,
             appearedOnExerciseLeaderboards = false,
             appearedOnStepsLeaderboards = false,
             appearedOnTotalStepsLeaderboards = false,
             appearedOnHealthiestUser = false,
-            secret = false,
-            earlyPlaytester = false
+            secret = false
         )
     )
 }
