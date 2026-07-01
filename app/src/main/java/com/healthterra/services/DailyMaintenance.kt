@@ -20,6 +20,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+import kotlin.math.max
 
 // The function is triggered from onResume, performDailyMaintenanceAppActive and StepTracker. Because of Mutex, if multiple triggers fire
 // simultaneously, duplicates are put on hold, preventing race conditions. If it's a new day, it sends a final sync to Firestore and resets the
@@ -34,13 +36,15 @@ suspend fun performDailyMaintenance(context: Context) {
                 val settingsDao = database.settingsDao()
                 val characteristicsDao = database.characteristicsDao()
                 val dailyTrackingsDao = database.dailyTrackingsDao()
+                val achievementsDao = database.achievementsDao()
 
                 val userTodayTrackings = todayTrackingsDao.getAll().first().firstOrNull()
                 val userSettings = settingsDao.getAll().first().firstOrNull()
                 val userCharacteristics = characteristicsDao.getAll().first().firstOrNull()
+                val userAchievements = achievementsDao.getAll().first().firstOrNull()
 
                 // Triggers on a fresh install
-                if (userTodayTrackings == null || userSettings == null || userCharacteristics == null) {
+                if (userTodayTrackings == null || userSettings == null || userCharacteristics == null || userAchievements == null) {
                     return@withContext
                 }
 
@@ -83,6 +87,42 @@ suspend fun performDailyMaintenance(context: Context) {
                 )
 
                 dailyTrackingsDao.upsert(yesterdayTracking)
+
+                // Local sync for the achievements table, because it is updated at the end of the day, today trackings will also be used in
+                // the UI to keep the streaks real time
+                val maxSteps = max(userTodayTrackings.stepsProgress, userAchievements.maxSteps)
+
+                val isNextDay = ChronoUnit.DAYS.between(LocalDate.parse(lastSavedDate), LocalDate.now()) == 1L
+
+                // Calculates max streaks before applying any missing day penalties
+                val tempWaterStreak = if (waterProgress >= waterGoal) userAchievements.activeWaterStreak + 1 else 0
+                val tempCaloriesStreak = if (caloriesProgress >= caloriesGoal) userAchievements.activeCaloriesStreak + 1 else 0
+                val tempExerciseStreak = if (exerciseProgress >= exerciseGoal) userAchievements.activeExerciseStreak + 1 else 0
+                val tempStepsStreak = if (stepsProgress >= stepsGoal) userAchievements.activeStepsStreak + 1 else 0
+
+                val maxWaterStreak = max(tempWaterStreak, userAchievements.maxWaterStreak)
+                val maxCaloriesStreak = max(tempCaloriesStreak, userAchievements.maxCaloriesStreak)
+                val maxExerciseStreak = max(tempExerciseStreak, userAchievements.maxExerciseStreak)
+                val maxStepsStreak = max(tempStepsStreak, userAchievements.maxStepsStreak)
+
+                val activeWaterStreak = if (isNextDay) tempWaterStreak else 0
+                val activeCaloriesStreak = if (isNextDay) tempCaloriesStreak else 0
+                val activeExerciseStreak = if (isNextDay) tempExerciseStreak else 0
+                val activeStepsStreak = if (isNextDay) tempStepsStreak else 0
+
+                val updateAchievements = userAchievements.copy(
+                    maxSteps = maxSteps,
+                    activeWaterStreak = activeWaterStreak,
+                    activeCaloriesStreak = activeCaloriesStreak,
+                    activeExerciseStreak = activeExerciseStreak,
+                    activeStepsStreak = activeStepsStreak,
+                    maxWaterStreak = maxWaterStreak,
+                    maxCaloriesStreak = maxCaloriesStreak,
+                    maxExerciseStreak = maxExerciseStreak,
+                    maxStepsStreak = maxStepsStreak
+                )
+
+                achievementsDao.update(updateAchievements)
 
                 // Syncs trackings to Firestore to preserve data before the Room API reset, because the reset happens faster than the sync and
                 // to also handle multi-day offline syncing, the data is stored in the worker using snapshots, needs network

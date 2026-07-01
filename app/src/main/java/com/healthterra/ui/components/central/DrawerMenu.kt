@@ -273,7 +273,11 @@ fun DrawerMenu() {
                     }
 
                     composable("History") {
-                        HistoryScreen()
+                        HistoryScreen(
+                            onNavigate = { destinationScreen ->
+                                navController.navigate(destinationScreen)
+                            }
+                        )
                     }
 
                     composable("Achievements") {

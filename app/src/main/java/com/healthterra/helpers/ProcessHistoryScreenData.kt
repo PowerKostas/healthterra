@@ -30,6 +30,7 @@ fun generateContributionsMap(dailyTrackingsList: List<DailyTrackings>, userToday
         dailyTracking.date to goalsMetCount
     }.toMutableMap()
 
+    // Injects today's data to the daily trackings map
     if (userTodayTrackings != null && userCharacteristics != null) {
         val todayDate = LocalDate.now().toString()
 
@@ -65,9 +66,9 @@ fun generateContributionsMap(dailyTrackingsList: List<DailyTrackings>, userToday
 }
 
 
-fun processGraphData(dailyTrackingsList: List<DailyTrackings>, graphTimeRange: String, selectedCategory: String): Pair<List<Int>, List<String>> {
+fun processGraphData(dailyTrackingsList: List<DailyTrackings>, userTodayTrackings: TodayTrackings?, graphTimeRange: String, selectedCategory: String): Pair<List<Int>, List<String>> {
     val today = LocalDate.now()
-    if (dailyTrackingsList.isEmpty()) return Pair(emptyList(), emptyList())
+    if (dailyTrackingsList.isEmpty() && userTodayTrackings == null) return Pair(emptyList(), emptyList())
 
     // Date is the key, category progress is the value
     val getValue: (DailyTrackings) -> Int = when (selectedCategory) {
@@ -79,6 +80,18 @@ fun processGraphData(dailyTrackingsList: List<DailyTrackings>, graphTimeRange: S
 
     val categoryDailyTrackingsMap = dailyTrackingsList.associate {
         LocalDate.parse(it.date) to getValue(it)
+    }.toMutableMap()
+
+    // Injects today's data to the daily trackings map
+    if (userTodayTrackings != null) {
+        val todayProgress = when (selectedCategory) {
+            "Water" -> userTodayTrackings.waterProgress.sum()
+            "Calories" -> userTodayTrackings.caloriesProgress.sum()
+            "Exercise" -> userTodayTrackings.exerciseProgress.sum()
+            else -> userTodayTrackings.stepsProgress
+        }
+
+        categoryDailyTrackingsMap[today] = todayProgress
     }
 
     val values = mutableListOf<Int>()
@@ -108,8 +121,13 @@ fun processGraphData(dailyTrackingsList: List<DailyTrackings>, graphTimeRange: S
                 val dataInRange = (0..ChronoUnit.DAYS.between(currentStart, currentEnd))
                     .mapNotNull { categoryDailyTrackingsMap[currentStart.plusDays(it)] }
 
-                values.add(if (dataInRange.isNotEmpty()) dataInRange.average().toInt() else 0)
-                labels.add("${currentStart.format(formatter)} -\n${currentEnd.format(formatter)}")
+                val avg = if (dataInRange.isNotEmpty()) dataInRange.average() else 0.0
+
+                // Only adds the point to the graph if the average for the week is greater than 0
+                if (avg > 0.0) {
+                    values.add(avg.toInt())
+                    labels.add("${currentStart.format(formatter)} -\n${currentEnd.format(formatter)}")
+                }
 
                 currentStart = currentStart.plusDays(7)
             }

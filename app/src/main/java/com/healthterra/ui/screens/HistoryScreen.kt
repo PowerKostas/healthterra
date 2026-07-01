@@ -1,5 +1,6 @@
 package com.healthterra.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,8 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,19 +25,27 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.healthterra.R
 import com.healthterra.data.entities.DailyTrackings
+import com.healthterra.helpers.calculateCaloriesGoal
+import com.healthterra.helpers.calculateExerciseGoal
+import com.healthterra.helpers.calculateStepsGoal
+import com.healthterra.helpers.calculateWaterGoal
 import com.healthterra.helpers.generateContributionsMap
 import com.healthterra.helpers.processGraphData
 import com.healthterra.ui.components.general.ContributionCalendar
+import com.healthterra.ui.components.general.CustomSurface
 import com.healthterra.ui.components.general.DynamicLineGraph
 import com.healthterra.ui.components.general.PillButtonGroup
 import com.healthterra.ui.components.general.RadioButtonGroup
 import com.healthterra.ui.components.screen.ColorCodingHelper
+import com.healthterra.ui.viewModels.AchievementsViewModel
 import com.healthterra.ui.viewModels.CharacteristicsViewModel
 import com.healthterra.ui.viewModels.DailyTrackingsViewModel
 import com.healthterra.ui.viewModels.TodayTrackingsViewModel
@@ -42,7 +54,7 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun HistoryScreen() {
+fun HistoryScreen(onNavigate: (String) -> Unit = {}) {
     val dailyTrackingsViewModel: DailyTrackingsViewModel = viewModel(factory = DailyTrackingsViewModel.Factory)
 
     val todayTrackingsViewModel = viewModel<TodayTrackingsViewModel>(factory = TodayTrackingsViewModel.Factory)
@@ -52,6 +64,10 @@ fun HistoryScreen() {
     val characteristicsViewModel = viewModel<CharacteristicsViewModel>(factory = CharacteristicsViewModel.Factory)
     val userCharacteristicsList by characteristicsViewModel.characteristics.collectAsState()
     val userCharacteristics = userCharacteristicsList.firstOrNull()
+
+    val achievementsViewModel = viewModel<AchievementsViewModel>(factory = AchievementsViewModel.Factory)
+    val userAchievementsList by achievementsViewModel.achievements.collectAsState()
+    val userAchievements = userAchievementsList.firstOrNull()
 
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
@@ -121,9 +137,36 @@ fun HistoryScreen() {
     var selectedCategoryGraph by rememberSaveable { mutableStateOf("Steps") }
 
     // Returns a pair instead of a map because non-unique keys can happen
-    val (chartValues, chartLabels) = remember(dailyTrackingsList, selectedGraphRange, selectedCategoryGraph) {
-        processGraphData(dailyTrackingsList, selectedGraphRange, selectedCategoryGraph)
+    val (chartValues, chartLabels) = remember(dailyTrackingsList, userTodayTrackings, selectedGraphRange, selectedCategoryGraph) {
+        processGraphData(dailyTrackingsList, userTodayTrackings, selectedGraphRange, selectedCategoryGraph)
     }
+
+    val options = listOf("Combined", "Water", "Calories", "Exercise", "Steps")
+    val iconsList = listOf(R.drawable.combined, R.drawable.water, R.drawable.calories, R.drawable.exercise, R.drawable.steps)
+
+    // Injects today's data to the streaks
+    val goalMet = if (userTodayTrackings != null && userCharacteristics != null) {
+        listOf(
+            if (userTodayTrackings.waterProgress.sum() >= calculateWaterGoal(userCharacteristics)) 1 else 0,
+            if (userTodayTrackings.caloriesProgress.sum() >= calculateCaloriesGoal(userCharacteristics)) 1 else 0,
+            if (userTodayTrackings.exerciseProgress.sum() >= calculateExerciseGoal(userCharacteristics)) 1 else 0,
+            if (userTodayTrackings.stepsProgress >= calculateStepsGoal(userCharacteristics)) 1 else 0
+        )
+    } else listOf(0, 0, 0, 0)
+
+    val activeStreaks = listOf(
+        (userAchievements?.activeWaterStreak ?: 0) + goalMet[0],
+        (userAchievements?.activeCaloriesStreak ?: 0) + goalMet[1],
+        (userAchievements?.activeExerciseStreak ?: 0) + goalMet[2],
+        (userAchievements?.activeStepsStreak ?: 0) + goalMet[3]
+    )
+
+    val maxStreaks = listOf(
+        maxOf(activeStreaks[0], userAchievements?.maxWaterStreak ?: 0),
+        maxOf(activeStreaks[1], userAchievements?.maxCaloriesStreak ?: 0),
+        maxOf(activeStreaks[2], userAchievements?.maxExerciseStreak ?: 0),
+        maxOf(activeStreaks[3], userAchievements?.maxStepsStreak ?: 0)
+    )
 
 
     Column(
@@ -161,9 +204,9 @@ fun HistoryScreen() {
                 ) {
                     RadioButtonGroup(
                         modifier = Modifier.weight(1f),
-                        options = listOf("Combined", "Water", "Calories", "Exercise", "Steps"),
+                        options = options,
                         selectedOption = selectedCategoryContributionCalendar,
-                        iconsList = listOf(R.drawable.combined, R.drawable.water, R.drawable.calories, R.drawable.exercise, R.drawable.steps),
+                        iconsList = iconsList,
                         showText = false
                     ) { newCategory ->
                         selectedCategoryContributionCalendar = newCategory
@@ -179,11 +222,19 @@ fun HistoryScreen() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+                val graphTitle = when (selectedCategoryGraph) {
+                    "Water" -> "Water Graph (ml)"
+                    "Calories" -> "Calories Graph (kcal)"
+                    "Exercise" -> "Exercise Graph (reps)"
+                    else -> "Step Count Graph"
+                }
+
                 Text(
-                    text = "$selectedCategoryGraph Graph",
+                    text = graphTitle,
                     fontWeight = FontWeight.Bold
                 )
 
+                // Can't make a line graph if there is only one point
                 if (chartValues.size <= 1) {
                     // Matches the height of DynamicGraph
                     Box(
@@ -221,6 +272,98 @@ fun HistoryScreen() {
                     options = listOf("Week", "Month", "Year", "All Time"),
                     selectedRange = selectedGraphRange,
                     onOptionSelected = { selectedGraphRange = it }
+                )
+            }
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(32.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Your Streaks",
+                fontWeight = FontWeight.Bold
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                options.slice(1..4).forEachIndexed { index, option ->
+                    CustomSurface(startPadding = 0.dp, endPadding = 0.dp) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onNavigate(option) }
+                                .padding(20.dp)
+                        ) {
+                            // Icon and category name
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = iconsList[index + 1]),
+                                    contentDescription = option,
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier.size(24.dp)
+                                )
+
+                                Text(text = option, fontWeight = FontWeight.SemiBold)
+                            }
+
+                            // Active and best stats
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(24.dp)
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.width(48.dp)
+                                ) {
+                                    Text(text = activeStreaks[index].toString(), fontWeight = FontWeight.Bold)
+                                    Text(text = "Active", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                                }
+
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.width(48.dp)
+                                ) {
+                                    Text(text = maxStreaks[index].toString(), fontWeight = FontWeight.Bold)
+                                    Text(text = "Best", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(32.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Most Steps in a Day",
+                fontWeight = FontWeight.Bold
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.steps),
+                    contentDescription = "Steps",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(36.dp)
+                )
+
+                Text(
+                    text = userAchievements?.maxSteps.toString(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color(0xFFD4AF37),
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

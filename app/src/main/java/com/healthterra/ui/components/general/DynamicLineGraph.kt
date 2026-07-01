@@ -16,6 +16,7 @@ import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModel
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.compose.cartesian.data.LineCartesianLayerModel
 import com.patrykandpatrick.vico.compose.cartesian.layer.LineCartesianLayer
@@ -28,6 +29,10 @@ import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 
 @Composable
 fun DynamicLineGraph(values: List<Int>, labels: List<String>) {
+    // For the y-axis, calculates a dynamic max value that guarantees 5 integer intervals, minimum value is 20
+    val maxVal = values.maxOrNull() ?: 0
+    val calculatedMaxY = maxOf(20, ((maxVal + 3) / 4) * 4).toDouble()
+
     // Builds the Cartesian Data Model using the mapped values
     val chartModel = remember(values) {
         CartesianChartModel(
@@ -45,6 +50,7 @@ fun DynamicLineGraph(values: List<Int>, labels: List<String>) {
 
         chart = rememberCartesianChart(
             rememberLineCartesianLayer(
+                rangeProvider = CartesianLayerRangeProvider.fixed(minY = 0.0, maxY = calculatedMaxY),
                 lineProvider = LineCartesianLayer.LineProvider.series(
                     LineCartesianLayer.rememberLine(
                         // Makes the line 3 dp and uses the app's primary color
