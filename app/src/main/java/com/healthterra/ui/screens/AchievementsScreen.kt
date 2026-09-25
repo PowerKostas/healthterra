@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.healthterra.helpers.getAchievementsData
-import com.healthterra.ui.components.general.GenerateDailyTrackingsButton
 import com.healthterra.ui.components.screen.AchievementItem
 import com.healthterra.ui.viewModels.AchievementsViewModel
 import com.healthterra.ui.viewModels.SettingsViewModel
@@ -194,8 +193,6 @@ fun AchievementsScreen() {
                     items(achievementsData.impossible) { item -> AchievementItem(item) }
                 }
             }
-
-            GenerateDailyTrackingsButton(6)
         }
     }
 }
