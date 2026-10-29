@@ -45,82 +45,88 @@ suspend fun performDailyMaintenance(context: Context) {
                 }
 
                 // If it has already reset today, it doesn't reset again
-                if (LocalDate.now().toString() <= userSettings.lastSavedDate) {
+                val todayString = LocalDate.now().toString()
+                if (todayString == userSettings.lastSavedDate) {
                     return@withContext
                 }
 
-                // Sends a reset signal to the StepTrackerService
-                if (userSettings.stepTracking == "Enabled") {
-                    val resetIntent = Intent(context, StepTracker::class.java).apply {
-                        action = "RESET_STEPS_MIDNIGHT"
+                val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+
+                // Only archive and reset today's progress if lastSavedDate is actually in the past (not a future clock jump)
+                if (userSettings.lastSavedDate < todayString) {
+                    // Sends a reset signal to the StepTrackerService
+                    if (userSettings.stepTracking == "Enabled") {
+                        val resetIntent = Intent(context, StepTracker::class.java).apply {
+                            action = "RESET_STEPS_MIDNIGHT"
+                        }
+
+                        context.startService(resetIntent)
                     }
 
-                    context.startService(resetIntent)
+                    val waterGoal = calculateWaterGoal(userCharacteristics)
+                    val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
+                    val exerciseGoal = calculateExerciseGoal(userCharacteristics)
+                    val stepsGoal = calculateStepsGoal(userCharacteristics)
+                    val waterProgress = userTodayTrackings.waterProgress.sum()
+                    val caloriesProgress = userTodayTrackings.caloriesProgress.sum()
+                    val exerciseProgress = userTodayTrackings.exerciseProgress.sum()
+                    val stepsProgress = userTodayTrackings.stepsProgress
+                    val caloriesBurned = userTodayTrackings.caloriesBurned
+                    val lastSavedDate = userSettings.lastSavedDate
+
+                    // Local sync for the daily trackings table
+                    val yesterdayTracking = DailyTrackings(
+                        userId = userTodayTrackings.userId,
+                        date = lastSavedDate,
+                        waterProgress = waterProgress,
+                        caloriesProgress = caloriesProgress,
+                        exerciseProgress = exerciseProgress,
+                        stepsProgress = stepsProgress,
+                        waterGoal = waterGoal,
+                        caloriesGoal = caloriesGoal,
+                        exerciseGoal = exerciseGoal,
+                        stepsGoal = stepsGoal,
+                        caloriesBurned = caloriesBurned
+                    )
+
+                    dailyTrackingsDao.upsert(yesterdayTracking)
+
+                    // Syncs trackings to Firestore to preserve data before the Room API reset, because the reset happens faster than the sync and
+                    // to also handle multi-day offline syncing, the data is stored in the worker using snapshots, needs network
+                    val syncRequest = OneTimeWorkRequestBuilder<SyncDailyTrackingsWorker>()
+                        .setConstraints(constraints)
+                        .setInputData(workDataOf(
+                            "snapshot_water_progress" to waterProgress,
+                            "snapshot_calories_progress" to caloriesProgress,
+                            "snapshot_exercise_progress" to exerciseProgress,
+                            "snapshot_steps_progress" to stepsProgress,
+                            "snapshot_water_goal" to waterGoal,
+                            "snapshot_calories_goal" to caloriesGoal,
+                            "snapshot_exercise_goal" to exerciseGoal,
+                            "snapshot_steps_goal" to stepsGoal,
+                            "snapshot_date" to lastSavedDate // Can't use LocalDate.now() because the function runs on a new day
+                        ))
+                        .build()
+
+                    WorkManager.getInstance(context).enqueueUniqueWork(
+                        "SyncDailyTrackingsWorker_${userSettings.lastSavedDate}", // Shared id with DailyMaintenance because they use the same worker
+                        ExistingWorkPolicy.REPLACE,
+                        syncRequest
+                    )
+
+                    val updateUserTodayTrackings = userTodayTrackings.copy(
+                        waterProgress = emptyList(),
+                        caloriesProgress = emptyList(),
+                        exerciseProgress = emptyList(),
+                        stepsProgress = 0,
+                        caloriesBurned = 0
+                    )
+
+                    todayTrackingsDao.update(updateUserTodayTrackings)
                 }
 
-                val waterGoal = calculateWaterGoal(userCharacteristics)
-                val caloriesGoal = calculateCaloriesGoal(userCharacteristics)
-                val exerciseGoal = calculateExerciseGoal(userCharacteristics)
-                val stepsGoal = calculateStepsGoal(userCharacteristics)
-                val waterProgress = userTodayTrackings.waterProgress.sum()
-                val caloriesProgress = userTodayTrackings.caloriesProgress.sum()
-                val exerciseProgress = userTodayTrackings.exerciseProgress.sum()
-                val stepsProgress = userTodayTrackings.stepsProgress
-                val caloriesBurned = userTodayTrackings.caloriesBurned
-                val lastSavedDate = userSettings.lastSavedDate
-
-                // Local sync for the daily trackings table
-                val yesterdayTracking = DailyTrackings(
-                    userId = userTodayTrackings.userId,
-                    date = lastSavedDate,
-                    waterProgress = waterProgress,
-                    caloriesProgress = caloriesProgress,
-                    exerciseProgress = exerciseProgress,
-                    stepsProgress = stepsProgress,
-                    waterGoal = waterGoal,
-                    caloriesGoal = caloriesGoal,
-                    exerciseGoal = exerciseGoal,
-                    stepsGoal = stepsGoal,
-                    caloriesBurned = caloriesBurned
-                )
-
-                dailyTrackingsDao.upsert(yesterdayTracking)
-
-                // Syncs trackings to Firestore to preserve data before the Room API reset, because the reset happens faster than the sync and
-                // to also handle multi-day offline syncing, the data is stored in the worker using snapshots, needs network
-                val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-                val syncRequest = OneTimeWorkRequestBuilder<SyncDailyTrackingsWorker>()
-                    .setConstraints(constraints)
-                    .setInputData(workDataOf(
-                        "snapshot_water_progress" to waterProgress,
-                        "snapshot_calories_progress" to caloriesProgress,
-                        "snapshot_exercise_progress" to exerciseProgress,
-                        "snapshot_steps_progress" to stepsProgress,
-                        "snapshot_water_goal" to waterGoal,
-                        "snapshot_calories_goal" to caloriesGoal,
-                        "snapshot_exercise_goal" to exerciseGoal,
-                        "snapshot_steps_goal" to stepsGoal,
-                        "snapshot_date" to lastSavedDate // Can't use LocalDate.now() because the function runs on a new day
-                    ))
-                    .build()
-
-                WorkManager.getInstance(context).enqueueUniqueWork(
-                    "SyncDailyTrackingsWorker_${userSettings.lastSavedDate}", // Shared id with DailyMaintenance because they use the same worker
-                    ExistingWorkPolicy.REPLACE,
-                    syncRequest
-                )
-
-                val updateUserTodayTrackings = userTodayTrackings.copy(
-                    waterProgress = emptyList(),
-                    caloriesProgress = emptyList(),
-                    exerciseProgress = emptyList(),
-                    stepsProgress = 0,
-                    caloriesBurned = 0
-                )
-
-                todayTrackingsDao.update(updateUserTodayTrackings)
-
-                val updateUserSettings = userSettings.copy(lastSavedDate = LocalDate.now().toString())
+                // Always update lastSavedDate to today (heals future dates too) and sync to Firestore
+                val updateUserSettings = userSettings.copy(lastSavedDate = todayString)
                 settingsDao.update(updateUserSettings)
 
                 val syncUserRequest = OneTimeWorkRequestBuilder<SyncUserWorker>()
