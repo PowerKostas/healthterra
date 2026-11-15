@@ -189,34 +189,34 @@ fun CategoriesScreen(categoryName: String, iconId: Int, progressBarColour: Color
             modifier = Modifier.size(200.dp)
         )
 
-        if (categoryName == "Calories") {
-            // It does +-10% of the goal because calories use a range
-            val minValue = roundValue((categoryGoal * 0.9).roundToInt())
-            val maxValue = roundValue((categoryGoal * 1.1).roundToInt())
+        val isCalories = categoryName == "Calories"
 
-            val textColour = if (categoryProgress in minValue..maxValue) Color(0xFF4CAF50) else Color(0xFFE53935)
-            val annotatedText = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = textColour)) {
-                    append(categoryProgress.toString())
-                }
+        // The calories category uses a +-10% range, the others just have a minimum goal
+        val minValue = if (isCalories) roundValue((categoryGoal * 0.9).roundToInt()) else categoryGoal
+        val maxValue = if (isCalories) roundValue((categoryGoal * 1.1).roundToInt()) else null
 
-                append(" / $minValue-$maxValue $metric")
+        val goalReached = if (maxValue != null) categoryProgress in minValue..maxValue else categoryProgress >= minValue
+        val textColour = if (goalReached) Color(0xFF4CAF50) else Color(0xFFE53935)
+        val goalText = if (maxValue != null) "$minValue-$maxValue" else "$categoryGoal"
+
+        val annotatedText = buildAnnotatedString {
+            withStyle(style = SpanStyle(color = textColour)) {
+                append(categoryProgress.toString())
             }
 
-            Text(
-                text = annotatedText,
-                style = MaterialTheme.typography.titleLarge
-            )
+            append(" / $goalText $metric")
+        }
 
-            BulletGraph(categoryProgress, minValue, maxValue, progressBarColour)
+        Text(
+            text = annotatedText,
+            style = MaterialTheme.typography.titleLarge
+        )
+
+        if (isCalories) {
+            BulletGraph(categoryProgress, minValue, maxValue!!, progressBarColour)
         }
 
         else {
-            Text(
-                text = "$categoryProgress / $categoryGoal $metric",
-                style = MaterialTheme.typography.titleLarge
-            )
-
             ProgressBar(20.dp, progressBarColour, categoryProgress.toFloat() / categoryGoal)
         }
 

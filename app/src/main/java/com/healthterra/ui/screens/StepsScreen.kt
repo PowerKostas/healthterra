@@ -109,8 +109,19 @@ fun StepsScreen(categoryProgress: Int, categoryGoal: Int) {
             else -> categoryGoal + (10 - remainder)
         }
 
+        val goalReached = categoryProgress >= roundedCategoryGoal
+        val progressColour = if (goalReached) Color(0xFF4CAF50) else Color(0xFFE53935)
+
+        val progressText = buildAnnotatedString {
+            withStyle(style = SpanStyle(color = progressColour)) {
+                append(categoryProgress.toString())
+            }
+
+            append(" / $roundedCategoryGoal steps")
+        }
+
         Text(
-            text = "$categoryProgress / $roundedCategoryGoal steps",
+            text = progressText,
             style = MaterialTheme.typography.titleLarge
         )
 
